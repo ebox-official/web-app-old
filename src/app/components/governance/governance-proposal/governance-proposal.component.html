@@ -1,106 +1,82 @@
-<div
-  [class.bg-white]="!hasExpired && !proposal.hasVoted"
-  [class.bg-disabled]="hasExpired || proposal.hasVoted"
-  [class.text-muted]="hasExpired || proposal.hasVoted"
-  class="rounded-alot p-3"
+<ng-container
+  *ngIf="{
+    isAppReady: contractServ.isAppReady$ | async,
+    selectedAccount: contractServ.selectedAccount$ | async
+  }"
 >
-  <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
-    <div class="display-5 mb-3 mb-md-0">Voting {{ proposal.n }}</div>
-    <div class="text-md-end">
-      <div class="mb-2">
-        <div class="fs-5">Starts</div>
-        <small>{{ startDatetime }}</small>
-      </div>
-      <div>
-        <div class="fs-5">Ends</div>
-        <small>{{ endDatetime }}</small>
-      </div>
-    </div>
-  </div>
-
-  <div
-    [class.bg-completed]="hasExpired || proposal.hasVoted"
-    class="bg-eboxdark rounded-alot p-3 lead text-white"
-  >
-    <div class="col-12 col-md-10">{{ proposal.question }}</div>
-    <div class="p-3">
-      <div
-        *ngFor="let answer of proposal.answers; let i = index"
-        class="form-check"
-      >
-        <input
-          class="form-check-input"
-          type="radio"
-          (change)="selectedChoice = $event.target.value"
-          [name]="proposalId + '_answers'"
-          [value]="i + 1"
-          [disabled]="
-            hasExpired ||
-            !(contractServ.isAppReady$ | async) ||
-            proposal.hasVoted ||
-            !proposal.isEligible
-              ? 'disabled'
-              : null
-          "
-        />
-        <label class="form-check-label">
-          {{ answer.answer }}
-        </label>
-      </div>
-    </div>
-    <div class="text-end">
-      <!-- proposal has expired -->
-      <ng-containter *ngIf="hasExpired; else appNotReady">
-        <button class="btn btn-eboxprimary rounded-alot" disabled>
-          Proposal has expired
-        </button>
-      </ng-containter>
-
-      <!-- app is not ready -->
-      <ng-template #appNotReady>
-        <ng-container
-          *ngIf="!(contractServ.isAppReady$ | async); else appReady"
-        >
-          <!-- user is not connected -->
-          <button
-            *ngIf="!(contractServ.selectedAccount$ | async)"
-            class="btn btn-eboxprimary rounded-alot"
-            (click)="contractServ.connect()"
-          >
-            Connect
-          </button>
-          <!-- chain is wrong -->
-          <button
-            *ngIf="
-              !contractServ.isSupportedChain() &&
-              (contractServ.selectedAccount$ | async)
-            "
-            class="btn btn-eboxprimary rounded-alot"
-            disabled
-          >
-            Wrong network
-          </button>
-        </ng-container>
-      </ng-template>
-
-      <!-- app is ready -->
-      <ng-template #appReady>
-        <button
-          [disabled]="
-            proposal.hasVoted || !proposal.isEligible ? 'disabled' : null
-          "
-          class="btn btn-eboxprimary rounded-alot"
-          (click)="onVoteClicked()"
-        >
+  <div class="p-3">
+    <div
+      *ngFor="let answer of proposal.answers; let i = index"
+      class="form-check mb-2"
+    >
+      <input
+        class="form-check-input"
+        type="radio"
+        (change)="selectedChoice = $event.target.value"
+        [name]="proposalId + '_answers'"
+        [value]="i + 1"
+      />
+      <label class="form-check-label">
+        {{ answer.answer }}
+      </label>
+      <div class="progress bg-transparent align-items-center">
+        <div class="progress-bar bg-eboxprimary rounded-alot" style="width: {{ 100 * proposal.votes.votes[i].answer / proposal.votes.sum }}%; height: 0.75rem">
+        </div>
+        <span class="ms-1">
           {{
-            proposal.hasVoted
-              ? "You already voted"
-              : !proposal.isEligible
-              ? "You are not eligible"
-              : "Vote"
-          }}
-        </button>
-      </ng-template>
+            (100 * proposal.votes.votes[i].answer / proposal.votes.sum) | number: '1.0-0'
+          }}%
+        </span>
+      </div>
     </div>
   </div>
-</div>
+  <div class="text-end">
+    <!-- proposal has expired -->
+    <ng-containter *ngIf="hasExpired; else appNotReady">
+      <button class="btn btn-eboxprimary rounded-alot" disabled>
+        Proposal has expired
+      </button>
+    </ng-containter>
+
+    <!-- app is not ready -->
+    <ng-template #appNotReady>
+      <ng-container *ngIf="!isAppReady; else appReady">
+        <!-- user is not connected -->
+        <button
+          *ngIf="!selectedAccount"
+          class="btn btn-eboxprimary rounded-alot"
+          (click)="contractServ.connect()"
+        >
+          Connect
+        </button>
+        <!-- chain is wrong -->
+        <button
+          *ngIf="!contractServ.isSupportedChain() && selectedAccount"
+          class="btn btn-eboxprimary rounded-alot"
+          disabled
+        >
+          Wrong network
+        </button>
+      </ng-container>
+    </ng-template>
+
+    <!-- app is ready -->
+    <ng-template #appReady>
+      <button
+        [disabled]="
+          proposal.hasVoted || !proposal.isEligible ? 'disabled' : null
+        "
+        class="btn btn-eboxprimary rounded-alot"
+        (click)="onVoteClicked()"
+      >
+        {{
+          proposal.hasVoted
+            ? "You already voted"
+            : !proposal.isEligible
+            ? "You are not eligible"
+            : "Vote"
+        }}
+      </button>
+    </ng-template>
+  </div>
+</ng-container>

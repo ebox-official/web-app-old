@@ -99,6 +99,10 @@ html {
   }
 }
 
+.bg-eboxprimary {
+  background: linear-gradient(to bottom right, #7990b0, #8f0d72);
+}
+
 .bg-eboxdark {
   background: linear-gradient(to bottom right, #2d2f31, #2b1a27);
 }

@@ -9,7 +9,16 @@ import { LoadingIndicatorService } from 'src/app/services/loading-indicator.serv
 })
 export class GovernanceComponent implements OnInit {
 
-    proposals;
+    url = 'https://www.ethbox.org/gov';
+    lastSegment = '/voting.php';
+    votingAreas = [{
+        urlSuffix: '/',
+        title: 'Protocol'
+    }, {
+        urlSuffix: '/community/',
+        title: 'Community'
+    }];
+    pageData;
     clockTimer;
     datetime;
 
@@ -22,15 +31,31 @@ export class GovernanceComponent implements OnInit {
         this.clockTimer = setInterval(() => this.datetime = new Date().toUTCString(), 1000);
 
         this.loadingIndicatorServ.on();
+        this.pageData = [];
+        for (let { title, urlSuffix } of this.votingAreas) {
 
-        // Enriching proposals with booleans
-        let proposals = await this.getVotings();
-        for (let p of proposals) {
-            p.isEligible = await this.isEligible(p.n);
-            p.hasVoted = await this.hasVoted(p.n);
+            // Enriching proposals with properties
+            let proposals = await this.getVotings(urlSuffix);
+            for (let p of proposals) {
+                p.isEligible = await this.isEligible(urlSuffix, p.n);
+                p.hasVoted = await this.hasVoted(urlSuffix, p.n);
+                p.votes = await this.getVotes(urlSuffix, p.n);
+            }
+
+            // I need these '_id's to make nested collapse
+            proposals.forEach(proposal => {
+                proposal._id = 'c_' + Math.random().toString(36).substring(2),
+                proposal.startDatetime = new Date(proposal.time_start * 1e3).toUTCString(),
+                proposal.endDatetime = new Date(proposal.time_end * 1e3).toUTCString(),
+                proposal.hasExpired = Date.now() > proposal.time_end * 1e3
+            });
+            this.pageData.push({ 
+                _id: 'c_' + Math.random().toString(36).substring(2),
+                title,
+                proposals
+            });
         }
-        this.proposals = proposals;
-
+        console.log('pageData is', this.pageData);
         this.loadingIndicatorServ.off();
     }
 
@@ -38,9 +63,9 @@ export class GovernanceComponent implements OnInit {
         clearInterval(this.clockTimer);
     }
 
-    async getVotings() {
+    async getVotings(urlSuffix) {
 
-        let endpoint = 'https://www.ethbox.org/gov/voting.php';
+        let endpoint = this.url + urlSuffix + this.lastSegment;
 
         let formData = new FormData();
         formData.append('action', 'get_votings');
@@ -54,9 +79,9 @@ export class GovernanceComponent implements OnInit {
         return proposals;
     }
 
-    async isEligible(votingNumber) {
+    async isEligible(urlSuffix, votingNumber) {
 
-        let endpoint = 'https://www.ethbox.org/gov/voting.php';
+        let endpoint = this.url + urlSuffix + this.lastSegment;
 
         let formData = new FormData();
         formData.append('action', 'is_eligible');
@@ -68,9 +93,9 @@ export class GovernanceComponent implements OnInit {
         return is_eligible;
     }
 
-    async hasVoted(votingNumber) {
+    async hasVoted(urlSuffix, votingNumber) {
 
-        let endpoint = 'https://www.ethbox.org/gov/voting.php';
+        let endpoint = this.url + urlSuffix + this.lastSegment;
 
         let formData = new FormData();
         formData.append('action', 'has_voted');
@@ -80,6 +105,23 @@ export class GovernanceComponent implements OnInit {
         let response = await fetch(endpoint, { method: 'POST', body: formData });
         let { has_voted } = await response.json();
         return has_voted;
+    }
+
+    async getVotes(urlSuffix, votingNumber) {
+
+        let endpoint = this.url + urlSuffix + this.lastSegment;
+
+        let formData = new FormData();
+        formData.append('action', 'get_votes');
+        formData.append('voting', votingNumber);
+
+        let response = await fetch(endpoint, { method: 'POST', body: formData });
+        let votes = await response.json();
+
+        return {
+            sum: votes.reduce((a, b) => a + b.answer, 0),
+            votes
+        };
     }
 
 }
