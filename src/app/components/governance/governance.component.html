@@ -1,0 +1,69 @@
+<app-body-bg-changer
+  [imgSrc]="'assets/img/governance.jpg'"
+></app-body-bg-changer>
+
+<div class="main py-5 px-3">
+  <!-- header -->
+  <header class="container-medium text-white text-center text-black">
+    <h1 class="display-6 fw-bold mb-2">Governance</h1>
+    <p class="lead mb-2">
+      Anyone holding at least 1 EBOX is eligible to vote for a certain point of
+      time that is arbitrarily chosen by the ethbox team for each voting.
+    </p>
+    <div class="mb-5">
+      <small
+        >For further understanding, please have a look at our
+        <a
+          class="text-reset"
+          href="https://ethbox.medium.com/ethbox-introducing-governance-540f237cda3e"
+          target="_blank"
+          >Medium article</a
+        >
+        on governance.</small
+      >
+    </div>
+  </header>
+  <!-- end of header -->
+
+  <!-- voting list -->
+  <div class="container-medium">
+    <ng-container
+      *ngIf="!(contractServ.isAppReady$ | async); else showAddressAndTime"
+    >
+      <div class="display-6 fw-bold text-center text-white mb-5">
+        Connect to vote
+      </div>
+    </ng-container>
+    <ng-template #showAddressAndTime>
+      <!-- address and time -->
+      <div
+        class="d-flex flex-column flex-md-row justify-content-between text-white mb-3"
+      >
+        <div class="mb-3 mb-md-0">
+          <div class="fs-5">Your address</div>
+          <small *ngIf="contractServ.selectedAccount$ | async as selAcc">
+            {{ selAcc.slice(0, 8) }}...{{ selAcc.slice(-6) }}
+          </small>
+        </div>
+        <div>
+          <div class="fs-5 text-md-end">Datetime</div>
+          <small>{{ datetime }}</small>
+        </div>
+      </div>
+      <!-- end of address and time -->
+    </ng-template>
+
+    <!-- if not connected show the message "Connect to vote"
+    if connected check the balance of EBOX if less then 1 disable evertything
+    if already voted disable everything, and change the button text to "already voted" -->
+
+    <div class="row row-cols-1 g-3">
+      <app-governance-proposal
+        class="col"
+        *ngFor="let proposal of proposals"
+        [proposal]="proposal"
+      ></app-governance-proposal>
+    </div>
+  </div>
+  <!-- end of voting list -->
+</div>

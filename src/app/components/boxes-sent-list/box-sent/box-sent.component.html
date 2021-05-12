@@ -1,0 +1,127 @@
+<div
+  class="bg-lightalpha rounded-alot p-3"
+  [class.shadow]="!box.taken"
+  [class.text-muted]="box.taken"
+  [class.bg-disabled]="box.taken"
+>
+  <div
+    class="d-flex flex-column flex-md-row justify-content-between align-items-center"
+  >
+    <div class="order-1 mb-3 mb-md-0 d-flex align-items-center">
+      <img
+        *ngIf="!box.taken && box.request_value === '0'"
+        class="taptarget-height"
+        src="/assets/img/box-close.png"
+      />
+      <img
+        *ngIf="box.taken && box.request_value === '0'"
+        class="taptarget-height"
+        src="/assets/img/box-open.png"
+      />
+      <img
+        *ngIf="!box.taken && box.request_value !== '0'"
+        class="taptarget-height"
+        src="/assets/img/boxes-exchange-close.png"
+      />
+      <img
+        *ngIf="box.taken && box.request_value !== '0'"
+        class="taptarget-height"
+        src="/assets/img/boxes-exchange-open.png"
+      />
+      <span class="fs-5 fw-bold ms-2">{{
+        box.request_value !== "0" ? "Exchange" : "Withdraw"
+      }}</span>
+    </div>
+    <div class="order-3 order-md-2">
+      <button
+        class="btn text-decoration-none text-reset"
+        data-bs-toggle="collapse"
+        [attr.data-bs-target]="'#box-collapse_' + box.timestamp"
+      >
+        <i class="bi bi-arrows-expand"></i>
+      </button>
+    </div>
+    <div class="order-2 order-md-3 text-center text-md-end mb-3 mb-md-0">
+      <div>
+        <a
+          [href]="
+            contractServ.isEthereum()
+              ? 'https://etherscan.io/address/' + box.recipient
+              : 'https://bscscan.com/address/' + box.recipient
+          "
+          target="_blank"
+          class="text-reset"
+        >
+          <i class="bi bi-link-45deg"></i>
+          <small *ngIf="box.addressBookName; else address">
+            {{ box.addressBookName.slice(0, 17) }}
+          </small>
+          <ng-template #address
+            >{{ box.sender.slice(0, 8) }}...{{
+              box.sender.slice(-6)
+            }}</ng-template
+          >
+        </a>
+      </div>
+      <small>{{ box.readableTimestamp }}</small>
+    </div>
+  </div>
+  <div class="collapse" [id]="'box-collapse_' + box.timestamp">
+    <div class="p-3">
+      <div
+        class="rounded-alot p-3 mb-3"
+        [class.text-white]="!box.taken"
+        [class.bg-eboxdark]="!box.taken"
+        [class.bg-completed]="box.taken"
+        [class.text-muted]="box.taken"
+      >
+        <div class="d-flex align-items-baseline mb-2">
+          <span class="fs-5 me-auto">Sent</span>
+          <div class="lead d-flex align-items-center">
+            <img
+              class="me-1"
+              [src]="box.sendTokenInfo?.thumb"
+              style="width: 1.25rem; height: 1.25rem"
+            />
+            {{ box.sendTokenInfo?.symbol }}
+          </div>
+        </div>
+        <div class="fs-4 text-end text-truncate">
+          {{ box.sendDecimalValue }}
+        </div>
+      </div>
+      <div
+        class="rounded-alot p-3 mb-3"
+        [class.text-white]="!box.taken"
+        [class.bg-eboxdark]="!box.taken"
+        [class.bg-completed]="box.taken"
+        [class.text-muted]="box.taken"
+        *ngIf="box.request_value !== '0'"
+      >
+        <div class="d-flex align-items-baseline">
+          <span class="fs-5 me-auto">Requested</span>
+          <div class="lead d-flex align-items-center">
+            <img
+              class="me-1"
+              [src]="box.requestTokenInfo?.thumb"
+              style="width: 1.25rem; height: 1.25rem"
+            />
+            {{ box.requestTokenInfo?.symbol }}
+          </div>
+        </div>
+        <div class="fs-4 text-end text-truncate">
+          {{ box.requestDecimalValue }}
+        </div>
+      </div>
+      <div class="text-end">
+        <button
+          (click)="contractServ.cancelBox(box)"
+          class="btn btn-outline-eboxprimary rounded-alot"
+          *ngIf="!box.taken"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

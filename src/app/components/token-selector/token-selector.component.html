@@ -1,0 +1,98 @@
+<ng-container *ngIf="!tokens; else selectorReady">
+  <!-- initial state -->
+  <button class="btn btn-eboxprimary rounded-alot text-end" disabled>
+    <div *ngIf="isBalanceEnabled">-</div>
+    <i class="bi bi-chevron-expand"></i> -
+  </button>
+</ng-container>
+<ng-template #selectorReady>
+  <!-- ready state -->
+  <button
+    *ngIf="!selectedToken"
+    data-bs-toggle="modal"
+    [attr.data-bs-target]="'#' + randomId"
+    class="btn btn-eboxprimary rounded-alot text-end"
+  >
+    <div *ngIf="isBalanceEnabled">-</div>
+    <i class="bi bi-chevron-expand"></i> Choose
+  </button>
+  <!-- selected state -->
+  <button
+    *ngIf="selectedToken"
+    data-bs-toggle="modal"
+    [attr.data-bs-target]="'#' + randomId"
+    class="btn btn-eboxprimary rounded-alot text-end"
+  >
+    <ng-container *ngIf="isBalanceEnabled">
+      <div *ngIf="isBalanceLoading">
+        <div class="spinner-border spinner-border-sm"></div>
+      </div>
+      <div *ngIf="!isBalanceLoading">
+        {{ selectedTokenBalance.decimalValue | number: "0.2-4":"en-US" }}
+      </div>
+    </ng-container>
+    <i class="bi bi-chevron-expand"></i> {{ selectedToken.symbol }}
+  </button>
+</ng-template>
+
+<div [id]="randomId" class="modal">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-alot" style="height: 80vh">
+      <div class="modal-header">
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between mb-3">
+            <div>
+              <h5 class="modal-title">Tokens</h5>
+              <small
+                >There are {{ tokens?.length }} tokens, please use the
+                search.</small
+              >
+            </div>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <input
+            #searchInput
+            (input)="filterTokens(searchInput.value)"
+            type="text"
+            class="form-control rounded-alot"
+            placeholder="Search in the list"
+          />
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="text-center mb-3">
+          <small class="text-muted">Select a token to show your balance</small>
+        </div>
+        <div
+          *ngFor="let token of filteredTokens; trackBy: identifier"
+          [class.pe-none]="hardcodeDisable(token)"
+          [class.bg-disabled]="hardcodeDisable(token)"
+          class="align-items-center btn-outline-eboxprimary border rounded-alot d-flex mb-3 p-3 position-relative"
+        >
+          <img
+            [src]="token.thumb"
+            class="flex-shrink-0 me-3"
+            style="height: 25px"
+          />
+          <div class="text-truncate">
+            <h5>
+              <a
+                href="#"
+                data-bs-dismiss="modal"
+                (click)="selectToken(token)"
+                class="stretched-link text-reset text-decoration-none"
+              >
+                {{ token.name }}
+                <small class="text-uppercase">{{ token.symbol }}</small>
+              </a>
+            </h5>
+            <small>{{ token.address }}</small>
+          </div>
+        </div>
+        <div class="text-center">
+          <small class="text-muted">Use the search to find more coins</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

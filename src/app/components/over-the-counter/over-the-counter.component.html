@@ -1,0 +1,244 @@
+<app-password-strength-visualizer
+  [data]="{
+    img: 'assets/img/over-the-counter.jpg',
+    bg: 'assets/img/bg-blob-emerald.jpg'
+  }"
+></app-password-strength-visualizer>
+
+<div class="main py-5 px-3">
+  <div class="container-small">
+    <!-- swapper -->
+    <div class="bg-lightalpha rounded-alot shadow-lg">
+      <div class="align-items-center d-flex p-3">
+        <div class="flex-grow-1">
+          <h4>
+            <i class="bi bi-shuffle"></i>
+            Exchange
+          </h4>
+          <small class="text-muted"
+            >Invite somebody to exchange tokens. The recipient will be able to
+            accept requests via the Received tab</small
+          >
+        </div>
+        <a href="#" routerLink="/boxes/sent" class="btn btn-lg">
+          <i class="bi bi-clock-history"></i>
+        </a>
+      </div>
+      <div class="d-flex flex-column p-3">
+        <!-- recipient input -->
+        <div class="bg-eboxdark mb-3 rounded-alot text-white">
+          <label for="recipient-input" class="pt-3 px-3 w-100">
+            Recipient
+          </label>
+          <!-- validation messages -->
+          <div
+            [class.invisible]="!(contractServ.isAppReady$ | async)"
+            class="ms-3 text-warning"
+            style="min-height: 21px; font-size: 14px"
+          >
+            <small *ngIf="!recipient">Recipient is required</small>
+            <small *ngIf="recipient && isRecipientInvalid()"
+              >Recipient is invalid</small
+            >
+          </div>
+          <div class="d-flex p-3 pt-0">
+            <input
+              #recipientInput
+              (input)="recipient = recipientInput.value"
+              id="recipient-input"
+              class="flex-grow-1 me-3 input-nostyle"
+              type="text"
+              placeholder="Insert a recipient"
+              [disabled]="
+                !(contractServ.isAppReady$ | async) ? 'disabled' : null
+              "
+            />
+            <app-address-book
+              (onAddressSelected)="
+                recipient = $event.address;
+                recipientInput.value = $event.address
+              "
+            ></app-address-book>
+          </div>
+        </div>
+        <!-- end of recipient input -->
+
+        <!-- passphrase input -->
+        <div class="bg-eboxdark mb-3 rounded-alot text-white">
+          <label for="password-input" class="pt-3 px-3 w-100">
+            Passphrase
+          </label>
+          <div class="d-flex p-3">
+            <input
+              #passwordInput
+              (input)="password = passwordInput.value"
+              id="password-input"
+              class="flex-grow-1 me-3 input-nostyle"
+              type="password"
+              placeholder="Choose a passphrase"
+              [disabled]="
+                !(contractServ.isAppReady$ | async) ? 'disabled' : null
+              "
+            />
+            <button
+              (mousedown)="passwordInput.setAttribute('type', 'text')"
+              (mouseup)="passwordInput.setAttribute('type', 'password')"
+              [disabled]="
+                !(contractServ.isAppReady$ | async) ? 'disabled' : null
+              "
+              class="btn text-muted"
+            >
+              <i class="bi bi-eye"></i>
+            </button>
+          </div>
+        </div>
+        <!-- end of passphrase input -->
+
+        <!-- send amount input -->
+        <div class="bg-eboxdark mb-3 rounded-alot text-white">
+          <label for="send-amount-input" class="pt-3 px-3 w-100">
+            Send amount
+          </label>
+          <!-- validation message -->
+          <div
+            [class.invisible]="!(contractServ.isAppReady$ | async)"
+            class="ms-3 text-warning"
+            style="min-height: 21px; font-size: 14px"
+          >
+            <small>{{ sendValidationMessage }}</small>
+          </div>
+          <!-- end of validation message -->
+          <div class="d-flex p-3 pt-0 position-relative">
+            <input
+              #sendValueInput
+              (input)="
+                sendValue = sendValueInput.value; setSendValidationMessage()
+              "
+              id="send-amount-input"
+              class="input-nostyle w-100"
+              type="text"
+              placeholder="0.0"
+              [disabled]="
+                !(contractServ.isAppReady$ | async) ? 'disabled' : null
+              "
+            />
+            <app-token-selector
+              class="position-absolute end-0 bottom-0 me-3 mb-3"
+              (onTokenSelected)="sendTokenSelected = $event"
+              (onTokenBalanceUpdated)="onSendTokenBalanceUpdated($event)"
+            ></app-token-selector>
+          </div>
+        </div>
+        <!-- end of send amount input -->
+
+        <!-- request amount input -->
+        <div class="bg-eboxdark mb-3 rounded-alot text-white">
+          <label for="request-amount-input" class="pt-3 px-3 w-100">
+            Request amount
+          </label>
+          <!-- validation message -->
+          <div
+            [class.invisible]="!(contractServ.isAppReady$ | async)"
+            class="ms-3 text-warning"
+            style="min-height: 21px; font-size: 14px"
+          >
+            <small>{{ requestValidationMessage }}</small>
+          </div>
+          <!-- end of validation message -->
+          <div class="d-flex p-3 pt-0 position-relative">
+            <input
+              #requestValueInput
+              (input)="
+                requestValue = requestValueInput.value;
+                setRequestValidationMessage()
+              "
+              id="request-amount-input"
+              class="input-nostyle w-100"
+              type="text"
+              placeholder="0.0"
+              [disabled]="
+                !(contractServ.isAppReady$ | async) ? 'disabled' : null
+              "
+            />
+            <app-token-selector
+              class="position-absolute end-0 bottom-0 me-3 mb-3"
+              (onTokenSelected)="onRequestTokenSelected($event)"
+              [isBalanceEnabled]="false"
+            ></app-token-selector>
+          </div>
+        </div>
+        <!-- end of request amount input -->
+
+        <!-- send button -->
+        <ng-container
+          *ngIf="contractServ.isAppReady$ | async; else appNotReady"
+        >
+          <ng-container
+            *ngIf="!sendTokenSelected || !sendTokenBalance; else tokenReady"
+          >
+            <!-- initial state -->
+            <button class="btn btn-eboxprimary rounded-alot p-3" disabled>
+              Choose tokens
+            </button>
+          </ng-container>
+          <ng-template #tokenReady>
+            <!-- pre-approve state -->
+            <button
+              *ngIf="!sendTokenBalance.hasUnlimitedAllowance"
+              (click)="contractServ.approveMax(sendTokenSelected.address)"
+              class="btn btn-outline-eboxprimary rounded-alot p-3"
+              [disabled]="
+                (loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null
+              "
+            >
+              Approve {{ sendTokenSelected.symbol }}
+            </button>
+            <!-- post-approve state -->
+            <button
+              *ngIf="sendTokenBalance.hasUnlimitedAllowance"
+              (click)="sendBox()"
+              class="btn btn-eboxprimary rounded-alot p-3"
+              [disabled]="isSendButtonDisabled() ? 'disabled' : null"
+            >
+              Send
+            </button>
+          </ng-template>
+        </ng-container>
+        <ng-template #appNotReady>
+          <!-- user is not connected -->
+          <button
+            *ngIf="!(contractServ.selectedAccount$ | async)"
+            class="btn btn-eboxprimary rounded-alot p-3"
+            (click)="contractServ.connect()"
+          >
+            Connect
+          </button>
+          <ng-container
+            *ngIf="contractServ.isSupportedChain(); else wrongChain"
+          >
+            <!-- just waiting for the app to be ready -->
+            <button
+              *ngIf="contractServ.selectedAccount$ | async"
+              class="btn btn-eboxprimary rounded-alot p-3"
+              disabled
+            >
+              Waiting
+            </button>
+          </ng-container>
+          <ng-template #wrongChain>
+            <!-- chain is wrong -->
+            <button
+              *ngIf="contractServ.selectedAccount$ | async"
+              class="btn btn-eboxprimary rounded-alot p-3"
+              disabled
+            >
+              Wrong network
+            </button>
+          </ng-template>
+        </ng-template>
+        <!-- end of send button -->
+      </div>
+    </div>
+    <!-- end of swapper -->
+  </div>
+</div>

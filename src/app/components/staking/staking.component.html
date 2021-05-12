@@ -1,0 +1,108 @@
+<app-body-bg-changer [imgSrc]="'assets/img/staking.jpg'"></app-body-bg-changer>
+
+<div class="main py-5 px-3">
+  <!-- header -->
+  <header class="container-medium text-white text-center">
+    <h1 class="display-6 fw-bold mb-2">Staking rewards</h1>
+    <p class="lead mb-2">
+      To support those who support us, ethbox offers staking rewards for the
+      first 4 years after the token generation event (TGE) for everyone holding
+      EBOX tokens.
+    </p>
+    <div class="mb-5">
+      <small
+        >For further understanding, please have a look at our
+        <a
+          class="text-reset"
+          href="https://ethbox.medium.com/introducing-ebox-staking-rewards-4c65c07fc89d"
+          target="_blank"
+          >Medium article</a
+        >
+        on staking rewards.</small
+      >
+    </div>
+  </header>
+  <!-- end of header -->
+
+  <!-- filters -->
+  <div class="container-medium mb-5">
+    <div class="row">
+      <div class="col-12 col-md mb-3 mb-md-0">
+        <!-- search -->
+        <input
+          #searchInput
+          (input)="search = searchInput.value; filterRewards()"
+          type="text"
+          class="form-control bg-lightalpha rounded-alot"
+          placeholder="Search"
+        />
+        <!-- end of search -->
+      </div>
+      <!-- pagination -->
+      <div class="col-12 col-md-auto">
+        <ul class="pagination mb-0 justify-content-center">
+          <li class="page-item">
+            <a
+              (click)="$event.preventDefault(); onPaginationPreviousClick()"
+              class="bg-light page-link rounded-alot-start"
+              href="#"
+              >&laquo;</a
+            >
+          </li>
+          <li class="page-item disabled">
+            <a class="bg-lightalpha page-link" href="#" tabindex="-1"
+              >{{ monthsNames[pageMonth] }} {{ pageDate }}</a
+            >
+          </li>
+          <li class="page-item">
+            <a
+              (click)="$event.preventDefault(); onPaginationNextClick()"
+              class="bg-light rounded-alot-end page-link"
+              href="#"
+              >&raquo;</a
+            >
+          </li>
+        </ul>
+        <!-- end of pagination -->
+      </div>
+      <!-- end of pagination -->
+    </div>
+  </div>
+  <!-- end of filters -->
+
+  <!-- user entry -->
+  <div class="container-medium mb-5">
+    <app-staking-item
+      *ngIf="selectedAccountReward"
+      [data]="selectedAccountReward"
+      [special]="true"
+    ></app-staking-item>
+    <!-- messages -->
+    <div
+      *ngIf="!selectedAccountReward"
+      class="display-6 fw-bold text-center text-white"
+    >
+      <span *ngIf="selectedAccount && !isLoading">
+        Reward not found.<br />Try changing the date
+      </span>
+      <span *ngIf="!selectedAccount">Connect to show your rewards</span>
+    </div>
+    <!-- end of messages -->
+  </div>
+  <!-- end of user entry -->
+
+  <!-- rewards -->
+  <div class="container-medium">
+    <div class="row row-cols-1 g-3">
+      <app-staking-item
+        class="col"
+        *ngFor="let item of filteredRewards"
+        [data]="item"
+      ></app-staking-item>
+    </div>
+    <div *ngIf="!filteredRewards" class="display-6 fw-bold text-center">
+      <div class="spinner spinner-grow text-center"></div>
+    </div>
+  </div>
+  <!-- end of rewards -->
+</div>

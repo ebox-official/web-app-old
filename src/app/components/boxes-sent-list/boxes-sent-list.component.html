@@ -1,0 +1,134 @@
+<app-body-bg-changer [imgSrc]="'assets/img/history.jpg'"></app-body-bg-changer>
+
+<div class="main py-5 px-3">
+  <!-- header -->
+  <header class="container-medium text-center text-black">
+    <h1 class="display-6 fw-bold mb-2">Sent boxes</h1>
+    <p class="fs-5 mb-5">
+      Here you can find the boxes that you have sent to others.<br />Pending
+      withdrawals and exchanges may be cancelled at anytime.
+    </p>
+  </header>
+  <!-- end of header -->
+
+  <!-- filters -->
+  <div class="container-medium mb-5">
+    <!-- search -->
+    <input
+      #searchInput
+      (input)="search = searchInput.value; filterBoxes()"
+      type="text"
+      class="form-control rounded-alot bg-lightalpha mb-3"
+      placeholder="Search"
+      [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+    />
+    <!-- end of search -->
+
+    <div class="row row-cols-1 row-cols-md-auto g-3">
+      <!-- state, type and date -->
+      <div class="col">
+        <select
+          #stateInput
+          (input)="state = stateInput.value; filterBoxes()"
+          class="bg-lightalpha form-select rounded-alot"
+          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+        >
+          <option value="" selected>Filter by state</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Done</option>
+        </select>
+      </div>
+      <div class="col">
+        <select
+          #typeInput
+          (input)="type = typeInput.value; filterBoxes()"
+          class="bg-lightalpha form-select rounded-alot"
+          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+        >
+          <option value="" selected>Filter by type</option>
+          <option value="withdraw">Withdraw</option>
+          <option value="exchange">Exchange</option>
+        </select>
+      </div>
+      <div class="col me-auto">
+        <select
+          #orderInput
+          (input)="order = orderInput.value; filterBoxes()"
+          class="bg-lightalpha form-select rounded-alot"
+          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+        >
+          <option value="desc" selected>Date desc</option>
+          <option value="asc">Date asc</option>
+        </select>
+      </div>
+      <!-- end of state, type and date -->
+      <!-- pagination -->
+      <div class="col">
+        <ul class="pagination mb-0 justify-content-center">
+          <li class="page-item">
+            <a
+              (click)="$event.preventDefault(); onPaginationPreviousClick()"
+              class="bg-light page-link rounded-alot-start"
+              href="#"
+              >&laquo;</a
+            >
+          </li>
+          <li class="page-item disabled">
+            <a class="bg-lightalpha page-link" href="#" tabindex="-1">{{
+              paginationText
+            }}</a>
+          </li>
+          <li class="page-item">
+            <a
+              (click)="$event.preventDefault(); onPaginationNextClick()"
+              class="bg-light rounded-alot-end page-link"
+              href="#"
+              >&raquo;</a
+            >
+          </li>
+        </ul>
+      </div>
+      <!-- end of pagination -->
+    </div>
+  </div>
+  <!-- end filters -->
+
+  <!-- boxes -->
+  <div class="container-medium">
+    <div
+      *ngIf="!(contractServ.isAppReady$ | async)"
+      class="display-6 fw-bold text-center"
+    >
+      Connect to show your boxes
+    </div>
+    <ng-container *ngIf="contractServ.isAppReady$ | async">
+      <p class="text-center">
+        <small *ngIf="paginatedBoxes && paginatedBoxes.length">
+          Click on the expand icon to reveal the content
+        </small>
+      </p>
+      <!-- grid -->
+      <div
+        *ngIf="paginatedBoxes && paginatedBoxes.length"
+        class="row row-cols-1 g-3"
+      >
+        <app-box-sent
+          class="col"
+          *ngFor="let box of paginatedBoxes; trackBy: identifier"
+          [box]="box"
+        ></app-box-sent>
+      </div>
+      <!-- end of grid -->
+
+      <!-- messages -->
+      <div class="display-6 fw-bold text-center">
+        <div *ngIf="!paginatedBoxes" class="spinner spinner-grow"></div>
+        <span *ngIf="paginatedBoxes && !paginatedBoxes.length">
+          There are no boxes
+        </span>
+      </div>
+      <!-- end of messages -->
+    </ng-container>
+  </div>
+  <!-- end of boxes -->
+</div>
