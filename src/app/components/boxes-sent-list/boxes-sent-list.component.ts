@@ -1,6 +1,6 @@
 import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ContractService } from '../../services/contract.service';
-import { AsyncLoop } from '../../../assets/js/custom-utils';
+import { SmartInterval } from '../../../assets/js/custom-utils';
 import { AddressBookService } from 'src/app/services/address-book.service';
 
 @Component({
@@ -10,23 +10,34 @@ import { AddressBookService } from 'src/app/services/address-book.service';
 })
 export class BoxesSentListComponent implements OnInit, OnDestroy {
 
-    paginationText = '0-0/0';
-    order = 'desc';
     paginatedBoxes = null;
+    paginationText = '0-0/0';
+    
+    order = 'desc';
     search = '';
     state;
     type;
+    
+    chainId;
+    isChainSupported;
+    selectedAccount;
+    isAppReady;
+    message;
+
+    private subscriptions = [];
 
     private pageIndex = 0;
     private pageSize = 20;
-    private subscriptions = [];
-    private boxesFetchingCycleDelay = 21e3;
-    private boxesFetchingStartDelay = 1e3;
-    private boxesFetchingLoop;
-    private addressBookMap;
+    
+    private boxesIntervalCycleDelay = 5e3;
+    private boxesIntervalStartDelay = 1e3;
+    private boxesInterval;
+    
     private fetchedBoxes;
     private filteredBoxes;
 
+    private addressBookMap;
+    
     constructor(
         public contractServ: ContractService,
         private ngZone: NgZone,
@@ -34,48 +45,105 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
 
+        // Getting a dictionary of the address book to put names on boxes
         this.addressBookMap = this.addressBookServ.getAddressesMap();
 
-        // This component asks the ContractService to refresh its boxes
-        this.boxesFetchingLoop = new AsyncLoop(
-            () => this.contractServ.fetchBoxes(),
-            this.boxesFetchingCycleDelay,
-            this.boxesFetchingStartDelay);
+        // Setting up the interval for getting boxes
+        // This can be controlled with .start() and .stop()
+        this.boxesInterval = new SmartInterval(
+            async () => {
 
-        // When the app is ready or the balance has changed reset the data and restart the loop
+                let boxes = await this.contractServ.getOutgoingBoxes();
+
+                // NgZone tells Angular to keep the UI up to date
+                this.ngZone.run(() => {
+
+                    if (boxes.length === 0) {
+                        this.message = 'There are no boxes';
+                        return;
+                    }
+
+                    // Enriching boxes with presentational fields
+                    this.message = null;
+                    this.fetchedBoxes = boxes.map(box => ({
+                        addressBookName: this.addressBookMap[box.recipient],
+                        readableTimestamp: new Date(box.timestamp)
+                            .toLocaleDateString(
+                                undefined,
+                                { year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit' }),
+                        sendTokenInfo: this.contractServ
+                            .tokensMap[box.sendToken],
+                        sendDecimalValue: this.contractServ
+                            .getTokenDecimalValueFromWei(
+                                box.sendToken,
+                                box.sendValue),
+                        requestTokenInfo: this.contractServ
+                            .tokensMap[box.requestToken],
+                        requestDecimalValue: this.contractServ
+                            .getTokenDecimalValueFromWei(
+                                box.requestToken,
+                                box.requestValue),
+                        ...box
+                    }));
+                    this.filterBoxes();
+                });
+            },
+            this.boxesIntervalCycleDelay,
+            this.boxesIntervalStartDelay
+        );
+
+        // Setting up the reactive code to load and reload boxes
         [
+            this.contractServ.chainId$,
+            this.contractServ.isChainSupported$,
+            this.contractServ.selectedAccount$,
             this.contractServ.isAppReady$,
-            this.contractServ.balanceChanged$
-        ].forEach(obs =>
+            this.contractServ.boxInteraction$
+        ].forEach(obs => 
             this.subscriptions.push(
                 obs.subscribe(() => {
 
-                    if (this.boxesFetchingLoop.runningState.isRunning) {
+                    // Resetting the component
+                    this.boxesInterval.stop();
+                    this.paginatedBoxes = null;
+                    this.filteredBoxes = null;
+                    this.fetchedBoxes = null;
 
-                        this.boxesFetchingLoop.stop();
-                        this.paginatedBoxes = null;
-                        this.fetchedBoxes = null;
-                        this.filteredBoxes = null;
-                    }
-                    if (this.contractServ.isAppReady$.getValue()) {
+                    // Updating local variables
+                    this.chainId = this.contractServ.chainId$.getValue();
+                    this.isChainSupported = this.contractServ.isChainSupported$.getValue();
+                    this.selectedAccount = this.contractServ.selectedAccount$.getValue();
+                    this.isAppReady = this.contractServ.isAppReady$.getValue();
 
-                        this.subscriptions.push(
-                            this.contractServ.boxes$
-                                .subscribe(boxes => {
-                                    if (boxes) {
-                                        this.ngZone.run(() => this.mapBoxes(boxes));
-                                    }
-                                })
-                        );
-                        this.boxesFetchingLoop.start();
+                    // Calculating a message for the user
+                    if (!this.chainId || !this.selectedAccount) {
+                        this.message = 'Connect your wallet';
+                        return;
                     }
-                })
-            ));
+                    if (!this.isChainSupported) {
+                        this.message = 'Wrong network';
+                        return;
+                    }
+                    if (!this.isAppReady) {
+                        this.message = 'Initializing the Smart Contract...';
+                        return;
+                    }
+
+                    // Starting the boxes interval
+                    this.message = 'Loading your boxes...';
+                    this.boxesInterval.start();
+                })));
     }
 
     ngOnDestroy() {
+
+        // When the component gets destroyed unsubscribe from everything and stop the boxes interval, to prevent memory leaks
         this.subscriptions.forEach(s => s.unsubscribe());
-        this.boxesFetchingLoop.stop();
+        this.boxesInterval.stop();
     }
 
     onPaginationPreviousClick() {
@@ -117,7 +185,7 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
             .filter(box =>
                 !this.state || box.taken == (this.state == 'completed'))
             .filter(box =>
-                !this.type || box.request_value === '0' == (this.type == 'withdraw'))
+                !this.type || box.requestValue === '0' == (this.type == 'withdraw'))
             .filter(box => {
 
                 let lcSearch = this.search.trim().toLocaleLowerCase();
@@ -134,43 +202,8 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
         this.updatePagination();
     }
 
+    // This piece of code tells Angular how to track boxes efficiently, when and where to touch the DOM
     identifier(index, box) {
         return `${box.sender}-${box.recipient}-${box.taken}-${box.timestamp}`;
     }
-
-    private mapBoxes(boxes) {
-
-        // This mapping belongs to ContractService, but it's done here for the time being. It performant to map only those boxes that are sent
-        this.fetchedBoxes = boxes
-            .reduce((results, box, index) => {
-
-                let boxOfAccount;
-                if (box.sender == this.contractServ.selectedAccount$.getValue()) {
-                    boxOfAccount = true;
-                }
-
-                if (boxOfAccount) {
-                    let enrichedBox = {
-                        ...box,
-                        index,
-                        addressBookName: this.addressBookMap[box.recipient],
-                        readableTimestamp: this.contractServ
-                            .decodeSmartContractTimestamp(box.timestamp)
-                            .readableTimestamp,
-                        sendTokenInfo: this.contractServ
-                            .tokensMap[box.send_token],
-                        sendDecimalValue: this.contractServ
-                            .getTokenDecimalValueFromWei(box.send_token, box.send_value),
-                        requestTokenInfo: this.contractServ
-                            .tokensMap[box.request_token],
-                        requestDecimalValue: this.contractServ
-                            .getTokenDecimalValueFromWei(box.request_token, box.request_value)
-                    };
-                    results.push(enrichedBox);
-                }
-                return results;
-            }, []);
-        this.filterBoxes();
-    }
-
 }

@@ -1,8 +1,9 @@
 export interface Balance {
     wei: string;
+    weiAllowance: string;
     decimals: string | number;
     decimalValue: string;
-    hasUnlimitedAllowance: boolean;
+    decimalAllowance: string;
 }
 
 export interface TokenInfo {
@@ -14,14 +15,14 @@ export interface TokenInfo {
 }
 
 export interface Box {
-    readonly pass_hash_hash: string;
+    readonly passHashHash: string;
     readonly recipient: string;
     readonly sender: string;
     readonly timestamp: string;
-    readonly send_token: string;
-    readonly send_value: string
-    readonly request_token: string;
-    readonly request_value: string;
+    readonly sendToken: string;
+    readonly sendValue: string
+    readonly requestToken: string;
+    readonly requestValue: string;
     readonly taken: boolean;
     index?: number;
     sendTokenInfo?: TokenInfo;
@@ -36,17 +37,10 @@ export interface BoxInputs {
     password: string;
     recipient: string;
     sender: string;
-    jsDate: Date;
     sendTokenAddress: string;
     sendDecimalValue: string;
     requestTokenAddress: string;
     requestDecimalValue: string;
-}
-
-export interface DateInfo {
-    unixTimestamp: number;
-    readableTimestamp: string;
-    jsDate: Date;
 }
 
 export interface ToastData {

@@ -9,8 +9,7 @@
         [href]="'https://etherscan.io/address/' + data.address"
         class="text-break text-center text-reset fs-5"
       >
-        <i class="bi bi-link-45deg me-2"></i
-        >{{ data.address.slice(0, 8) + "..." + data.address.slice(-6) }}
+        {{ data.address.slice(0, 8) + "..." + data.address.slice(-6) }}
       </a>
       <a
         *ngIf="!special"
@@ -19,8 +18,14 @@
         [href]="'#_' + data.address"
         (click)="isClosed = !isClosed"
       >
-        <i *ngIf="isClosed" class="bi bi-arrows-expand"></i>
-        <i *ngIf="!isClosed" class="bi bi-arrows-collapse"></i>
+        <div *ngIf="isClosed">
+          <i class="bi bi-arrows-expand"></i>
+          Open
+        </div>
+        <div *ngIf="!isClosed">
+          <i class="bi bi-arrows-collapse"></i>
+          Close
+        </div>
       </a>
     </div>
 
@@ -30,7 +35,7 @@
           <div class="bg-eboxdark rounded-alot text-white">
             <div class="pt-3 px-3">Balance</div>
             <div class="pb-3 px-3 text-light fs-4">
-              {{ data.balance | number: "0.2-6":"en-US" }} EBOX
+              {{ data.balance | toFixed: 0 }} EBOX
             </div>
           </div>
         </div>
@@ -38,7 +43,7 @@
           <div class="bg-eboxdark rounded-alot text-white">
             <div class="pt-3 px-3">Reward</div>
             <div class="pb-3 px-3 text-light fs-4">
-              {{ data.reward | number: "0.2-6":"en-US" }} EBOX
+              {{ data.reward | toFixed: 0 }} EBOX
             </div>
           </div>
         </div>
@@ -46,7 +51,7 @@
           <div class="bg-eboxdark rounded-alot text-white">
             <div class="pt-3 px-3">APY</div>
             <div class="pb-3 px-3 text-light fs-4">
-              {{ data.apy | number: "0.2-2":"en-US" }}%
+              {{ data.apy | toFixed: 0 }}%
             </div>
           </div>
         </div>

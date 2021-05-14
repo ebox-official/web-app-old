@@ -16,18 +16,130 @@ export class SendComponent implements OnInit {
     sendTokenSelected;
     sendTokenBalance;
     sendValue;
-    sendValidationMessage;
+
+    chainId;
+    isChainSupported;
+    selectedAccount;
+    isAppReady;
+
+    isButtonDisabled = true;
+    buttonFunction;
+    buttonMessage;
+
+    private subscriptions = [];
 
     constructor(
         public contractServ: ContractService,
         public loadingIndicatorServ: LoadingIndicatorService) { }
 
     ngOnInit() {
-        this.setSendValidationMessage();
+
+        // Setting up the reactive code to load and reload boxes
+        [
+            this.contractServ.chainId$,
+            this.contractServ.isChainSupported$,
+            this.contractServ.selectedAccount$,
+            this.contractServ.isAppReady$,
+            this.contractServ.boxInteraction$
+        ].forEach(obs => 
+            this.subscriptions.push(
+                obs.subscribe(() => this.syncButtonFunctionality())));
     }
 
-    isRecipientInvalid() {
-        return !this.contractServ.isValidAddress(this.recipient);
+    ngOnDestroy() {
+
+        // When the component gets destroyed unsubscribe from everything to prevent memory leaks
+        this.subscriptions.forEach(s => s.unsubscribe());
+    }
+
+    // This is where the button gets its text and functionality updated
+    syncButtonFunctionality() {
+    
+        // Updating local variables
+        this.chainId = this.contractServ.chainId$.getValue();
+        this.isChainSupported = this.contractServ.isChainSupported$.getValue();
+        this.selectedAccount = this.contractServ.selectedAccount$.getValue();
+        this.isAppReady = this.contractServ.isAppReady$.getValue();
+
+        // Calculating a message for the user
+        if (!this.chainId || !this.selectedAccount) {
+            this.buttonMessage = 'Connect your wallet';
+            this.buttonFunction = () => this.contractServ.connect();
+            this.isButtonDisabled = false;
+            return;
+        }
+        if (!this.isChainSupported) {
+            this.buttonMessage = 'Wrong network';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (!this.isAppReady) {
+            this.buttonMessage = 'Initializing the Smart Contract...';
+            this.isButtonDisabled = true;
+            return;
+        }
+
+        // About the token
+        if (!this.sendTokenSelected) {
+            this.buttonMessage = 'Choose a token';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (this.sendTokenSelected && !this.sendTokenBalance) {
+            this.buttonMessage = 'Loading token balance...';
+            this.isButtonDisabled = true;
+            return;
+        }
+        // If the token is selected, the balance has been read but the user has not enough allowance
+        if (this.sendTokenSelected 
+        && this.sendTokenBalance.decimalAllowance == '0'
+        || (new BigNumber(this.sendValue)).gt(this.sendTokenBalance.decimalAllowance)) {
+
+            this.buttonMessage = `Approve ${this.sendTokenSelected.symbol}`;
+            this.buttonFunction = () => 
+                this.contractServ.approveMax(this.sendTokenSelected.address);
+            this.isButtonDisabled = false;
+            return;
+        }
+
+        // About the recipient
+        if (!this.recipient) {
+            this.buttonMessage = 'Recipient is required';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (!this.contractServ.isValidAddress(this.recipient)) {
+            this.buttonMessage = 'Recipient is invalid';
+            this.isButtonDisabled = true;
+            return;
+        }
+
+        // About the send value
+        if (!this.sendValue) {
+            this.buttonMessage = 'Send amount is required';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (this.isValueInvalid(this.sendValue)) {
+            this.buttonMessage = 'Send amount is invalid';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (this.isValueTooLow(this.sendValue, this.sendTokenSelected.decimals)) {
+            this.buttonMessage = 'Send amount is too low';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (this.isValueTooHigh(this.sendValue, this.sendTokenBalance.decimalValue)) {
+            this.buttonMessage = 'Send amount is too high';
+            this.isButtonDisabled = true;
+            return;
+        }
+
+        // All checks are passed
+        this.buttonMessage = 'Send';
+        this.buttonFunction = () => this.sendBox();
+        this.isButtonDisabled = false;
     }
 
     isValueInvalid(value) {
@@ -44,52 +156,12 @@ export class SendComponent implements OnInit {
         return (new BigNumber(value)).gt(decimalValue);
     }
 
-    setSendValidationMessage() {
-
-        if (!this.sendTokenSelected || !this.sendTokenBalance) {
-            this.sendValidationMessage = 'Send token is required';
-        }
-        else if (!this.sendValue) {
-            this.sendValidationMessage = 'Send amount is required';
-        }
-        else if (this.isValueInvalid(this.sendValue)) {
-            this.sendValidationMessage = 'Send amount is invalid';
-        }
-        else if (this.isValueTooLow(this.sendValue, this.sendTokenSelected.decimals)) {
-            this.sendValidationMessage = 'Send amount is too low';
-        }
-        else if (this.isValueTooHigh(this.sendValue, this.sendTokenBalance.decimalValue)) {
-            this.sendValidationMessage = 'Send amount is too high';
-        }
-        else {
-            this.sendValidationMessage = '';
-        }
-    }
-
-    isSendButtonDisabled() {
-        return !this.recipient
-            || this.isRecipientInvalid()
-            || !this.sendTokenSelected
-            || !this.sendTokenBalance
-            || !this.sendValue
-            || this.isValueInvalid(this.sendValue)
-            || this.isValueTooLow(this.sendValue, this.sendTokenSelected.decimals)
-            || this.isValueTooHigh(this.sendValue, this.sendTokenBalance.decimalValue)
-            || this.loadingIndicatorServ.isLoading$.getValue();
-    }
-
-    onSendTokenBalanceUpdated(balance) {
-        this.sendTokenBalance = balance;
-        this.setSendValidationMessage();
-    }
-
     sendBox() {
 
         this.contractServ.createBox({
             password: this.password,
             recipient: this.recipient,
             sender: this.contractServ.selectedAccount$.getValue(),
-            jsDate: new Date(),
             sendTokenAddress: this.sendTokenSelected.address,
             sendDecimalValue: this.sendValue,
             requestTokenAddress: ADDRESS_ZERO,

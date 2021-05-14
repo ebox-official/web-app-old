@@ -28,7 +28,7 @@
         <div class="spinner-border spinner-border-sm"></div>
       </div>
       <div *ngIf="!isBalanceLoading">
-        {{ selectedTokenBalance.decimalValue | number: "0.2-4":"en-US" }}
+        {{ selectedTokenBalance.decimalValue | toFixed: 3 }}
       </div>
     </ng-container>
     <i class="bi bi-chevron-expand"></i> {{ selectedToken.symbol }}

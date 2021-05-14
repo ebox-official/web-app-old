@@ -23,6 +23,7 @@ import { AddressBookComponent } from './components/address-book/address-book.com
 import { ToasterNotifierComponent } from './components/toaster-notifier/toaster-notifier.component';
 import { GovernanceComponent } from './components/governance/governance.component';
 import { GovernanceProposalComponent } from './components/governance/governance-proposal/governance-proposal.component';
+import { ToFixedPipe } from './pipes/to-fixed.pipe';
 
 @NgModule({
   declarations: [
@@ -46,7 +47,8 @@ import { GovernanceProposalComponent } from './components/governance/governance-
     LoadingIndicatorComponent,
     AddressBookComponent,
     GovernanceComponent,
-    GovernanceProposalComponent
+    GovernanceProposalComponent,
+    ToFixedPipe
   ],
   imports: [
     BrowserModule,

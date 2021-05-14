@@ -3,12 +3,11 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { ADDRESS_ZERO, ZERO, MAX_VALUE } from '../constants/various';
 import { ETHBOX, TOKEN_DISPENSER, ERC20_ABI } from '../constants/abis';
 import { ERC20_LIST, BEP20_LIST } from '../constants/tokens';
-import { Balance, Box, BoxInputs, DateInfo } from '../interfaces';
+import { Balance, Box, BoxInputs } from '../interfaces';
 import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
-import { PromptDialogService } from './prompt-dialog.service';
 
 // This is needed to get Web3 and Web3Modal into this service
 let win: any = window;
@@ -19,13 +18,19 @@ let win: any = window;
 export class ContractService {
 
     // Observables tied to various events, see these as top level variables in the app context
-    // Subject simply emits a value that can be capture by current listeners, while BehaviorSubject emits a value but also remembers it for future listeners 
-    balanceChanged$ = new Subject();
-    boxes$ = new BehaviorSubject(null);
+    // Subject simply emits a value that can be listened only by those who are currently listening
+    // BehaviorSubject emits a value but also remembers it for future listeners, that value can also be read at anytime by using getValue()
     tokens$ = new BehaviorSubject(null);
-    isAppReady$ = new BehaviorSubject(false);
+
     chainId$ = new BehaviorSubject(null);
+    isChainSupported$ = new BehaviorSubject(false);
     selectedAccount$ = new BehaviorSubject(null);
+
+    isAppReady$ = new BehaviorSubject(false);
+
+    approvalInteraction$ = new Subject();
+    boxInteraction$ = new Subject();
+    tokenDispenserInteraction$ = new Subject();
 
     // Tokens map lets you query tokens by their addresses in O(1), useful to find logos and decimals in a blink of an eye
     tokensMap;
@@ -60,8 +65,7 @@ export class ContractService {
         private loadingIndicatorServ: LoadingIndicatorService,
         private ngZone: NgZone,
         private toasterServ: ToasterService,
-        private confirmDialogServ: ConfirmDialogService,
-        private promptDialogServ: PromptDialogService) {
+        private confirmDialogServ: ConfirmDialogService) {
         this.init();
     }
 
@@ -105,8 +109,11 @@ export class ContractService {
         this.provider.removeAllListeners('chainChanged');
         this.provider.removeAllListeners('accountsChanged');
         this.provider = null;
+
         this.chainId$.next(null);
+        this.isChainSupported$.next(false);
         this.selectedAccount$.next(null);
+
         this.resetVariables();
     }
 
@@ -137,7 +144,7 @@ export class ContractService {
                         duration: 'long'
                     });
 
-                    this.balanceChanged$.next(true);
+                    this.tokenDispenserInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
             .on('error', (error, receipt) =>
@@ -166,52 +173,6 @@ export class ContractService {
         return [97].includes(this.chainId$.getValue());
     }
 
-    encodeSmartContractTimestamp(jsDate: Date): string {
-
-        let year = jsDate.getUTCFullYear();
-        year = year - 100 * Math.floor(year / 100);
-        let month = jsDate.getUTCMonth();
-        let date = jsDate.getUTCDate();
-        let minutesInDay = 60 * jsDate.getUTCHours() + jsDate.getUTCMinutes();
-
-        return (((year & 0x7f) << 20)
-            + ((month & 0x0f) << 16)
-            + ((date & 0x1f) << 11)
-            + (minutesInDay & 0x07ff)).toString();
-    }
-
-    decodeSmartContractTimestamp(smartContractTimestamp: string): DateInfo {
-
-        let scTimestamp = Number(smartContractTimestamp);
-        let year = (scTimestamp & 0x07f00000) >>> 20;
-        let month = ((scTimestamp & 0x0f0000) >>> 16) + 1;
-        let date = (scTimestamp & 0xf800) >>> 11;
-        let minutesInDay = (scTimestamp & 0x07ff) - new Date().getTimezoneOffset();
-
-        if (minutesInDay >= 1440) {
-            minutesInDay -= 1440;
-            date++;
-        }
-        else if (minutesInDay < 0) {
-            minutesInDay += 1440;
-            date--;
-        }
-
-        let hours = Math.floor(minutesInDay / 60);
-        let minutes = minutesInDay - hours * 60;
-
-        let monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-        let unixTimestamp = Date.parse(`${month}/${date}/20${year} ${hours}:${minutes}`);
-        let readableTimestamp = `${monthNames[month - 1]} ${date} 20${year} ${hours < 10 ? '0' + hours : hours}:${minutes < 10 ? '0' + minutes : minutes}`;
-        let jsDate = new Date(unixTimestamp);
-
-        return {
-            unixTimestamp,
-            readableTimestamp,
-            jsDate
-        };
-    }
-
     isValidAddress(address: string): boolean {
         return win.Web3.utils.isAddress(address);
     }
@@ -219,15 +180,14 @@ export class ContractService {
     weiToDecimal(wei: string, decimals: string | number): string {
         let multiplier = '1' + ZERO.repeat(Number(decimals));
         let _wei = new BigNumber(wei);
-        return _wei.dividedBy(multiplier).toString();
+        return _wei.dividedBy(multiplier).toFixed();
     }
 
     decimalToWei(decimalValue: string, decimals: string | number): string {
 
         let multiplier = '1' + ZERO.repeat(Number(decimals));
         let _decimal = new BigNumber(decimalValue);
-        console.log(_decimal.multipliedBy(multiplier).toString());
-        return _decimal.multipliedBy(multiplier).toString();
+        return _decimal.multipliedBy(multiplier).toFixed();
     }
 
     getTokenWeiFromDecimalValue(tokenAddress: string, decimalValue: string) {
@@ -281,9 +241,10 @@ export class ContractService {
 
         return {
             wei,
+            weiAllowance,
             decimals,
             decimalValue: this.weiToDecimal(wei, decimals),
-            hasUnlimitedAllowance: weiAllowance == MAX_VALUE
+            decimalAllowance: this.weiToDecimal(weiAllowance, decimals)
         };
     }
 
@@ -298,12 +259,12 @@ export class ContractService {
                 .send({ from: this.selectedAccount$.getValue() });
 
             this.toasterServ.toastMessage$.next({
-                type: 'secondary',
+                type: 'success',
                 message: 'Approved! Now you can send/exchange this token',
                 duration: 'long'
             });
 
-            this.balanceChanged$.next(true);
+            this.approvalInteraction$.next(true);
             this.loadingIndicatorServ.off();
         }
         catch (error) {
@@ -315,15 +276,12 @@ export class ContractService {
             console.log('Approval aborted', error);
 
             this.loadingIndicatorServ.off();
-
-            // Re-throwing the error in order to catch it somewhere else (e.g. acceptBox())
-            throw new Error(error);
         }
     }
 
     isValidPassword(box: Box, password: string): boolean {
         let sha3 = win.Web3.utils.soliditySha3;
-        return box.pass_hash_hash === sha3(sha3(password));
+        return box.passHashHash === sha3(sha3(password));
     }
 
     async createBox(boxInputs: BoxInputs): Promise<void> {
@@ -345,17 +303,15 @@ export class ContractService {
             baseTokenWei = sendWei;
         }
 
-        let scTimestamp = this.encodeSmartContractTimestamp(boxInputs.jsDate);
-
+        this.loadingIndicatorServ.on();
         this.ethboxContract.methods
-            .create_box(
+            .createBox(
                 boxInputs.recipient,
                 boxInputs.sendTokenAddress,
                 sendWei,
                 boxInputs.requestTokenAddress,
                 requestWei,
-                passHashHash,
-                scTimestamp)
+                passHashHash)
             .send({
                 from: this.selectedAccount$.getValue(),
                 value: baseTokenWei
@@ -368,8 +324,6 @@ export class ContractService {
                         message: 'May take a while, please wait...',
                         duration: 'short'
                     });
-
-                    this.loadingIndicatorServ.on();
                 }))
             .on('receipt', receipt =>
                 this.ngZone.run(() => {
@@ -380,7 +334,7 @@ export class ContractService {
                         duration: 'long'
                     });
 
-                    this.balanceChanged$.next(true);
+                    this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
             .on('error', (error, receipt) =>
@@ -397,47 +351,61 @@ export class ContractService {
                 }));
     }
 
-    // Broadcasts boxes via observable
-    async fetchBoxes(): Promise<void> {
+    async getIncomingBoxes(): Promise<Box[]> {
 
-        let boxes = await this.ethboxContract.methods.get_boxes()
+        let incomingBoxesIndices = await this.ethboxContract.methods.getBoxesIncoming()
             .call({ from: this.selectedAccount$.getValue() });
-        this.boxes$.next(boxes);
-        console.log('Boxes fetched successfully!');
+        
+        let incomingBoxes = [];
+        for (let index of incomingBoxesIndices) {
+            
+            let box = await this.getBox(index);
+            incomingBoxes.push({
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: box.requestToken,
+                requestValue: box.requestValue,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
+            });
+        }
+        return incomingBoxes;
     }
 
-    async cancelBox(box: Box): Promise<void> {
+    async getOutgoingBoxes(): Promise<Box[]> {
 
-        // This prompt is temporary until the new Smart Contract gets deployed
-        let promptInputs: any = await this.promptDialogServ.spawn({
-            dialogName: "Insert the passphrase",
-            message: "What is the passphrase of this box?<br>(In future you won't need to do this to cancel a box)",
-            inputs: {
-                'password': {
-                    label: 'Password',
-                    value: ''
-                }
-            }
-        });
+        let outgoingBoxesIndices = await this.ethboxContract.methods.getBoxesOutgoing()
+            .call({ from: this.selectedAccount$.getValue() });
+        
+        let outgoingBoxes = [];
+        for (let index of outgoingBoxesIndices) {
 
-        if (!promptInputs) {
-            return;
-        }
-
-        let password = promptInputs.password.value;
-        if (!this.isValidPassword(box, password)) {
-            this.toasterServ.toastMessage$.next({
-                type: 'danger',
-                message: 'Passphrase is incorret. Please retry...',
-                duration: 'long'
+            let box = await this.getBox(index);
+            outgoingBoxes.push({
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: box.requestToken,
+                requestValue: box.requestValue,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
             });
-            return;
         }
+        return outgoingBoxes;
+    }
 
-        let passHash = win.Web3.utils.soliditySha3(password);
+    async cancelBox(boxIndex: number): Promise<void> {
 
+        this.loadingIndicatorServ.on();
         this.ethboxContract.methods
-            .clear_box(box.index, passHash)
+            .cancelBox(boxIndex)
             .send({
                 from: this.selectedAccount$.getValue(),
                 value: ZERO
@@ -450,8 +418,6 @@ export class ContractService {
                         message: 'May take a while, please wait...',
                         duration: 'short'
                     });
-
-                    this.loadingIndicatorServ.on();
                 }))
             .on('receipt', receipt =>
                 this.ngZone.run(() => {
@@ -462,7 +428,7 @@ export class ContractService {
                         duration: 'long'
                     });
 
-                    this.balanceChanged$.next(true);
+                    this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
             .on('error', (error, receipt) =>
@@ -484,31 +450,50 @@ export class ContractService {
         let selectedAccount = this.selectedAccount$.getValue();
         let passHash = win.Web3.utils.soliditySha3(password);
 
+        // If the requestedToken is the base token, then there's no need to approve
         let baseTokenAmount = ZERO;
-        if (box.request_token == ADDRESS_ZERO) {
-            baseTokenAmount = box.request_value;
+        if (box.requestToken == ADDRESS_ZERO) {
+            baseTokenAmount = box.requestValue;
         }
         else {
-            let isConfirmed = await this.confirmDialogServ.spawn({
-                dialogName: 'Do you want to approve?',
-                message: 'To accept the exchange you need to approve the requested token first. The approval is required only once per token.<br><span class="fw-bold">Do you want to approve?<span>',
-                confirmButtonName: 'Approve'
-            });
-            if (!isConfirmed) {
+
+            // Getting the user balance of the requestedToken
+            let tokenBalance = await this.getBalanceOf(box.requestToken);
+
+            // If the balance is not enough, then rejects the operation
+            if ((new BigNumber(box.requestValue)).gt(tokenBalance.wei)) {
+
+                this.toasterServ.toastMessage$.next({
+                    type: 'danger',
+                    message: `Your have ${tokenBalance.decimalValue} ${box.requestTokenInfo.symbol}, not enough for the exchange.`,
+                    duration: 'long'
+                });
                 return;
             }
 
-            // Try/catching the approveMax() to see if it's the case to stop the execution
-            try {
-                await this.approveMax(box.request_token);
-            }
-            catch (error) {
+            // If the allowance is not enough, then asks for the approval
+            if ((new BigNumber(box.requestValue)).gt(tokenBalance.weiAllowance)) {
+            
+                let isConfirmed = await this.confirmDialogServ.spawn({
+                    dialogName: 'Do you want to approve?',
+                    message: 'To accept the exchange you need to approve the requested token first. The approval is required only once per token.<br><span class="fw-bold">Do you want to approve?<span>',
+                    confirmButtonName: 'Approve'
+                });
+
+                // Confirm dialog dismissed
+                if (!isConfirmed) {
+                    return;
+                }
+
+                await this.approveMax(box.requestToken);
+                // Stopping here, the user has to click again (clearer from UX perspective)
                 return;
             }
         }
 
+        this.loadingIndicatorServ.on();
         this.ethboxContract.methods
-            .clear_box(box.index, passHash)
+            .clearBox(box.index, passHash)
             .send({
                 from: selectedAccount,
                 value: baseTokenAmount
@@ -521,8 +506,6 @@ export class ContractService {
                         message: 'May take a while, please wait...',
                         duration: 'short'
                     });
-
-                    this.loadingIndicatorServ.on();
                 }))
             .on('receipt', receipt =>
                 this.ngZone.run(() => {
@@ -533,7 +516,7 @@ export class ContractService {
                         duration: 'long'
                     });
 
-                    this.balanceChanged$.next(true);
+                    this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
             .on('error', (error, receipt) =>
@@ -607,14 +590,17 @@ export class ContractService {
 
         this.loadingIndicatorServ.on();
 
+        // Retrieving the chainId
         let chainId = await this.web3.eth.getChainId();
         this.chainId$.next(chainId);
 
+        // Retrieving the selectedAccount
         let accounts = await this.web3.eth.getAccounts();
         let selectedAccount = accounts[0];
         this.selectedAccount$.next(selectedAccount);
 
-        if (!chainId || !selectedAccount) {
+        // If there's no account selected stop here, there's no point in going further
+        if (!selectedAccount) {
             this.resetVariables();
             return;
         }
@@ -622,6 +608,10 @@ export class ContractService {
         // Sets the addresses for the contracts depending on the current chain
         // If the user is on the wrong chain, then resets and return
         if (chainId == 4) { // 4 = Rinkeby
+
+            // Signaling the chain is supported
+            this.isChainSupported$.next(true);
+
             this.ethboxAddress = ETHBOX.ADDRESSES.RINKEBY;
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.RINKEBY;
             this.tokensMap = this.ERC20_MAP;
@@ -632,6 +622,10 @@ export class ContractService {
             console.log('Supported tokens are', ERC20_LIST);
         }
         else if (chainId == 97) { // 97 = BSC Testnet
+
+            // Signaling the chain is supported
+            this.isChainSupported$.next(true);
+
             this.ethboxAddress = ETHBOX.ADDRESSES.BSC_TESTNET;
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BSC_TESTNET;
             this.tokensMap = this.BEP20_MAP;
@@ -642,6 +636,10 @@ export class ContractService {
             console.log('Supported tokens are', BEP20_LIST);
         }
         else {
+
+            // Signaling the chain is NOT supported
+            this.isChainSupported$.next(false);
+
             this.resetVariables();
             return;
         }
@@ -660,7 +658,7 @@ export class ContractService {
         this.testTokensAddresses.CCC = await this.tokenDispenserContract.methods
             .token3().call();
 
-        // App is ready!
+        // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
         this.isAppReady$.next(true);
         this.loadingIndicatorServ.off();
     }
@@ -669,8 +667,8 @@ export class ContractService {
 
         this.ethboxContract = null;
         this.tokenDispenserContract = null;
+
         this.tokens$.next(null);
-        this.boxes$.next(null);
 
         this.isAppReady$.next(false);
         this.loadingIndicatorServ.off();
@@ -685,6 +683,11 @@ export class ContractService {
             .call({ from: this.selectedAccount$.getValue() });
 
         return allowance;
+    }
+
+    private async getBox(boxIndex: number) {
+        return await this.ethboxContract.methods.getBox(boxIndex)
+            .call({ from: this.selectedAccount$.getValue() });
     }
 
 }

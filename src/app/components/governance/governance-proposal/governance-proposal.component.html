@@ -24,7 +24,7 @@
         </div>
         <span class="ms-1">
           {{
-            (100 * proposal.votes.votes[i].answer / proposal.votes.sum) | number: '1.0-0'
+            (100 * proposal.votes.votes[i].answer / proposal.votes.sum) | toFixed: 0
           }}%
         </span>
       </div>

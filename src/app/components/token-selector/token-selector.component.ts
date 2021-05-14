@@ -1,7 +1,7 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { AfterViewInit, Component, OnDestroy, OnInit, Output, Input } from '@angular/core';
 import { ContractService } from '../../services/contract.service';
-import { AsyncLoop } from '../../../assets/js/custom-utils';
+import { SmartInterval } from '../../../assets/js/custom-utils';
 
 @Component({
     selector: 'app-token-selector',
@@ -35,7 +35,7 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
 
         // This loop calls getBalanceOf(), waits for the result and then repeats
         // This polling loop never starts if isBalanceEnabled is set to false by the host component
-        this.balancePollingLoop = new AsyncLoop(
+        this.balancePollingLoop = new SmartInterval(
             async () => {
 
                 let balance = await this.contractServ

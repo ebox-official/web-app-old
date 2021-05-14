@@ -1,4 +1,4 @@
-export function AsyncLoop(asyncFn, cycledDelay, startDelay) {
+export function SmartInterval(asyncFn, cycledDelay, startDelay) {
 
     this.asyncFn = asyncFn;
     this.cycleDelay = cycledDelay;
@@ -8,10 +8,10 @@ export function AsyncLoop(asyncFn, cycledDelay, startDelay) {
     this.timers = [];
 }
 
-AsyncLoop.prototype.start = function () {
+SmartInterval.prototype.start = function () {
 
     if (this.runningState.isRunning) {
-        console.log("AsyncLoop is already running, please stop it first.");
+        console.log("SmartInterval is already running, please stop it first.");
         return;
     }
 
@@ -25,18 +25,18 @@ AsyncLoop.prototype.start = function () {
 
     this.timers.push(setTimeout(loop.bind(this), this.startDelay));
     this.runningState.isRunning = true;
-    console.log('AsyncLoop started.');
+    console.log('SmartInterval started.');
 };
 
-AsyncLoop.prototype.stop = function () {
+SmartInterval.prototype.stop = function () {
 
     if (!this.runningState.isRunning) {
-        console.log('AsyncLoop is already stopped, please start it first.');
+        console.log('SmartInterval is already stopped, please start it first.');
         return;
     }
 
     this.runningState.isRunning = false;
     this.timers.forEach(timer => clearTimeout(timer));
-    console.log('AsyncLoop stopped.');
+    console.log('SmartInterval stopped.');
     this.runningState = { isRunning: false };
 };

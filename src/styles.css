@@ -100,7 +100,18 @@ html {
 }
 
 .bg-eboxprimary {
-  background: linear-gradient(to bottom right, #7990b0, #8f0d72);
+  background: linear-gradient(to bottom right, #afd0ff, #dc13af);
+}
+
+.text-eboxprimary {
+  background-color: #afd0ff;
+  background-image: linear-gradient(to bottom right, #afd0ff, #dc13af);
+  background-size: 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+  -moz-text-fill-color: transparent;
 }
 
 .bg-eboxdark {

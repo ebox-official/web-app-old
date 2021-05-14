@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Box } from 'src/app/interfaces';
-import { ToasterService } from 'src/app/services/toaster.service';
+import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
 import { ContractService } from '../../../services/contract.service';
 
 @Component({
@@ -14,35 +14,38 @@ export class BoxReceivedComponent implements OnInit {
 
     password = '';
     isBoxUnlocked;
+    isExpanded = false;
+    sendTokenBalance;
+    requestTokenBalance;
 
     constructor(
         public contractServ: ContractService,
-        private toasterServ: ToasterService) { }
+        public loadingIndicatorServ: LoadingIndicatorService) { }
 
     ngOnInit() {
         this.isBoxUnlocked = this.contractServ.isValidPassword(this.box, this.password);
+    }
+
+    async onBoxToggle() {
+
+        this.isExpanded = !this.isExpanded;
+
+        // Only updates balances when expanded
+        if (this.isExpanded) {
+            this.sendTokenBalance = await this.contractServ
+                .getBalanceOf(this.box.sendTokenInfo.address);
+            this.requestTokenBalance = await this.contractServ
+                .getBalanceOf(this.box.requestTokenInfo.address);
+            
+            console.log('send token balance', this.sendTokenBalance);
+            console.log('request token balance', this.requestTokenBalance);
+        }
     }
 
     onPasswordInput(value) {
 
         this.password = value;
         this.isBoxUnlocked = this.contractServ.isValidPassword(this.box, this.password);
-    }
-
-    async onAcceptClicked() {
-
-        let accountBalance = await this.contractServ.getBalanceOf(this.box.request_token);
-        if (Number(accountBalance.wei) < Number(this.box.request_value)) {
-
-            this.toasterServ.toastMessage$.next({
-                type: 'danger',
-                message: `Your balance is ${accountBalance.decimalValue} ${this.box.requestTokenInfo.symbol} which is not enough to make the exchange.`,
-                duration: 'long'
-            });
-            return;
-        }
-
-        this.contractServ.acceptBox(this.box, this.password);
     }
 
 }

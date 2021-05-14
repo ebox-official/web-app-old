@@ -1,4 +1,227 @@
-<div
+<div class="box-wrapper position-relative">
+  <div
+    class="bg-lightalpha rounded-alot"
+    [class.shadow]="!box.taken"
+    [class.text-muted]="box.taken"
+    [class.bg-disabled]="box.taken"
+  >
+    <div class="d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-between gap-3 p-3 position-relative">
+      <div class="col-md-4 d-flex flex-column flex-md-row align-items-center">
+        <img
+          *ngIf="!box.taken && box.requestValue === '0'"
+          class="taptarget-height"
+          src="/assets/img/box-close.png"
+        />
+        <img
+          *ngIf="box.taken && box.requestValue === '0'"
+          class="taptarget-height"
+          src="/assets/img/box-open.png"
+        />
+        <img
+          *ngIf="!box.taken && box.requestValue !== '0'"
+          class="taptarget-height"
+          src="/assets/img/boxes-exchange-close.png"
+        />
+        <img
+          *ngIf="box.taken && box.requestValue !== '0'"
+          class="taptarget-height"
+          src="/assets/img/boxes-exchange-open.png"
+        />
+        <div class="ms-md-3 text-center text-md-end">
+          <div class="fs-5 fw-bold">{{ box.requestValue !== "0" ? "Exchange" : "Withdraw" }}</div>
+          <a
+            class="stretched-link text-reset text-decoration-none"
+            data-bs-toggle="collapse"
+            [href]="'#box-collapse_' + box.timestamp"
+            (click)="onBoxToggle()"
+          >
+            <i class="bi {{ isExpanded ? 'bi-arrows-collapse' : 'bi-arrows-expand' }}"></i>
+            {{ isExpanded ? 'Close' : 'Open' }}
+        </a>
+        </div>
+      </div>
+      <div
+        [class.text-eboxprimary]="!box.taken"
+        class="fs-5 text-end"
+      >
+        <div>
+          <span class="me-2">{{ 
+            box.sendDecimalValue.length < 7
+              ? box.sendDecimalValue
+              : box.sendDecimalValue.slice(0, 6) + '...'
+          }}</span>
+          <span class="font-monospace fw-bold">{{ box.sendTokenInfo.symbol }}</span>
+        </div>
+        <div *ngIf="box.requestValue !== '0'">
+          <span class="me-2">{{ 
+            box.requestDecimalValue.length < 7
+              ? box.requestDecimalValue
+              : box.requestDecimalValue.slice(0, 6) + '...'
+          }}</span>
+          <span class="font-monospace fw-bold">{{ box.requestTokenInfo.symbol }}</span>
+        </div>
+      </div>
+      <div class="col-md-4 text-center text-md-end">
+        <div class="fs-5 fw-bold" *ngIf="box.addressBookName; else address">
+          {{ box.addressBookName.slice(0, 17) }}
+        </div>
+        <ng-template #address>
+          {{ box.recipient.slice(0, 8) }}...{{ box.recipient.slice(-6) }}
+        </ng-template>
+        <div>{{ box.readableTimestamp }}</div>
+      </div>
+    </div>
+
+    <div class="collapse" [id]="'box-collapse_' + box.timestamp">
+      <div class="p-3 pt-0">
+        <div class="d-flex align-items-end justify-content-between px-3 mb-2">
+          <div>
+            To:
+            <a
+              [href]="
+                contractServ.isEthereum()
+                  ? 'https://etherscan.io/address/' + box.recipient
+                  : 'https://bscscan.com/address/' + box.recipient
+              "
+              target="_blank"
+              class="text-reset"
+            >
+              <span *ngIf="box.addressBookName; else address">
+                {{ box.addressBookName.slice(0, 11) }}
+              </span>
+              <ng-template #address>
+                {{ box.recipient.slice(0, 5) }}...{{ box.recipient.slice(-3) }}
+              </ng-template>
+            </a>
+          </div>
+          <div class="text-end">
+            Your balances
+          </div>
+        </div>
+
+        <div
+          class="rounded-alot mb-2 position-relative"
+          [class.text-white]="!box.taken"
+          [class.bg-eboxdark]="!box.taken"
+          [class.bg-completed]="box.taken"
+          [class.text-muted]="box.taken"
+        >
+          <div class="lead p-3 pb-0">
+            Sent
+          </div>
+          <div 
+            [class.text-eboxprimary]="!box.taken"
+            class="display-6 fw-bold p-3 pt-0"
+          >
+            {{ box.sendDecimalValue }}
+          </div>
+          <div
+            class="rounded-alot position-absolute top-50 translate-middle-y"
+            style="right: 1rem"
+          >
+            <div class="text-end">
+              {{ sendTokenBalance?.decimalValue | toFixed: 3 }}
+            </div>
+            <div class="d-flex align-items-center justify-content-end">
+              <img
+                class="me-1"
+                [src]="box.sendTokenInfo?.thumb"
+                style="width: 1.25rem; height: 1.25rem"
+              />
+              {{ box.sendTokenInfo?.symbol }}
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="rounded-alot mb-3 position-relative"
+          [class.text-white]="!box.taken"
+          [class.bg-eboxdark]="!box.taken"
+          [class.bg-completed]="box.taken"
+          [class.text-muted]="box.taken"
+          *ngIf="box.requestValue !== '0'"
+        >
+          <div class="lead p-3 pb-0">
+            Requested
+          </div>
+          <div 
+            [class.text-eboxprimary]="!box.taken"
+            class="display-6 fw-bold p-3 pt-0"
+          >
+            {{ box.requestDecimalValue }}
+          </div>
+          <div
+            class="rounded-alot position-absolute top-50 translate-middle-y" style="right: 1rem"
+          >
+            <div class="text-end">
+              {{ requestTokenBalance?.decimalValue | toFixed: 3 }}
+            </div>
+            <div class="d-flex align-items-center justify-content-end">
+              <img
+                class="me-1"
+                [src]="box.requestTokenInfo?.thumb"
+                style="width: 1.25rem; height: 1.25rem"
+              />
+              {{ box.requestTokenInfo?.symbol }}
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!box.taken" class="text-end">
+          <button
+            (click)="contractServ.cancelBox(box.index)"
+            class="col-12 col-md-auto btn btn-lg btn-outline-eboxprimary rounded-alot"
+            [disabled]="
+              (loadingIndicatorServ.isLoading$ | async)
+                ? 'disabled'
+                : null
+            "
+          >
+            Cancel
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <div
   class="bg-lightalpha rounded-alot p-3"
   [class.shadow]="!box.taken"
   [class.text-muted]="box.taken"
@@ -9,27 +232,27 @@
   >
     <div class="order-1 mb-3 mb-md-0 d-flex align-items-center">
       <img
-        *ngIf="!box.taken && box.request_value === '0'"
+        *ngIf="!box.taken && box.requestValue === '0'"
         class="taptarget-height"
         src="/assets/img/box-close.png"
       />
       <img
-        *ngIf="box.taken && box.request_value === '0'"
+        *ngIf="box.taken && box.requestValue === '0'"
         class="taptarget-height"
         src="/assets/img/box-open.png"
       />
       <img
-        *ngIf="!box.taken && box.request_value !== '0'"
+        *ngIf="!box.taken && box.requestValue !== '0'"
         class="taptarget-height"
         src="/assets/img/boxes-exchange-close.png"
       />
       <img
-        *ngIf="box.taken && box.request_value !== '0'"
+        *ngIf="box.taken && box.requestValue !== '0'"
         class="taptarget-height"
         src="/assets/img/boxes-exchange-open.png"
       />
       <span class="fs-5 fw-bold ms-2">{{
-        box.request_value !== "0" ? "Exchange" : "Withdraw"
+        box.requestValue !== "0" ? "Exchange" : "Withdraw"
       }}</span>
     </div>
     <div class="order-3 order-md-2">
@@ -39,6 +262,7 @@
         [attr.data-bs-target]="'#box-collapse_' + box.timestamp"
       >
         <i class="bi bi-arrows-expand"></i>
+        Open
       </button>
     </div>
     <div class="order-2 order-md-3 text-center text-md-end mb-3 mb-md-0">
@@ -52,7 +276,6 @@
           target="_blank"
           class="text-reset"
         >
-          <i class="bi bi-link-45deg"></i>
           <small *ngIf="box.addressBookName; else address">
             {{ box.addressBookName.slice(0, 17) }}
           </small>
@@ -96,7 +319,7 @@
         [class.bg-eboxdark]="!box.taken"
         [class.bg-completed]="box.taken"
         [class.text-muted]="box.taken"
-        *ngIf="box.request_value !== '0'"
+        *ngIf="box.requestValue !== '0'"
       >
         <div class="d-flex align-items-baseline">
           <span class="fs-5 me-auto">Requested</span>
@@ -115,13 +338,18 @@
       </div>
       <div class="text-end">
         <button
-          (click)="contractServ.cancelBox(box)"
+          (click)="contractServ.cancelBox(box.index)"
           class="btn btn-outline-eboxprimary rounded-alot"
           *ngIf="!box.taken"
+          [disabled]="
+            (loadingIndicatorServ.isLoading$ | async)
+              ? 'disabled'
+              : null
+          "
         >
           Cancel
         </button>
       </div>
     </div>
   </div>
-</div>
+</div> -->

@@ -20,7 +20,7 @@
       type="text"
       class="form-control rounded-alot bg-lightalpha mb-3"
       placeholder="Search"
-      [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+      [disabled]="!isAppReady ? 'disabled' : null"
     />
     <!-- end of search -->
 
@@ -31,7 +31,7 @@
           #stateInput
           (input)="state = stateInput.value; filterBoxes()"
           class="bg-lightalpha form-select rounded-alot"
-          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+          [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by state</option>
           <option value="pending">Pending</option>
@@ -43,7 +43,7 @@
           #typeInput
           (input)="type = typeInput.value; filterBoxes()"
           class="bg-lightalpha form-select rounded-alot"
-          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+          [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by type</option>
           <option value="withdraw">Withdraw</option>
@@ -55,7 +55,7 @@
           #orderInput
           (input)="order = orderInput.value; filterBoxes()"
           class="bg-lightalpha form-select rounded-alot"
-          [disabled]="!(contractServ.isAppReady$ | async) ? 'disabled' : null"
+          [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="desc" selected>Date desc</option>
           <option value="asc">Date asc</option>
@@ -93,42 +93,14 @@
   </div>
   <!-- end filters -->
 
-  <!-- boxes -->
-  <div class="container-medium">
-    <div
-      *ngIf="!(contractServ.isAppReady$ | async)"
-      class="display-6 fw-bold text-center"
-    >
-      Connect to show your boxes
-    </div>
-    <ng-container *ngIf="contractServ.isAppReady$ | async">
-      <p class="text-center">
-        <small *ngIf="paginatedBoxes && paginatedBoxes.length">
-          Click on the expand icon to reveal the content
-        </small>
-      </p>
-      <!-- grid -->
-      <div
-        *ngIf="paginatedBoxes && paginatedBoxes.length"
-        class="row row-cols-1 g-3"
-      >
-        <app-box-received
-          class="col"
-          *ngFor="let box of paginatedBoxes; trackBy: identifier"
-          [box]="box"
-        ></app-box-received>
-      </div>
-      <!-- end of grid -->
-
-      <!-- messages -->
-      <div class="display-6 fw-bold text-center">
-        <div *ngIf="!paginatedBoxes" class="spinner spinner-grow"></div>
-        <span *ngIf="paginatedBoxes && !paginatedBoxes.length">
-          There are no boxes
-        </span>
-      </div>
-      <!-- end of messages -->
-    </ng-container>
+  <div *ngIf="message" class="container-medium">
+    <div class="display-6 fw-bold text-center">{{ message }}</div>
   </div>
-  <!-- end of boxes -->
+
+  <div class="container-medium d-grid gap-2">
+    <app-box-received
+      *ngFor="let box of paginatedBoxes; trackBy: identifier"
+      [box]="box"
+    ></app-box-received>
+  </div>
 </div>
