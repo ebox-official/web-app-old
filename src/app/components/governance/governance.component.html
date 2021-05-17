@@ -26,62 +26,41 @@
   <!-- end of header -->
 
   <div class="container-medium">
-
-    <ng-container
-      *ngIf="!(contractServ.isAppReady$ | async); else showAddressAndTime"
-    >
-      <div class="display-6 fw-bold text-center text-white mb-5">
-        Connect to vote
-      </div>
-    </ng-container>
-    <ng-template #showAddressAndTime>
-      <!-- address and time -->
-      <div
-        class="d-flex flex-column flex-md-row justify-content-between text-white mb-3"
-      >
-        <div class="mb-3 mb-md-0">
-          <div class="fs-5">Your address</div>
-          <small *ngIf="contractServ.selectedAccount$ | async as selAcc">
-            {{ selAcc.slice(0, 8) }}...{{ selAcc.slice(-6) }}
-          </small>
-        </div>
-        <div>
-          <div class="fs-5 text-md-end">Datetime</div>
-          <small>{{ datetime }}</small>
-        </div>
-      </div>
-      <!-- end of address and time -->
-    </ng-template>
-
-    <div class="text-white text-center mb-3">
-      <small>Click on an area to expand it</small>
+    <div class="display-6 fw-bold text-center text-white mb-5">
+      {{ datetime }}
     </div>
     <div class="d-grid gap-3">
       <div class="bg-white rounded-alot" *ngFor="let area of pageData">
-        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 position-relative">
+        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 position-relative" (click)="area._isCollapsed = !area._isCollapsed">
           <div class="fs-4 fw-bold">
-            {{ area.title }}
+            <span class="me-2">
+              {{ area.title }}
+            </span>
             <a href="#{{area._id}}" data-bs-toggle="collapse" class="stretched-link text-reset text-decoration-none">
-              <i class="bi bi-chevron-down"></i>
+              <i
+                class="bi"
+                [class.bi-arrows-expand]="area._isCollapsed"
+                [class.bi-arrows-collapse]="!area._isCollapsed"></i>
             </a>
           </div>
           <div>{{ area.proposals.length }} proposals</div>
         </div>
         <div class="collapse" [id]="area._id">
-          <div class="text-center">
-            <small>Click on a voting to expand it</small>
-          </div>
           <div class="d-grid gap-3 p-3">
             <div
               class="bg-eboxdark text-white rounded-alot p-3" 
-              *ngFor="let proposal of area.proposals"
-              [class.bg-completed]="proposal.hasExpired || proposal.hasVoted">
-              <div class="position-relative">
-                <div class="d-flex align-items-center justify-content-between">
+              *ngFor="let proposal of area.proposals">
+              <div class="position-relative" (click)="proposal._isCollapsed = !proposal._isCollapsed">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                   <div class="fs-5 fw-bold">
-                    Voting #{{ proposal.n }}
-                    <a href="#{{proposal._id}}" data-bs-toggle="collapse" class="stretched-link text-reset text-decoration-none">
-                      <i class="bi bi-chevron-down"></i>
+                    <span class="me-2">
+                      Voting #{{ proposal.n }}
+                    </span>
+                    <a href="#{{proposal._id}}" data-bs-toggle="collapse" class="stretched-link text-reset text-decoration-none me-2">
+                      <i
+                        class="bi"
+                        [class.bi-arrows-expand]="proposal._isCollapsed"
+                        [class.bi-arrows-collapse]="!proposal._isCollapsed"></i>
                     </a>
                     <small *ngIf="proposal.hasExpired">
                       (Expired)
@@ -92,10 +71,7 @@
                 <div>{{ proposal.question }}</div>
               </div>
               <div class="collapse" [id]="proposal._id">
-                <div class="my-2 text-center">
-                  <small>Pick your choice</small>
-                </div>
-                <div class="bg-white text-dark rounded-alot p-3">
+                <div class="bg-white text-dark rounded-alot p-3 mt-3">
                   <div class="d-flex flex-wrap justify-content-between gap-2">
                     <div>
                       <div class="fw-bold">Start</div>

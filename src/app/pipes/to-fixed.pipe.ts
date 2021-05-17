@@ -5,20 +5,22 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class ToFixedPipe implements PipeTransform {
 
-	transform(value: string, fractionLimit?: number): unknown {
+	transform(value: number, fractionLimit?: number): unknown {
 
-		if (!value) {
+		if (isNaN(value)) {
 			return null;
 		}
+
+		let _value = value.toString();
 
 		let whole = '',
 			fraction = '';
 
-		if (value.indexOf('.') > -1) {
-			[whole, fraction] = value.split('.')
+		if (_value.indexOf('.') > -1) {
+			[whole, fraction] = _value.split('.')
 		}
 		else {
-			whole = value;
+			whole = _value;
 		}
 
 		let usFormat = '';
