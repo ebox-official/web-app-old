@@ -24,6 +24,7 @@ import { ToasterNotifierComponent } from './components/toaster-notifier/toaster-
 import { GovernanceComponent } from './components/governance/governance.component';
 import { GovernanceProposalComponent } from './components/governance/governance-proposal/governance-proposal.component';
 import { ToFixedPipe } from './pipes/to-fixed.pipe';
+import { VoterComponent } from './components/governance/voter/voter.component';
 
 @NgModule({
   declarations: [
@@ -48,7 +49,8 @@ import { ToFixedPipe } from './pipes/to-fixed.pipe';
     AddressBookComponent,
     GovernanceComponent,
     GovernanceProposalComponent,
-    ToFixedPipe
+    ToFixedPipe,
+    VoterComponent
   ],
   imports: [
     BrowserModule,

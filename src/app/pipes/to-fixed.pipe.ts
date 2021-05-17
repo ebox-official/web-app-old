@@ -7,7 +7,7 @@ export class ToFixedPipe implements PipeTransform {
 
 	transform(value: number, fractionLimit?: number): unknown {
 
-		if (isNaN(value)) {
+		if (isNaN(value) || value === undefined || value === null) {
 			return null;
 		}
 

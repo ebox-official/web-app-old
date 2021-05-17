@@ -40,8 +40,8 @@ export class GovernanceService {
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
-        let { result: is_eligible } = await response.json();
-        return is_eligible;
+        let { result: isEligible } = await response.json();
+        return isEligible;
     }
 
     async hasVoted(options) {
@@ -56,8 +56,8 @@ export class GovernanceService {
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
-        let { result: has_voted } = await response.json();
-        return has_voted;
+        let { result: hasVoted } = await response.json();
+        return hasVoted;
     }
 
     async getVotes(options) {
@@ -77,6 +77,37 @@ export class GovernanceService {
             sum: votes.reduce((a, b) => a + b.answer, 0),
             votes
         };
+    }
+
+    async getVoters(options) {
+
+        let formData = new FormData();
+        formData.append('action', 'get_voters');
+        formData.append('voting', options.votingNumber);
+
+        if (options.area) {
+            formData.append(options.area, '1');
+        }
+
+        let response = await fetch(this.endpoint, { method: 'POST', body: formData });
+        let { data: eligibleUsers } = await response.json();
+        return eligibleUsers
+            .sort((a, b) => b.voting_power - a.voting_power);
+    }
+
+    async getVotesDetails(options) {
+
+        let formData = new FormData();
+        formData.append('action', 'get_votes_detail');
+        formData.append('voting', options.votingNumber);
+
+        if (options.area) {
+            formData.append(options.area, '1');
+        }
+
+        let response = await fetch(this.endpoint, { method: 'POST', body: formData });
+        let { data: votesDetail } = await response.json();
+        return votesDetail;
     }
 
     async vote(proposal, selectedChoice) {

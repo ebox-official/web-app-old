@@ -24,12 +24,35 @@
     </div>
   </div>
 </div>
+
 <div class="text-end">
-  <button
-    [disabled]="isButtonDisabled ? 'disabled' : null"
-    class="btn btn-eboxprimary rounded-alot"
-    (click)="buttonFunction()"
-  >
-    {{ buttonMessage }}
-  </button>
+
+  <div class="col-12 col-md-auto d-inline-flex flex-column align-items-center">
+    <a href="#votersDetail_{{proposal._id}}" class="text-reset mb-2" data-bs-toggle="modal">
+      Voters details
+    </a>
+    <button
+      [disabled]="isButtonDisabled ? 'disabled' : null"
+      class="btn btn-eboxprimary rounded-alot"
+      (click)="buttonFunction()"
+      >
+      {{ buttonMessage }}
+    </button>
+  </div>
+
+  <!-- voters detail -->
+  <div class="modal fade text-start" [id]="'votersDetail_' + proposal._id" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content rounded-alot">
+        <div class="modal-header">
+          <h5 class="modal-title">Voters detail</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <app-voter *ngFor="let voter of proposal.votersDetail" [voter]="voter" [isDetailedView]="true"></app-voter>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- end of voters detail -->
 </div>

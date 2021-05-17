@@ -41,8 +41,18 @@ export class GovernanceComponent implements OnInit {
                 p.area = area;
                 p.isEligible = false;
                 p.hasVoted = false;
-                p.votes = await this.governanceServ.getVotes({ votingNumber: p.n , area });
+                p.votes = await this.governanceServ.getVotes({ votingNumber: p.n, area });
+                
+                this.governanceServ.getVoters({ 
+                    votingNumber: p.n,
+                    area })
+                    .then(r => p.eligibleUsers = r);
+                this.governanceServ.getVotesDetails({ 
+                    votingNumber: p.n,
+                    area })
+                    .then(r => p.votersDetail = r);
             }
+
 
             // Pushing results into pageData
             this.pageData.push({
