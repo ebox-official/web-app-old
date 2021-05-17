@@ -92,6 +92,9 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                       </div>
                       <div class="modal-body">
+                        <div class="mb-3 text-center">
+                          <small>There are {{ proposal.eligibleUsers?.length }} eligible users</small>
+                        </div>
                         <app-voter *ngFor="let user of proposal.eligibleUsers" [voter]="user"></app-voter>
                       </div>
                     </div>

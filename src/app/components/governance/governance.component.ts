@@ -43,6 +43,8 @@ export class GovernanceComponent implements OnInit {
                 p.hasVoted = false;
                 p.votes = await this.governanceServ.getVotes({ votingNumber: p.n, area });
                 
+                p.eligibleUsers = [];
+                p.votersDetail = [];
                 this.governanceServ.getVoters({ 
                     votingNumber: p.n,
                     area })
