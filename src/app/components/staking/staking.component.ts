@@ -1,84 +1,108 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ContractService } from 'src/app/services/contract.service';
+import { StakingService } from 'src/app/services/staking.service';
 
 @Component({
     selector: 'app-staking',
     templateUrl: './staking.component.html',
     styleUrls: ['./staking.component.css']
 })
-export class StakingComponent implements OnInit {
+export class StakingComponent implements OnInit, OnDestroy {
 
     monthsNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     today = new Date();
     pageMonth;
     pageDate;
-    search;
-    filteredRewards;
-    selectedAccountReward;
-    isLoading;
+    userRewardObjAPI;
+    userRewardContract;
+
+    chainId;
+    isEthereumMainnet;
+    selectedAccount;
+    isStakingReady;
+    message;
 
     private numberOfDaysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    private subscriptions = [];
     private minMonth;
     private minDate;
     private maxMonth;
     private maxDate;
     private fetchedRewards;
-    private selectedAccount;
 
-    constructor(private contractServ: ContractService) { }
+    constructor(
+        public contractServ: ContractService,
+        private stakingServ: StakingService) { }
 
     async ngOnInit() {
 
         this.pageMonth = this.today.getMonth();
         this.pageDate = this.today.getDate();
 
-        let dateLimits = await this.getDateLimits();
+        // Setting up the reactive code to load the reward
+        [
+            this.contractServ.chainId$,
+            this.contractServ.isEthereumMainnet$,
+            this.contractServ.selectedAccount$,
+            this.contractServ.isStakingReady$,
+            this.contractServ.stakingInteraction$
+        ].forEach(obs => 
+            this.subscriptions.push(
+                obs.subscribe(async () => {
 
-        this.minMonth = dateLimits.min_month - 1;
-        this.minDate = +dateLimits.min_day;
-        this.maxMonth = dateLimits.max_month - 1;
-        this.maxDate = +dateLimits.max_day;
+                    // Resetting the component
+                    this.selectedAccount = null;
+                    this.userRewardObjAPI = null;
+                    this.userRewardContract = null;
 
-        this.pageMonth = this.maxMonth;
-        this.pageDate = this.maxDate;
-
-        await this.fetchRewards();
-        this.filterRewards();
-
-        this.contractServ.isAppReady$
-            .subscribe(async isReady => {
-
-                if (isReady) {
-
+                    // Updating local variables
+                    this.chainId = this.contractServ.chainId$.getValue();
+                    this.isEthereumMainnet = this.contractServ.isEthereumMainnet$.getValue();
                     this.selectedAccount = this.contractServ.selectedAccount$.getValue();
+                    this.isStakingReady = this.contractServ.isStakingReady$.getValue();
+
+                    // Calculating a message for the user
+                    if (!this.chainId || !this.selectedAccount) {
+                        this.message = 'Connect your wallet';
+                        return;
+                    }
+                    if (!this.isEthereumMainnet) {
+                        this.message = 'Wrong network, use Ethereum Mainnet';
+                        return;
+                    }
+                    if (!this.isStakingReady) {
+                        this.message = 'Initializing the Smart Contract...';
+                        return;
+                    }
+
+                    // Loading message displayed to the user
+                    this.message = 'Loading your reward...';
+
+                    let dateLimits = await this.stakingServ.getDateLimits();
+
+                    this.minMonth = dateLimits.min_month - 1;
+                    this.minDate = +dateLimits.min_day;
+                    this.maxMonth = dateLimits.max_month - 1;
+                    this.maxDate = +dateLimits.max_day;
+
+                    this.pageMonth = this.maxMonth;
+                    this.pageDate = this.maxDate;
+
+                    this.userRewardContract = await this.contractServ.getRewardAmount();
+
                     await this.fetchRewards();
-                    this.filterRewards();
-                }
-            });
+                    if (!this.userRewardObjAPI) {
+                        this.message = 'Reward not found';
+                        return;
+                    }
+
+                    // Selected reward is available
+                    this.message = null;
+                })));
     }
 
-    async getDateLimits() {
-
-        let endpoint = 'https://www.ethbox.org/staking/fetch_data.php';
-
-        let formData = new FormData();
-        formData.append('action', 'get_date_limits');
-
-        let result = await fetch(endpoint, { method: 'POST', body: formData });
-        return await result.json();
-    }
-
-    async getData() {
-
-        let endpoint = 'https://www.ethbox.org/staking/fetch_data.php';
-
-        let formData = new FormData();
-        formData.append('action', 'get_data');
-        formData.append('month', this.pageMonth + 1);
-        formData.append('day', this.pageDate);
-
-        let result = await fetch(endpoint, { method: 'POST', body: formData });
-        return await result.json();
+    ngOnDestroy(): void {
+        this.subscriptions.forEach(sub => sub.unsubscribe());
     }
 
     async onPaginationPreviousClick() {
@@ -99,7 +123,6 @@ export class StakingComponent implements OnInit {
             this.pageDate--;
         }
         await this.fetchRewards();
-        this.filterRewards();
     }
 
     async onPaginationNextClick() {
@@ -120,30 +143,18 @@ export class StakingComponent implements OnInit {
             this.pageDate++;
         }
         await this.fetchRewards();
-        this.filterRewards();
-    }
-
-    filterRewards() {
-
-        this.filteredRewards = this.fetchedRewards
-            .filter(item =>
-                !this.search || (item.address.toLowerCase()).includes(this.search.trim().toLowerCase()))
-            .sort((a, b) => b.balance - a.balance);
     }
 
     private async fetchRewards() {
 
-        this.isLoading = true;
-        let results = await this.getData();
+        let results = await this.stakingServ.getData(this.pageMonth, this.pageDate);
         this.fetchedRewards = results
             .map(result => ({ ...result, apy: 100 * 12 * result.reward / result.balance }));
 
-        if (this.selectedAccount) {
-            this.selectedAccountReward = this.fetchedRewards
-                .find(item =>
-                    item.address.toLowerCase() == this.selectedAccount.toLowerCase());
-        }
-        this.isLoading = false;
+        this.userRewardObjAPI = this.fetchedRewards
+            .find(item => item.address.toLowerCase() == this.selectedAccount.toLowerCase());
+
+        console.log(this.userRewardObjAPI);
     }
 
 }

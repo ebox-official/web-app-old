@@ -17,9 +17,9 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
     selectedChoice;
 
     chainId;
-    isChainSupported;
+    isEthereumMainnet;
     selectedAccount;
-    isAppReady;
+    isGovernanceReady;
 
     buttonMessage;
     buttonFunction;
@@ -37,18 +37,18 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
 
         [
             this.contractServ.chainId$,
-            this.contractServ.isChainSupported$,
+            this.contractServ.isEthereumMainnet$,
             this.contractServ.selectedAccount$,
-            this.contractServ.isAppReady$
+            this.contractServ.isGovernanceReady$
         ].forEach(
             obs => obs.subscribe(
                 async () => {
 
                     // Updating local variables
                     this.chainId = this.contractServ.chainId$.getValue();
-                    this.isChainSupported = this.contractServ.isChainSupported$.getValue();
+                    this.isEthereumMainnet = this.contractServ.isEthereumMainnet$.getValue();
                     this.selectedAccount = this.contractServ.selectedAccount$.getValue();
-                    this.isAppReady = this.contractServ.isAppReady$.getValue();
+                    this.isGovernanceReady = this.contractServ.isGovernanceReady$.getValue();
 
                     // Calculating a message for the user
                     if (!this.chainId || !this.selectedAccount) {
@@ -57,12 +57,12 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
                         this.isButtonDisabled = false;
                         return;
                     }
-                    if (!this.isChainSupported) {
-                        this.buttonMessage = 'Wrong network';
+                    if (!this.isEthereumMainnet) {
+                        this.buttonMessage = 'Wrong network, use Ethereum Mainnet';
                         this.isButtonDisabled = true;
                         return;
                     }
-                    if (!this.isAppReady) {
+                    if (!this.isGovernanceReady) {
                         this.buttonMessage = 'Initializing the Smart Contract...';
                         this.isButtonDisabled = true;
                         return;

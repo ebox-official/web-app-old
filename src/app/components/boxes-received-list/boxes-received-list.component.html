@@ -19,7 +19,7 @@
         <select
           #stateInput
           (input)="state = stateInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot shadow"
+          class="bg-lightalpha form-select rounded-alot"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by state</option>
@@ -31,7 +31,7 @@
         <select
           #typeInput
           (input)="type = typeInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot shadow"
+          class="bg-lightalpha form-select rounded-alot"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by type</option>
@@ -43,7 +43,7 @@
         <select
           #orderInput
           (input)="order = orderInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot shadow"
+          class="bg-lightalpha form-select rounded-alot"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="desc" selected>Date desc</option>
@@ -53,7 +53,7 @@
       <!-- end of state, type and date -->
       <!-- pagination -->
       <div class="col">
-        <ul class="pagination mb-0 justify-content-center rounded-alot shadow">
+        <ul class="pagination mb-0 justify-content-center rounded-alot">
           <li class="page-item">
             <a
               (click)="$event.preventDefault(); onPaginationPreviousClick()"

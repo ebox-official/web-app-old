@@ -14,7 +14,6 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
     paginationText = '0-0/0';
     
     order = 'desc';
-    search = '';
     state;
     type;
     
@@ -125,7 +124,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
                         return;
                     }
                     if (!this.isChainSupported) {
-                        this.message = 'Wrong network';
+                        this.message = 'Wrong network, use Rinkeby or BSC Testnet';
                         return;
                     }
                     if (!this.isAppReady) {
@@ -185,13 +184,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
             .filter(box =>
                 !this.state || box.taken == (this.state == 'completed'))
             .filter(box =>
-                !this.type || box.requestValue === '0' == (this.type == 'withdraw'))
-            .filter(box => {
-
-                let lcSearch = this.search.trim().toLocaleLowerCase();
-                let lcBoxString = JSON.stringify(box).toLocaleLowerCase();
-                return !lcSearch || lcBoxString.includes(lcSearch);
-            });
+                !this.type || box.requestValue === '0' == (this.type == 'withdraw'));
 
         if (this.order) {
             this.filteredBoxes.sort((a, b) =>

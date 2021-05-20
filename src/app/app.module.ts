@@ -16,7 +16,6 @@ import { BoxReceivedComponent } from './components/boxes-received-list/box-recei
 import { BodyBgChangerComponent } from './components/body-bg-changer/body-bg-changer.component';
 import { BoxSentComponent } from './components/boxes-sent-list/box-sent/box-sent.component';
 import { TokenSelectorComponent } from './components/token-selector/token-selector.component';
-import { StakingItemComponent } from './components/staking/staking-item/staking-item.component';
 import { ComingSoonComponent } from './components/coming-soon/coming-soon.component';
 import { LoadingIndicatorComponent } from './components/loading-indicator/loading-indicator.component';
 import { AddressBookComponent } from './components/address-book/address-book.component';
@@ -43,7 +42,6 @@ import { GovernanceAreaComponent } from './components/governance/governance-area
     BodyBgChangerComponent,
     BoxSentComponent,
     TokenSelectorComponent,
-    StakingItemComponent,
     ComingSoonComponent,
     ToasterNotifierComponent,
     LoadingIndicatorComponent,

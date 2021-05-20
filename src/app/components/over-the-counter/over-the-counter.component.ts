@@ -70,7 +70,7 @@ export class OverTheCounterComponent implements OnInit {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network';
+            this.buttonMessage = 'Wrong network, use Rinkeby or BSC Testnet';
             this.isButtonDisabled = true;
             return;
         }

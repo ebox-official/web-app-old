@@ -1,3 +1,10 @@
+export let STAKING = {
+    ADDRESSES: {
+        ETHEREUM: '0x37c82a143a9fafc2df10e774f1e4b8b96fd41559'
+    },
+    ABI: [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"claimReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getUnclaimedReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"other","type":"address"}],"name":"getUnclaimedRewardFor","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"pause","type":"bool"}],"name":"setContractPaused","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"address","name":"staker","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"internalType":"struct ethboxStaking.staking_reward[]","name":"_rewards","type":"tuple[]"}],"name":"setRewards","outputs":[],"stateMutability":"nonpayable","type":"function"}]
+};
+
 export let ETHBOX = {
     ADDRESSES: {
         RINKEBY: '0x1056d947ffeb6a663be94e4369309abdaee9ddcb',
@@ -8,7 +15,6 @@ export let ETHBOX = {
 
 export let TOKEN_DISPENSER = {
     ADDRESSES: {
-        GANACHE: '0x6630f98918F87E06d1A377A1db0567AE7B4225b0',
         RINKEBY: '0x54678DF558664F0e45543Bee9dcbcE9D9C1fD351',
         BSC_TESTNET: '0x446B34aDE32E3A8FD9f73246740173b6a929aee6'
     },

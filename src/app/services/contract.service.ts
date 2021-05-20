@@ -1,7 +1,7 @@
 import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { ADDRESS_ZERO, ZERO, MAX_VALUE } from '../constants/various';
-import { ETHBOX, TOKEN_DISPENSER, ERC20_ABI } from '../constants/abis';
+import { STAKING, ETHBOX, TOKEN_DISPENSER, ERC20_ABI } from '../constants/abis';
 import { ERC20_LIST, BEP20_LIST } from '../constants/tokens';
 import { Balance, Box, BoxInputs } from '../interfaces';
 import { LoadingIndicatorService } from './loading-indicator.service';
@@ -24,12 +24,16 @@ export class ContractService {
 
     chainId$ = new BehaviorSubject(null);
     isChainSupported$ = new BehaviorSubject(false);
+    isEthereumMainnet$ = new BehaviorSubject(false);
     selectedAccount$ = new BehaviorSubject(null);
 
     isAppReady$ = new BehaviorSubject(false);
+    isStakingReady$ = new BehaviorSubject(false);
+    isGovernanceReady$ = new BehaviorSubject(false);
 
     approvalInteraction$ = new Subject();
     boxInteraction$ = new Subject();
+    stakingInteraction$ = new Subject();
     tokenDispenserInteraction$ = new Subject();
 
     // Tokens map lets you query tokens by their addresses in O(1), useful to find logos and decimals in a blink of an eye
@@ -47,6 +51,9 @@ export class ContractService {
     private tokenDispenserAddress;
     private tokenDispenserContract;
     private ethboxContract;
+
+    private stakingAddress;
+    private stakingContract;
 
     // Unpkg imports
     private Web3Modal = win.Web3Modal.default;
@@ -112,9 +119,11 @@ export class ContractService {
 
         this.chainId$.next(null);
         this.isChainSupported$.next(false);
+        this.isEthereumMainnet$.next(false);
         this.selectedAccount$.next(null);
 
         this.resetVariables();
+        this.loadingIndicatorServ.off();
     }
 
     give100TestToken(testTokenSymbol: string): void {
@@ -161,12 +170,8 @@ export class ContractService {
                 }));
     }
 
-    isSupportedChain() {
-        return [4, 97].includes(this.chainId$.getValue());
-    }
-
     isEthereum(): boolean {
-        return [4].includes(this.chainId$.getValue());
+        return [1, 4].includes(this.chainId$.getValue());
     }
 
     isBinance(): boolean {
@@ -559,6 +564,57 @@ export class ContractService {
         });
     }
 
+    async getRewardAmount() {
+
+        let result = await this.stakingContract.methods
+            .getUnclaimedReward()
+            .call({ from: this.selectedAccount$.getValue() });
+        return win.Web3.utils.fromWei(result);
+    }
+
+    claimReward() {
+
+        this.loadingIndicatorServ.on();
+        this.stakingContract.methods
+            .claimReward()
+            .send({
+                from: this.selectedAccount$.getValue()
+            })
+            .on('transactionHash', hash =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'secondary',
+                        message: 'May take a while, please wait...',
+                        duration: 'short'
+                    });
+                }))
+            .on('receipt', receipt =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'success',
+                        message: 'Reward has been claimed!',
+                        duration: 'long'
+                    });
+
+                    this.stakingInteraction$.next(true);
+                    this.loadingIndicatorServ.off();
+                }))
+            .on('error', (error, receipt) =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'danger',
+                        message: 'Reward claiming aborted. Details in the console',
+                        duration: 'long'
+                    });
+                    console.log('Reward claiming aborted', error, receipt);
+
+                    this.loadingIndicatorServ.off();
+                }));
+    }
+
     private init(): void {
 
         console.log('WalletConnectProvider is', this.WalletConnectProvider);
@@ -588,6 +644,7 @@ export class ContractService {
 
     private async fetchVariables(): Promise<void> {
 
+        this.resetVariables();
         this.loadingIndicatorServ.on();
 
         // Retrieving the chainId
@@ -601,13 +658,29 @@ export class ContractService {
 
         // If there's no account selected stop here, there's no point in going further
         if (!selectedAccount) {
-            this.resetVariables();
+            this.loadingIndicatorServ.off();
             return;
         }
 
         // Sets the addresses for the contracts depending on the current chain
         // If the user is on the wrong chain, then resets and return
-        if (chainId == 4) { // 4 = Rinkeby
+        if (chainId == 1) { // 1 = Ethereum Mainnet
+
+            // Signaling mainnet
+            this.isEthereumMainnet$.next(true);
+
+            // Instantiating the staking contract
+            this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
+            this.stakingContract = new this.web3.eth
+                .Contract(STAKING.ABI, this.stakingAddress);
+
+            this.isStakingReady$.next(true);
+            this.isGovernanceReady$.next(true);
+
+            console.log('Selected chain is Ethereum');
+            console.log('Staking contract address is', this.stakingAddress);
+        }
+        else if (chainId == 4) { // 4 = Rinkeby
 
             // Signaling the chain is supported
             this.isChainSupported$.next(true);
@@ -620,6 +693,8 @@ export class ContractService {
             console.log('Selected chain is Rinkeby');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', ERC20_LIST);
+
+            await this.instantiateAppContracts();
         }
         else if (chainId == 97) { // 97 = BSC Testnet
 
@@ -634,15 +709,16 @@ export class ContractService {
             console.log('Selected chain is BSC Testnet');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', BEP20_LIST);
+
+            await this.instantiateAppContracts();
         }
         else {
-
-            // Signaling the chain is NOT supported
-            this.isChainSupported$.next(false);
-
             this.resetVariables();
-            return;
         }
+        this.loadingIndicatorServ.off();
+    }
+
+    private async instantiateAppContracts() {
 
         // Instantiates the contracts
         this.ethboxContract = new this.web3.eth
@@ -660,18 +736,22 @@ export class ContractService {
 
         // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
         this.isAppReady$.next(true);
-        this.loadingIndicatorServ.off();
     }
 
     private resetVariables() {
 
         this.ethboxContract = null;
         this.tokenDispenserContract = null;
+        this.stakingContract = null;
 
         this.tokens$.next(null);
 
         this.isAppReady$.next(false);
-        this.loadingIndicatorServ.off();
+        this.isStakingReady$.next(false);
+        this.isGovernanceReady$.next(false);
+
+        this.isChainSupported$.next(false);
+        this.isEthereumMainnet$.next(false);
     }
 
     private async getWeiAllowance(tokenAddress: string): Promise<string> {
