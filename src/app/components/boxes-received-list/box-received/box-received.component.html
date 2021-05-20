@@ -12,22 +12,22 @@
         <img
           *ngIf="!box.taken && box.requestValue === '0'"
           class="taptarget-height"
-          src="/assets/img/box-close.png"
+          src="assets/img/box-close.png"
         />
         <img
           *ngIf="box.taken && box.requestValue === '0'"
           class="taptarget-height"
-          src="/assets/img/box-open.png"
+          src="assets/img/box-open.png"
         />
         <img
           *ngIf="!box.taken && box.requestValue !== '0'"
           class="taptarget-height"
-          src="/assets/img/boxes-exchange-close.png"
+          src="assets/img/boxes-exchange-close.png"
         />
         <img
           *ngIf="box.taken && box.requestValue !== '0'"
           class="taptarget-height"
-          src="/assets/img/boxes-exchange-open.png"
+          src="assets/img/boxes-exchange-open.png"
         />
         <div class="ms-md-3 text-center text-md-end">
           <div class="fs-4">{{ box.requestValue !== "0" ? "Exchange" : "Withdraw" }}</div>
