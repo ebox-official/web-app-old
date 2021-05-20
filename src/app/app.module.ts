@@ -25,6 +25,7 @@ import { GovernanceComponent } from './components/governance/governance.componen
 import { GovernanceProposalComponent } from './components/governance/governance-proposal/governance-proposal.component';
 import { ToFixedPipe } from './pipes/to-fixed.pipe';
 import { VoterComponent } from './components/governance/voter/voter.component';
+import { GovernanceAreaComponent } from './components/governance/governance-area/governance-area.component';
 
 @NgModule({
   declarations: [
@@ -50,7 +51,8 @@ import { VoterComponent } from './components/governance/voter/voter.component';
     GovernanceComponent,
     GovernanceProposalComponent,
     ToFixedPipe,
-    VoterComponent
+    VoterComponent,
+    GovernanceAreaComponent
   ],
   imports: [
     BrowserModule,

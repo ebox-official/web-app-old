@@ -10,10 +10,11 @@ import { LoadingIndicatorService } from 'src/app/services/loading-indicator.serv
 })
 export class GovernanceComponent implements OnInit {
 
-    votingAreas = [{ title: 'Protocol', area: '' }, { title: 'Community', area: 'community' }];
+    datetime = new Date().toUTCString();
+    governance = [];
+    community = [];
     pageData;
     clockTimer;
-    datetime;
 
     constructor(
         private loadingIndicatorServ: LoadingIndicatorService,
@@ -23,52 +24,53 @@ export class GovernanceComponent implements OnInit {
 
         this.clockTimer = setInterval(() => this.datetime = new Date().toUTCString(), 1000);
 
-        this.pageData = [];
         this.loadingIndicatorServ.on();
-        for (let { title, area } of this.votingAreas) {
-
-            // Getting proposals
-            let proposals = await this.governanceServ.getVotings({ area });
-
-            // Enriching proposals
-            for (let p of proposals) {
-                p._id = 'proposal_' + Math.random().toString(36).substring(2);
-                p._isCollapsed = true;
-                p.startDatetime = new Date(p.time_start * 1e3).toUTCString();
-                p.endDatetime = new Date(p.time_end * 1e3).toUTCString();
-                p.hasExpired = Date.now() > p.time_end * 1e3;
-
-                p.area = area;
-                p.isEligible = false;
-                p.hasVoted = false;
-                p.votes = await this.governanceServ.getVotes({ votingNumber: p.n, area });
-                
-                p.eligibleUsers = [];
-                p.votersDetail = [];
-                this.governanceServ.getVoters({ 
-                    votingNumber: p.n,
-                    area })
-                    .then(r => p.eligibleUsers = r);
-                this.governanceServ.getVotesDetails({ 
-                    votingNumber: p.n,
-                    area })
-                    .then(r => p.votersDetail = r);
-            }
-
-
-            // Pushing results into pageData
-            this.pageData.push({
-                _id: 'voting-area_' + Math.random().toString(36).substring(2),
-                _isCollapsed: true,
-                title,
-                proposals
-            });
-        }
-        this.loadingIndicatorServ.off();
+        Promise.all([
+            this.governanceServ.getVotings({ isCommunity: false }),
+            this.governanceServ.getVotings({ isCommunity: true })
+        ]).then(([governance, community]) => {
+            this.governance = this.enrichProposal(governance, false);
+            this.community = this.enrichProposal(community, true);
+            this.loadingIndicatorServ.off();
+        });
     }
 
     ngOnDestroy() {
         clearInterval(this.clockTimer);
+    }
+
+    private enrichProposal(proposals, isCommunity) {
+
+        for (let p of proposals) {
+            p._id = 'proposal_' + Math.random().toString(36).substring(2);
+            p._isCollapsed = true;
+            p.startDatetime = new Date(p.time_start * 1e3).toUTCString();
+            p.endDatetime = new Date(p.time_end * 1e3).toUTCString();
+            p.hasExpired = Date.now() > p.time_end * 1e3;
+
+            p.isEligible = false;
+            p.hasVoted = false;
+            p.eligibleUsers = [];
+            p.votersDetail = [];
+
+            this.governanceServ.getVotes({
+                votingNumber: p.n,
+                isCommunity: isCommunity
+            })
+            .then(r => p.votes = r);
+            this.governanceServ.getVoters({
+                votingNumber: p.n,
+                isCommunity: isCommunity
+            })
+            .then(r => p.eligibleUsers = r);
+            this.governanceServ.getVotesDetails({
+                votingNumber: p.n,
+                isCommunity: isCommunity
+            })
+            .then(r => p.votersDetail = r);
+        }
+
+        return proposals;
     }
  
 }

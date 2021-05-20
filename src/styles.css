@@ -104,6 +104,7 @@ html {
 }
 
 .text-eboxprimary {
+  line-height: 1.33333;
   background-color: #afd0ff;
   background-image: linear-gradient(to bottom right, #afd0ff, #dc13af);
   background-size: 100%;

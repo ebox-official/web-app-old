@@ -4,122 +4,35 @@
 
 <div class="main py-5 px-3">
   <!-- header -->
-  <header class="container-medium text-white text-center text-black">
-    <h1 class="display-6 fw-bold mb-2">Governance</h1>
-    <p class="lead mb-2">
+  <header class="container-medium text-center mb-5">
+    <h1>Governance</h1>
+    <p class="lead">
       Anyone holding at least 1 EBOX is eligible to vote for a certain point of
       time that is arbitrarily chosen by the ethbox team for each voting.
     </p>
-    <div class="mb-5">
-      <small
-        >For further understanding, please have a look at our
-        <a
-          class="text-reset"
-          href="https://ethbox.medium.com/ethbox-introducing-governance-540f237cda3e"
-          target="_blank"
-          >Medium article</a
-        >
-        on governance.</small
-      >
-    </div>
+    <p>For further understanding, please have a look at our <a class="text-reset" href="https://ethbox.medium.com/ethbox-introducing-governance-540f237cda3e" target="_blank">Medium article</a> on governance.</p>
   </header>
   <!-- end of header -->
 
-  <div class="container-medium">
-
-    <div class="display-6 fw-bold text-center text-white mb-5">
-      {{ datetime }}
-    </div>
-
-    <div class="d-grid gap-3">
-      <div class="bg-white rounded-alot" *ngFor="let area of pageData">
-        <div class="d-flex flex-wrap align-items-center justify-content-between p-3 position-relative" (click)="area._isCollapsed = !area._isCollapsed">
-          <div class="fs-4 fw-bold">
-            <span class="me-2">
-              {{ area.title }}
-            </span>
-            <a href="#collapse_{{area._id}}" data-bs-toggle="collapse" class="stretched-link text-reset text-decoration-none">
-              <i
-                class="bi"
-                [class.bi-arrows-expand]="area._isCollapsed"
-                [class.bi-arrows-collapse]="!area._isCollapsed"></i>
-            </a>
-          </div>
-          <div>{{ area.proposals.length }} proposals</div>
-        </div>
-
-        <div class="collapse" [id]="'collapse_' + area._id">
-          <div class="d-grid gap-3 p-3">
-            <div
-              class="bg-eboxdark text-white rounded-alot p-3" 
-              *ngFor="let proposal of area.proposals">
-              <div class="position-relative" (click)="proposal._isCollapsed = !proposal._isCollapsed">
-                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-                  <div class="fs-5 fw-bold">
-                    <span class="me-2">
-                      Voting #{{ proposal.n }}
-                    </span>
-                    <a href="#collapse_{{proposal._id}}" data-bs-toggle="collapse" class="stretched-link text-reset text-decoration-none me-2">
-                      <i
-                        class="bi"
-                        [class.bi-arrows-expand]="proposal._isCollapsed"
-                        [class.bi-arrows-collapse]="!proposal._isCollapsed"></i>
-                    </a>
-                    <small *ngIf="proposal.hasExpired">
-                      (Expired)
-                    </small>
-                  </div>
-                  <div>{{ proposal.answers.length }} choices</div>
-                </div>
-                <div>{{ proposal.question }}</div>
-              </div>
-              <div class="collapse" [id]="'collapse_' + proposal._id">
-
-                <!-- eligible users trigger -->
-                <div class="text-center mt-3">
-                  <a href="#eligibleUsers_{{proposal._id}}" class="text-reset" data-bs-toggle="modal">
-                    Eligible users
-                  </a>
-                </div>
-                <!-- end of eligible users trigger -->
-
-                <!-- eligible users -->
-                <div class="modal fade text-dark" [id]="'eligibleUsers_' + proposal._id" tabindex="-1">
-                  <div class="modal-dialog modal-dialog-scrollable">
-                    <div class="modal-content rounded-alot">
-                      <div class="modal-header">
-                        <h5 class="modal-title">Eligible users</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                      </div>
-                      <div class="modal-body">
-                        <div class="mb-3 text-center">
-                          <small>There are {{ proposal.eligibleUsers?.length }} eligible users</small>
-                        </div>
-                        <app-voter *ngFor="let user of proposal.eligibleUsers" [voter]="user"></app-voter>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <!-- end of eligible users -->
-
-                <div class="bg-white text-dark rounded-alot p-3 mt-3">
-                  <div class="d-flex flex-wrap justify-content-between gap-2">
-                    <div>
-                      <div class="fw-bold">Start</div>
-                      <div>{{ proposal.startDatetime }}</div>
-                    </div>
-                    <div>
-                      <div class="fw-bold text-sm-end">End</div>
-                      <div>{{ proposal.endDatetime }}</div>
-                    </div>
-                  </div>
-                  <app-governance-proposal [proposal]="proposal"></app-governance-proposal>
-                </div>
-              </div>
-            </div>
-          </div>
-      </div>
-      </div>
-    </div>
+  <!-- clock -->
+  <div class="container-medium text-center mb-5">
+    <h2>{{ datetime }}</h2>
   </div>
+  <!-- end of clock -->
+
+  <!-- proposals -->
+  <div class="container col-xxl-8">
+
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <app-governance-area title="Governance" [proposals]="governance"></app-governance-area>
+      </div>
+      <div class="col-lg-6">
+        <app-governance-area title="Community" [proposals]="community"></app-governance-area>
+      </div>
+    </div>
+
+    
+  </div>
+  <!-- end of proposals -->
 </div>

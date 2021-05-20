@@ -2,9 +2,9 @@
 
 <div class="main py-5 px-3">
   <!-- header -->
-  <header class="container-medium text-center text-black">
-    <h1 class="display-6 fw-bold mb-2">Received boxes</h1>
-    <p class="fs-5 mb-5">
+  <header class="container-medium text-center mb-5">
+    <h1>Received boxes</h1>
+    <p class="lead">
       Here you can find the boxes that others have sent to you.<br />Withdrawals
       can be redeemed, and exchanges can be accepted here.
     </p>
@@ -13,24 +13,13 @@
 
   <!-- filters -->
   <div class="container-medium mb-5">
-    <!-- search -->
-    <input
-      #searchInput
-      (input)="search = searchInput.value; filterBoxes()"
-      type="text"
-      class="form-control rounded-alot bg-lightalpha mb-3"
-      placeholder="Search"
-      [disabled]="!isAppReady ? 'disabled' : null"
-    />
-    <!-- end of search -->
-
-    <div class="row row-cols-1 row-cols-md-auto g-3">
+    <div class="row row-cols-1 row-cols-md-auto g-2">
       <!-- state, type and date -->
       <div class="col">
         <select
           #stateInput
           (input)="state = stateInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot"
+          class="bg-lightalpha form-select rounded-alot shadow"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by state</option>
@@ -42,7 +31,7 @@
         <select
           #typeInput
           (input)="type = typeInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot"
+          class="bg-lightalpha form-select rounded-alot shadow"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="" selected>Filter by type</option>
@@ -54,7 +43,7 @@
         <select
           #orderInput
           (input)="order = orderInput.value; filterBoxes()"
-          class="bg-lightalpha form-select rounded-alot"
+          class="bg-lightalpha form-select rounded-alot shadow"
           [disabled]="!isAppReady ? 'disabled' : null"
         >
           <option value="desc" selected>Date desc</option>
@@ -64,7 +53,7 @@
       <!-- end of state, type and date -->
       <!-- pagination -->
       <div class="col">
-        <ul class="pagination mb-0 justify-content-center">
+        <ul class="pagination mb-0 justify-content-center rounded-alot shadow">
           <li class="page-item">
             <a
               (click)="$event.preventDefault(); onPaginationPreviousClick()"
@@ -91,16 +80,20 @@
       <!-- end of pagination -->
     </div>
   </div>
-  <!-- end filters -->
+  <!-- end of filters -->
 
-  <div *ngIf="message" class="container-medium">
-    <div class="display-6 fw-bold text-center">{{ message }}</div>
+  <!-- message -->
+  <div *ngIf="message" class="container-medium text-center">
+    <h2>{{ message }}</h2>
   </div>
+  <!-- end of message -->
 
+  <!-- boxes -->
   <div class="container-medium d-grid gap-2">
     <app-box-received
       *ngFor="let box of paginatedBoxes; trackBy: identifier"
       [box]="box"
     ></app-box-received>
   </div>
+  <!-- end of boxes -->
 </div>

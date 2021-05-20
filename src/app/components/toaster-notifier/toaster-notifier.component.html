@@ -3,23 +3,4 @@
   class="toast-container position-fixed bottom-0 start-50 translate-middle-x lead text-white p-3"
   style="z-index: 99999"
 >
-  <!-- non-dismissible toast -->
-  <div
-    *ngIf="
-      !contractServ.isSupportedChain() &&
-      (contractServ.selectedAccount$ | async)
-    "
-    class="toast show align-items-center text-white bg-danger border-0"
-  >
-    <div class="toast-body text-center lead">
-      You are connected to the wrong network. Please connect to Rinkeby or
-      <a
-        href="https://academy.binance.com/en/articles/connecting-metamask-to-binance-smart-chain"
-        class="text-reset"
-        target="_blank"
-        >Binance Testnet.</a
-      >
-    </div>
-  </div>
-  <!-- end of non-dismissible toast -->
 </div>

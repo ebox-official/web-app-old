@@ -15,8 +15,8 @@ export class GovernanceService {
         let formData = new FormData();
         formData.append('action', 'get_votings');
         
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
@@ -35,8 +35,8 @@ export class GovernanceService {
         formData.append('voting', options.votingNumber);
         formData.append('address', this.contractServ.selectedAccount$.getValue());
         
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
@@ -51,8 +51,8 @@ export class GovernanceService {
         formData.append('voting', options.votingNumber);
         formData.append('address', this.contractServ.selectedAccount$.getValue());
 
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
@@ -66,8 +66,8 @@ export class GovernanceService {
         formData.append('action', 'get_votes');
         formData.append('voting', options.votingNumber);
 
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
@@ -85,8 +85,8 @@ export class GovernanceService {
         formData.append('action', 'get_voters');
         formData.append('voting', options.votingNumber);
 
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
@@ -101,8 +101,8 @@ export class GovernanceService {
         formData.append('action', 'get_votes_detail');
         formData.append('voting', options.votingNumber);
 
-        if (options.area) {
-            formData.append(options.area, '1');
+        if (options.isCommunity) {
+            formData.append('community', '1');
         }
 
         let response = await fetch(this.endpoint, { method: 'POST', body: formData });
