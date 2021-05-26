@@ -46,7 +46,7 @@
 
     <div class="d-inline-flex flex-column align-items-center">
       <a href="#votersDetail_{{proposal._id}}" class="text-reset mb-2" data-bs-toggle="modal">
-        Voters details
+        Detailled voting results
       </a>
       <button
         [disabled]="isButtonDisabled ? 'disabled' : null"
@@ -65,12 +65,12 @@
     <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content rounded-alot">
         <div class="modal-header">
-          <h5 class="modal-title">Voters detail</h5>
+          <h5 class="modal-title">Detailled voting results</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3 text-center">
-            <small>There were {{ proposal.votersDetail?.length }} votes casted</small>
+            <small>A total of {{ proposal.votersDetail?.length }} votes were cast.</small>
           </div>
           <app-voter *ngFor="let voter of proposal.votersDetail" [voter]="voter" [isDetailedView]="true"></app-voter>
         </div>

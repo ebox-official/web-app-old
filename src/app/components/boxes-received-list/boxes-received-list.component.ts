@@ -11,7 +11,7 @@ import { AddressBookService } from 'src/app/services/address-book.service';
 export class BoxesReceivedListComponent implements OnInit, OnDestroy {
 
     paginatedBoxes = null;
-    paginationText = '0-0/0';
+    paginationText = '0-0 / 0';
     
     order = 'desc';
     state;
@@ -58,7 +58,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
                 this.ngZone.run(() => {
 
                     if (boxes.length === 0) {
-                        this.message = 'There are no boxes';
+                        this.message = 'No incoming transactions!';
                         return;
                     }
 
@@ -120,20 +120,20 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
 
                     // Calculating a message for the user
                     if (!this.chainId || !this.selectedAccount) {
-                        this.message = 'Connect your wallet';
+                        this.message = 'Please connect your wallet first!';
                         return;
                     }
                     if (!this.isChainSupported) {
-                        this.message = 'Wrong network, use Rinkeby or BSC Testnet';
+                        this.message = 'Wrong network – Please use Rinkeby or BSC Testnet!';
                         return;
                     }
                     if (!this.isAppReady) {
-                        this.message = 'Initializing the Smart Contract...';
+                        this.message = 'Initializing ethbox smart contract...';
                         return;
                     }
 
                     // Starting the boxes interval
-                    this.message = 'Loading your boxes...';
+                    this.message = 'Loading...';
                     this.boxesInterval.start();
                 })));
     }
@@ -170,7 +170,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
         if (end > this.filteredBoxes.length) {
             end = this.filteredBoxes.length;
         }
-        this.paginationText = `${start + 1}-${end}/${this.filteredBoxes.length}`;
+        this.paginationText = `${start + 1}-${end} / ${this.filteredBoxes.length}`;
         this.paginatedBoxes = this.filteredBoxes.slice(start, end);
     }
 

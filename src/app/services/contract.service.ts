@@ -85,7 +85,7 @@ export class ContractService {
         catch (error) {
             this.toasterServ.toastMessage$.next({
                 type: 'danger',
-                message: 'Could not get a wallet connection. Details in the console',
+                message: 'Wallet connection failed!',
                 duration: 'long'
             });
             console.log('Could not get a wallet connection', error);
@@ -138,7 +138,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'secondary',
-                        message: 'May take a while, please wait...',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
                         duration: 'short'
                     });
 
@@ -161,7 +161,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'danger',
-                        message: 'Token dispensing aborted. Details in the console',
+                        message: 'Token dispending aborted by user.',
                         duration: 'long'
                     });
                     console.log('Token dispensing aborted', error, receipt);
@@ -265,7 +265,7 @@ export class ContractService {
 
             this.toasterServ.toastMessage$.next({
                 type: 'success',
-                message: 'Approved! Now you can send/exchange this token',
+                message: 'Approval successful – You can now send / trade this token!',
                 duration: 'long'
             });
 
@@ -275,7 +275,7 @@ export class ContractService {
         catch (error) {
             this.toasterServ.toastMessage$.next({
                 type: 'danger',
-                message: 'Could not approve tokens. Details in the console',
+                message: 'Token approval failed!',
                 duration: 'long'
             });
             console.log('Approval aborted', error);
@@ -326,7 +326,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'secondary',
-                        message: 'May take a while, please wait...',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
                         duration: 'short'
                     });
                 }))
@@ -335,7 +335,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'success',
-                        message: 'Your box has been created!',
+                        message: 'Your outgoing transaction has been confirmed!',
                         duration: 'long'
                     });
 
@@ -347,7 +347,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'danger',
-                        message: 'Box creation aborted. Details in the console',
+                        message: 'Sending aborted by user.',
                         duration: 'long'
                     });
                     console.log('Box creation aborted', error, receipt);
@@ -420,7 +420,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'secondary',
-                        message: 'May take a while, please wait...',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
                         duration: 'short'
                     });
                 }))
@@ -429,7 +429,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'success',
-                        message: 'Your box has been canceled!',
+                        message: 'Cancelling transaction successful!',
                         duration: 'long'
                     });
 
@@ -441,7 +441,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'danger',
-                        message: 'Box cancellation aborted. Details in the console',
+                        message: 'Cancelling transaction aborted by user.',
                         duration: 'long'
                     });
                     console.log('Box cancellation aborted', error, receipt);
@@ -508,7 +508,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'secondary',
-                        message: 'May take a while, please wait...',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
                         duration: 'short'
                     });
                 }))
@@ -585,7 +585,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'secondary',
-                        message: 'May take a while, please wait...',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
                         duration: 'short'
                     });
                 }))

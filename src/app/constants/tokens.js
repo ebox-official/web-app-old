@@ -28,7 +28,7 @@ export let ERC20_LIST = [
     decimals: 18,
   },
   {
-    name: "Tether",
+    name: "USD Tether",
     symbol: "usdt",
     thumb:
       "https://assets.coingecko.com/coins/images/325/thumb/Tether-logo.png",

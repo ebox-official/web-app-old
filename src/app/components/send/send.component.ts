@@ -63,18 +63,18 @@ export class SendComponent implements OnInit {
 
         // Calculating a message for the user
         if (!this.chainId || !this.selectedAccount) {
-            this.buttonMessage = 'Connect your wallet';
+            this.buttonMessage = 'Please connect your wallet first!';
             this.buttonFunction = () => this.contractServ.connect();
             this.isButtonDisabled = false;
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network, use Rinkeby or BSC Testnet';
+            this.buttonMessage = 'Wrong network – Please use Rinkeby or BSC Testnet!';
             this.isButtonDisabled = true;
             return;
         }
         if (!this.isAppReady) {
-            this.buttonMessage = 'Initializing the Smart Contract...';
+            this.buttonMessage = 'Initializing ethbox smart contract...';
             this.isButtonDisabled = true;
             return;
         }

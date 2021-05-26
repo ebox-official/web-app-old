@@ -28,7 +28,7 @@
           src="assets/img/boxes-exchange-open.png"
         />
         <div class="ms-md-3 text-center text-md-end">
-          <div class="fs-4">{{ box.requestValue !== "0" ? "Exchange" : "Withdraw" }}</div>
+          <div class="fs-4">{{ box.requestValue !== "0" ? "OTC Trade" : "One-way" }}</div>
           <small class="text-muted">
             <a
               class="stretched-link text-reset text-decoration-none"
@@ -37,7 +37,7 @@
               (click)="onBoxToggle()"
             >
               <i class="bi {{ isExpanded ? 'bi-arrows-collapse' : 'bi-arrows-expand' }}"></i>
-              {{ isExpanded ? 'Close' : 'Open' }}
+              {{ isExpanded ? 'Collapse' : 'Expand' }}
             </a>
           </small>
         </div>
@@ -100,7 +100,7 @@
               </a>
             </small>
             <small class="text-end">
-              Your balances
+              Your balance(s)
             </small>
           </div>
           <!-- end of mini-header -->
@@ -114,7 +114,7 @@
             [class.text-muted]="box.taken"
           >
             <div class="lead">
-              Sent
+              Value sent
             </div>
             <div class="fs-4">
               {{ box.sendDecimalValue }}

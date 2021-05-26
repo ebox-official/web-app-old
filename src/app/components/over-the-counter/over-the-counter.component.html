@@ -13,11 +13,10 @@
         <div class="flex-grow-1">
           <h4>
             <i class="bi bi-shuffle"></i>
-            Exchange
+            OTC Trade
           </h4>
           <small class="text-muted"
-            >Invite somebody to exchange tokens. The recipient will be able to
-            accept requests via the Received tab</small
+            >Exchange ETH and ERC-20 tokens trustlessly through ethbox. The transaction will only be fulfilled once both parties have deposited their funds.</small
           >
         </div>
         <a href="#" routerLink="/boxes/sent" class="btn btn-lg">
@@ -37,7 +36,7 @@
               id="recipient-input"
               class="flex-grow-1 me-3 input-nostyle"
               type="text"
-              placeholder="Insert a recipient"
+              placeholder="Insert recipient address"
               [disabled]="
                 !isAppReady ? 'disabled' : null
               "

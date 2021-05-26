@@ -11,7 +11,9 @@ html {
   display: inline-block;
   transform: skewX(-0.5rad);
   border-radius: 8px !important;
-  width: 123px !important;
+  min-width: 100px !important;
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .btn-skewed > a {

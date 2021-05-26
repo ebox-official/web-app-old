@@ -63,15 +63,15 @@ export class StakingComponent implements OnInit, OnDestroy {
 
                     // Calculating a message for the user
                     if (!this.chainId || !this.selectedAccount) {
-                        this.message = 'Connect your wallet';
+                        this.message = 'Please connect your wallet first!';
                         return;
                     }
                     if (!this.isEthereumMainnet) {
-                        this.message = 'Wrong network, use Ethereum Mainnet';
+                        this.message = 'Wrong network – Please use the Ethereum Mainnet!';
                         return;
                     }
                     if (!this.isStakingReady) {
-                        this.message = 'Initializing the Smart Contract...';
+                        this.message = 'Initializing ethbox smart contract...';
                         return;
                     }
 

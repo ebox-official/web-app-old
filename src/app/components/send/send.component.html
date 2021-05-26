@@ -16,8 +16,7 @@
             <i class="bi bi-box"></i>
           </h4>
           <small class="text-muted"
-            >Send a box to someone. The recipient will be able to retrieve the
-            sent box via the Received tab</small
+            >Safely send ETH and ERC-20 tokens through ethbox. Only the recipient will be able to retrieve the funds using the correct passphrase.</small
           >
         </div>
         <a href="#" [routerLink]="['/boxes', 'sent']" class="btn btn-lg">
@@ -37,7 +36,7 @@
               id="recipient-input"
               class="flex-grow-1 me-3 input-nostyle"
               type="text"
-              placeholder="Insert a recipient"
+              placeholder="Insert recipient address"
               [disabled]="
                 !isAppReady ? 'disabled' : null
               "
