@@ -32,14 +32,14 @@
       <div class="bg-lightalpha rounded-alot p-3">
 
         <header class="d-grid gap-2 text-center d-md-flex align-items-md-center justify-content-md-between mb-3">
-          <div class="fs-2 text-eboxprimary p-3">Hello {{ selectedAccount.slice(0, 7) + '...' + selectedAccount.slice(-5) }}!</div>
+          <div class="fs-4 text-truncate p-3">Hello {{ selectedAccount }}!</div>
           <button
             class="btn bgn-lg btn-eboxprimary rounded-alot text-uppercase"
             [disabled]="(!userRewardContract || userRewardContract < 1) ? 'disabled' : null"
             (click)="contractServ.claimReward()"
           >
             <div>Claim</div>
-            <div>{{ userRewardContract | toFixed:0 }} EBOX</div>
+            <div>{{ userRewardContract | toFixed:2 }} EBOX</div>
           </button>
         </header>
 
@@ -83,19 +83,19 @@
             <div class="col">
               <div class="p-3 border border-secondary rounded-alot">
                 <div>Balance in EBOX</div>
-                <div class="fs-5">{{ userRewardObjAPI.balance | toFixed: 0 }}</div>
+                <div class="fs-5">{{ userRewardObjAPI.balance | toFixed:2 }}</div>
               </div>
             </div>
             <div class="col">
               <div class="p-3 border border-secondary rounded-alot">
                 <div>Reward in EBOX</div>
-                <div class="fs-5">{{ userRewardObjAPI.reward | toFixed: 0 }}</div>
+                <div class="fs-5">{{ userRewardObjAPI.reward | toFixed:2 }}</div>
               </div>
             </div>
             <div class="col">
               <div class="p-3 border border-secondary rounded-alot">
                 <div>APY</div>
-                <div class="fs-5">{{ userRewardObjAPI.apy | toFixed: 0 }}%</div>
+                <div class="fs-5">{{ userRewardObjAPI.apy | toFixed:2 }}%</div>
               </div>
             </div>
           </div>

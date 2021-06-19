@@ -1,17 +1,35 @@
-html {
-  scroll-behavior: smooth;
-}
-
 .main {
   min-height: calc(100vh - 128px);
   margin-top: 64px;
+  animation: bg-from-white-to-transparent 3.5s;
+}
+
+.main > * {
+  animation: fade-in 350ms;
+}
+
+@keyframes bg-from-white-to-transparent {
+  from {
+    background-color: white;
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .btn-skewed {
   display: inline-block;
   transform: skewX(-0.5rad);
   border-radius: 8px !important;
-  min-width: 100px !important;
   padding-left: 20px;
   padding-right: 20px;
 }
@@ -58,45 +76,44 @@ html {
 
 .btn-eboxprimary {
   color: white;
-  background: linear-gradient(to bottom right, #afd0ff, #dc13af);
+  background-image: linear-gradient(to bottom right, #afd0ff 12%, #ff00c5);
   border-color: #afd0ff;
+  background-size: 133% 133%;
+  transition: all .5s;
 }
 
 .btn-eboxprimary:hover {
   color: white;
-  background: linear-gradient(to bottom right, #7990b0, #8f0d72);
   border-color: #7990b0;
+  background-position: bottom right;
 }
 
 .btn-outline-eboxprimary {
   color: #7990b0;
   border-color: #7990b0;
+  background-image: linear-gradient(to bottom right, #fff 50%, #afd0ff 75%, #dc13af 100%);
+  background-size: 333% 333%;
+  transition: all .5s;
 }
 
 .btn-outline-eboxprimary:hover {
   color: white;
-  background: linear-gradient(to bottom right, #afd0ff, #dc13af);
   border-color: #afd0ff;
+  background-position: bottom right;
 }
 
 .btn-eboxpulser {
-  transform: scale(1);
-  animation: pulse 2s infinite;
+  animation: pulsing-shadow 2s infinite;
 }
 
-@keyframes pulse {
+@keyframes pulsing-shadow {
   0% {
-    transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(220, 19, 175, 0.7);
   }
-
   70% {
-    transform: scale(1);
     box-shadow: 0 0 0 10px rgba(220, 19, 175, 0);
   }
-
   100% {
-    transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(220, 19, 175, 0.7);
   }
 }
@@ -225,4 +242,10 @@ html {
     #f8f9fa 20px
   );
   backdrop-filter: blur(10px);
+}
+
+.scale-on-hover:hover {
+  position: relative;
+  transform: scale(0.93);
+  transition: all 0.15s ease-out;
 }

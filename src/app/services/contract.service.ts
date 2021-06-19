@@ -2,12 +2,13 @@ import { Injectable, NgZone } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { ADDRESS_ZERO, ZERO, MAX_VALUE } from '../constants/various';
 import { STAKING, ETHBOX, TOKEN_DISPENSER, ERC20_ABI } from '../constants/abis';
-import { ERC20_LIST, BEP20_LIST } from '../constants/tokens';
-import { Balance, Box, BoxInputs } from '../interfaces';
+import { chainTokenDictionary } from '../constants/tokens';
+import { TokenData, TokenBalance, Box, BoxInputs } from '../interfaces';
 import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
+import { SmartInterval } from '../../assets/js/custom-utils';
 
 // This is needed to get Web3 and Web3Modal into this service
 let win: any = window;
@@ -22,11 +23,18 @@ export class ContractService {
     // BehaviorSubject emits a value but also remembers it for future listeners, that value can also be read at anytime by using getValue()
     tokens$ = new BehaviorSubject(null);
 
+    // These variables are just for the boxes loop, there is a SmartInterval objects that's used to fetch boxes over time so that a new request doesn't happen before the last has already resolved
+    incomingBoxes$ = new BehaviorSubject(null);
+    outgoingBoxes$ = new BehaviorSubject(null);
+    private boxesIntervalCycleDelay = 15e3;
+    private boxesIntervalStartDelay = 0;
+    private boxesInterval;
+
     chainId$ = new BehaviorSubject(null);
     isChainSupported$ = new BehaviorSubject(false);
     isEthereumMainnet$ = new BehaviorSubject(false);
     selectedAccount$ = new BehaviorSubject(null);
-
+    
     isAppReady$ = new BehaviorSubject(false);
     isStakingReady$ = new BehaviorSubject(false);
     isGovernanceReady$ = new BehaviorSubject(false);
@@ -38,8 +46,6 @@ export class ContractService {
 
     // Tokens map lets you query tokens by their addresses in O(1), useful to find logos and decimals in a blink of an eye
     tokensMap;
-    private ERC20_MAP = ERC20_LIST.reduce((a, b) => (a[b.address] = b, a), {});
-    private BEP20_MAP = BEP20_LIST.reduce((a, b) => (a[b.address] = b, a), {});
 
     // These fields are changing values when chain is changed (look fetchVariables())
     private testTokensAddresses = {
@@ -126,6 +132,185 @@ export class ContractService {
         this.loadingIndicatorServ.off();
     }
 
+    private init(): void {
+
+        console.log('WalletConnectProvider is', this.WalletConnectProvider);
+        console.log('Fortmatic is', this.Fortmatic);
+        let providerOptions = {
+            walletconnect: {
+                package: this.WalletConnectProvider,
+                options: {
+                    infuraId: this.WALLECTCONNECT_APIKEY
+                }
+            },
+            fortmatic: {
+                package: this.Fortmatic,
+                options: {
+                    key: this.FORTMATIC_APIKEY
+                }
+            }
+        };
+
+        this.web3Modal = new this.Web3Modal({
+            cacheProvider: false,
+            providerOptions,
+            disableInjectedProvider: false
+        });
+        console.log('Web3Modal instance is', this.web3Modal);
+
+        this.boxesInterval = new SmartInterval(
+            async () => {
+                this.incomingBoxes$.next(await this.getIncomingBoxes());
+                this.outgoingBoxes$.next(await this.getOutgoingBoxes());
+            },
+            this.boxesIntervalCycleDelay,
+            this.boxesIntervalStartDelay
+        );
+    }
+
+    private async fetchVariables(): Promise<void> {
+
+        this.resetVariables();
+        this.loadingIndicatorServ.on();
+
+        // Retrieving the chainId
+        let chainId = await this.web3.eth.getChainId();
+        this.chainId$.next(chainId);
+
+        // Retrieving the selectedAccount
+        let accounts = await this.web3.eth.getAccounts();
+        let selectedAccount = accounts[0];
+        this.selectedAccount$.next(selectedAccount);
+
+        // If there's no account selected stop here, there's no point in going further
+        if (!selectedAccount) {
+            this.loadingIndicatorServ.off();
+            return;
+        }
+
+        // Sets the addresses for the contracts depending on the current chain
+        // If the user is on the wrong chain, then resets and return
+        if (chainId == 1) { // 1 = Ethereum Mainnet
+
+            // Signaling mainnet
+            this.isEthereumMainnet$.next(true);
+
+            // Instantiating the staking contract
+            this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
+            this.stakingContract = new this.web3.eth
+                .Contract(STAKING.ABI, this.stakingAddress);
+
+            this.isStakingReady$.next(true);
+            this.isGovernanceReady$.next(true);
+
+            console.log('Selected chain is Ethereum');
+            console.log('Staking contract address is', this.stakingAddress);
+        }
+        else if (chainId == 4) { // 4 = Rinkeby
+
+            // Signaling the chain is supported
+            this.isChainSupported$.next(true);
+
+            this.ethboxAddress = ETHBOX.ADDRESSES.RINKEBY;
+            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.RINKEBY;
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            console.log('Selected chain is Rinkeby');
+            console.log('Ethbox contract address is', this.ethboxAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+
+            await this.instantiateAppContracts();
+        }
+        else if (chainId == 97) { // 97 = BSC Testnet
+
+            // Signaling the chain is supported
+            this.isChainSupported$.next(true);
+
+            this.ethboxAddress = ETHBOX.ADDRESSES.BSC_TESTNET;
+            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BSC_TESTNET;
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            console.log('Selected chain is BSC Testnet');
+            console.log('Ethbox contract address is', this.ethboxAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+
+            await this.instantiateAppContracts();
+        }
+        else {
+            this.resetVariables();
+        }
+        this.loadingIndicatorServ.off();
+    }
+
+    loadTokens() {
+
+        let LSKey = `customTokens${this.chainId$.getValue()}`;
+
+        let customTokens = [],
+            curatedTokens = [];
+
+        // Take custom tokens from localStorage and give them the unknown icon
+        let customTokensLS = localStorage.getItem(LSKey);
+        if (customTokensLS) {
+            customTokens = JSON.parse(customTokensLS);
+            customTokens.forEach(token => token.thumb = 'assets/img/unknown-icon.png');
+        }
+
+        // Take tokens from curated lists for the current network
+        curatedTokens = chainTokenDictionary[this.chainId$.getValue()];
+
+        let mergedResults = [...customTokens, ...curatedTokens];
+        this.tokensMap = mergedResults.reduce((a, b) => (a[b.address] = b, a), {});;
+        this.tokens$.next(mergedResults);
+    }
+
+    private async instantiateAppContracts() {
+
+        // Instantiates the contracts
+        this.ethboxContract = new this.web3.eth
+            .Contract(ETHBOX.ABI, this.ethboxAddress);
+        this.tokenDispenserContract = new this.web3.eth
+            .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+
+        // Gets the addresses for the test tokens
+        this.testTokensAddresses.AAA = await this.tokenDispenserContract.methods
+            .token1().call();
+        this.testTokensAddresses.BBB = await this.tokenDispenserContract.methods
+            .token2().call();
+        this.testTokensAddresses.CCC = await this.tokenDispenserContract.methods
+            .token3().call();
+
+        // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
+        this.isAppReady$.next(true);
+    }
+
+    private resetVariables() {
+
+        this.ethboxContract = null;
+        this.tokenDispenserContract = null;
+        this.stakingContract = null;
+
+        this.tokens$.next(null);
+
+        this.boxesInterval.stop();
+        this.incomingBoxes$.next(null);
+        this.outgoingBoxes$.next(null);
+
+        this.isAppReady$.next(false);
+        this.isStakingReady$.next(false);
+        this.isGovernanceReady$.next(false);
+
+        this.isChainSupported$.next(false);
+        this.isEthereumMainnet$.next(false);
+    }
+
+    private async getBox(boxIndex: number) {
+        return await this.ethboxContract.methods.getBox(boxIndex)
+            .call({ from: this.selectedAccount$.getValue() });
+    }
+
     give100TestToken(testTokenSymbol: string): void {
 
         this.tokenDispenserContract.methods
@@ -175,7 +360,23 @@ export class ContractService {
     }
 
     isBinance(): boolean {
-        return [97].includes(this.chainId$.getValue());
+        return [56, 97].includes(this.chainId$.getValue());
+    }
+
+    isEthereumMainnet(): boolean {
+        return this.chainId$.getValue() == 1;
+    }
+
+    isBinanceMainnet(): boolean {
+        return this.chainId$.getValue() == 56;
+    }
+
+    isEthereumTestnet(): boolean {
+        return this.chainId$.getValue() == 4;
+    }
+
+    isBinanceTestnet(): boolean {
+        return this.chainId$.getValue() == 97;
     }
 
     isValidAddress(address: string): boolean {
@@ -189,45 +390,79 @@ export class ContractService {
     }
 
     decimalToWei(decimalValue: string, decimals: string | number): string {
-
         let multiplier = '1' + ZERO.repeat(Number(decimals));
         let _decimal = new BigNumber(decimalValue);
         return _decimal.multipliedBy(multiplier).toFixed();
     }
 
-    getTokenWeiFromDecimalValue(tokenAddress: string, decimalValue: string) {
+    private async getWeiAllowance(tokenAddress: string): Promise<string> {
 
-        if (!this.tokensMap[tokenAddress]) {
-            console.log('Token', tokenAddress, 'not found in', this.tokensMap);
-            return;
-        }
+        let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
 
-        let decimals = this.tokensMap[tokenAddress].decimals;
-        return this.decimalToWei(decimalValue, decimals);
+        let allowance = await tokenContract.methods
+            .allowance(this.selectedAccount$.getValue(), this.ethboxAddress)
+            .call({ from: this.selectedAccount$.getValue() });
+
+        return allowance;
     }
 
-    getTokenDecimalValueFromWei(tokenAddress: string, wei: string) {
+    async getTokenData(tokenAddress: string): Promise<TokenData> {
 
-        if (!this.tokensMap[tokenAddress]) {
-            console.log('Token', tokenAddress, 'not found in', this.tokensMap);
-            return;
+        let name,
+            symbol,
+            decimals;
+        let thumb = 'assets/img/unknown-icon.png';
+
+        // If the token resides in the curated list, then take it the data from there
+        if (this.tokensMap[tokenAddress]) {
+            name = this.tokensMap[tokenAddress].name;
+            symbol = this.tokensMap[tokenAddress].symbol;
+            decimals = this.tokensMap[tokenAddress].decimals;
+            thumb = this.tokensMap[tokenAddress].thumb;
+        }
+        // Otherwise take the data from the blockchain
+        else {
+            let selectedAccount = this.selectedAccount$.getValue();
+            try {
+                let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
+                decimals = await tokenContract.methods
+                    .decimals()
+                    .call({ from: selectedAccount });
+                name = await tokenContract.methods
+                    .name()
+                    .call({ from: selectedAccount });
+                symbol = await tokenContract.methods
+                    .symbol()
+                    .call({ from: selectedAccount });
+            }
+            catch (err) {
+                this.toasterServ.toastMessage$.next({
+                    type: 'danger',
+                    message: 'Address interface is not that of a valid contract!',
+                    duration: 'long'
+                });
+                console.log('getTokenData() error:', err);
+                return;
+            }
         }
 
-        let decimals = this.tokensMap[tokenAddress].decimals;
-        return this.weiToDecimal(wei, decimals);
+        return {
+            address: tokenAddress,
+            name,
+            symbol,
+            decimals,
+            thumb
+        };
+            
     }
 
-    async getBalanceOf(tokenAddress: string): Promise<Balance> {
+    async getTokenBalance(tokenAddress: string): Promise<TokenBalance> {
 
-        if (!this.tokensMap[tokenAddress]) {
-            console.log('Token', tokenAddress, 'not found in', this.tokensMap);
-            return;
-        }
+        let tokenData = await this.getTokenData(tokenAddress);
 
         let selectedAccount = this.selectedAccount$.getValue();
 
-        let decimals = this.tokensMap[tokenAddress].decimals,
-            wei,
+        let wei,
             weiAllowance;
 
         // If it's the base token, then mocks the allowance as unlimited (MAX_VALUE)
@@ -238,18 +473,30 @@ export class ContractService {
         }
         else {
             let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
-            wei = await tokenContract.methods
-                .balanceOf(selectedAccount)
-                .call({ from: selectedAccount });
-            weiAllowance = await this.getWeiAllowance(tokenAddress);
+
+            try {
+                wei = await tokenContract.methods
+                    .balanceOf(selectedAccount)
+                    .call({ from: selectedAccount });
+                weiAllowance = await this.getWeiAllowance(tokenAddress);
+            }
+            catch (err) {
+                this.toasterServ.toastMessage$.next({
+                    type: 'danger',
+                    message: 'Address interface is not that of a valid contract!',
+                    duration: 'long'
+                });
+                console.log('getTokenBalance() error:', err);
+                return;
+            }
         }
 
         return {
+            address: tokenAddress,
             wei,
             weiAllowance,
-            decimals,
-            decimalValue: this.weiToDecimal(wei, decimals),
-            decimalAllowance: this.weiToDecimal(weiAllowance, decimals)
+            decimalValue: this.weiToDecimal(wei, tokenData.decimals),
+            decimalAllowance: this.weiToDecimal(weiAllowance, tokenData.decimals)
         };
     }
 
@@ -295,13 +542,15 @@ export class ContractService {
             win.Web3.utils.soliditySha3(boxInputs.password)
         );
 
-        let sendWei = this.getTokenWeiFromDecimalValue(
-            boxInputs.sendTokenAddress,
-            boxInputs.sendDecimalValue);
+        let sendTokenData = await this.getTokenData(boxInputs.sendTokenAddress);
+        let sendWei = this.decimalToWei(
+            boxInputs.sendDecimalValue,
+            sendTokenData.decimals);
 
-        let requestWei = this.getTokenWeiFromDecimalValue(
-            boxInputs.requestTokenAddress,
-            boxInputs.requestDecimalValue);
+        let requestTokenData = await this.getTokenData(boxInputs.requestTokenAddress);
+        let requestWei = this.decimalToWei(
+            boxInputs.requestDecimalValue,
+            requestTokenData.decimals);
 
         let baseTokenWei = ZERO;
         if (boxInputs.sendTokenAddress == ADDRESS_ZERO) {
@@ -365,6 +614,7 @@ export class ContractService {
         for (let index of incomingBoxesIndices) {
             
             let box = await this.getBox(index);
+            
             incomingBoxes.push({
                 passHashHash: box.passHashHash,
                 recipient: box.recipient,
@@ -378,18 +628,26 @@ export class ContractService {
                 index
             });
         }
+
+        // Sort boxes by date from newest to oldest
+        incomingBoxes.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+        });
+
         return incomingBoxes;
     }
 
     async getOutgoingBoxes(): Promise<Box[]> {
-
-        let outgoingBoxesIndices = await this.ethboxContract.methods.getBoxesOutgoing()
+     
+        let outgoingBoxesIndices = await this.ethboxContract.methods
+            .getBoxesOutgoing()
             .call({ from: this.selectedAccount$.getValue() });
         
         let outgoingBoxes = [];
         for (let index of outgoingBoxesIndices) {
 
             let box = await this.getBox(index);
+
             outgoingBoxes.push({
                 passHashHash: box.passHashHash,
                 recipient: box.recipient,
@@ -403,6 +661,12 @@ export class ContractService {
                 index
             });
         }
+
+        // Sort boxes by date from newest to oldest
+        outgoingBoxes.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+        });
+
         return outgoingBoxes;
     }
 
@@ -463,7 +727,7 @@ export class ContractService {
         else {
 
             // Getting the user balance of the requestedToken
-            let tokenBalance = await this.getBalanceOf(box.requestToken);
+            let tokenBalance = await this.getTokenBalance(box.requestToken);
 
             // If the balance is not enough, then rejects the operation
             if ((new BigNumber(box.requestValue)).gt(tokenBalance.wei)) {
@@ -613,161 +877,6 @@ export class ContractService {
 
                     this.loadingIndicatorServ.off();
                 }));
-    }
-
-    private init(): void {
-
-        console.log('WalletConnectProvider is', this.WalletConnectProvider);
-        console.log('Fortmatic is', this.Fortmatic);
-        let providerOptions = {
-            walletconnect: {
-                package: this.WalletConnectProvider,
-                options: {
-                    infuraId: this.WALLECTCONNECT_APIKEY
-                }
-            },
-            fortmatic: {
-                package: this.Fortmatic,
-                options: {
-                    key: this.FORTMATIC_APIKEY
-                }
-            }
-        };
-
-        this.web3Modal = new this.Web3Modal({
-            cacheProvider: false,
-            providerOptions,
-            disableInjectedProvider: false
-        });
-        console.log('Web3Modal instance is', this.web3Modal);
-    }
-
-    private async fetchVariables(): Promise<void> {
-
-        this.resetVariables();
-        this.loadingIndicatorServ.on();
-
-        // Retrieving the chainId
-        let chainId = await this.web3.eth.getChainId();
-        this.chainId$.next(chainId);
-
-        // Retrieving the selectedAccount
-        let accounts = await this.web3.eth.getAccounts();
-        let selectedAccount = accounts[0];
-        this.selectedAccount$.next(selectedAccount);
-
-        // If there's no account selected stop here, there's no point in going further
-        if (!selectedAccount) {
-            this.loadingIndicatorServ.off();
-            return;
-        }
-
-        // Sets the addresses for the contracts depending on the current chain
-        // If the user is on the wrong chain, then resets and return
-        if (chainId == 1) { // 1 = Ethereum Mainnet
-
-            // Signaling mainnet
-            this.isEthereumMainnet$.next(true);
-
-            // Instantiating the staking contract
-            this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
-            this.stakingContract = new this.web3.eth
-                .Contract(STAKING.ABI, this.stakingAddress);
-
-            this.isStakingReady$.next(true);
-            this.isGovernanceReady$.next(true);
-
-            console.log('Selected chain is Ethereum');
-            console.log('Staking contract address is', this.stakingAddress);
-        }
-        else if (chainId == 4) { // 4 = Rinkeby
-
-            // Signaling the chain is supported
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.RINKEBY;
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.RINKEBY;
-            this.tokensMap = this.ERC20_MAP;
-            this.tokens$.next(ERC20_LIST);
-
-            console.log('Selected chain is Rinkeby');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', ERC20_LIST);
-
-            await this.instantiateAppContracts();
-        }
-        else if (chainId == 97) { // 97 = BSC Testnet
-
-            // Signaling the chain is supported
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.BSC_TESTNET;
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BSC_TESTNET;
-            this.tokensMap = this.BEP20_MAP;
-            this.tokens$.next(BEP20_LIST);
-
-            console.log('Selected chain is BSC Testnet');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', BEP20_LIST);
-
-            await this.instantiateAppContracts();
-        }
-        else {
-            this.resetVariables();
-        }
-        this.loadingIndicatorServ.off();
-    }
-
-    private async instantiateAppContracts() {
-
-        // Instantiates the contracts
-        this.ethboxContract = new this.web3.eth
-            .Contract(ETHBOX.ABI, this.ethboxAddress);
-        this.tokenDispenserContract = new this.web3.eth
-            .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
-
-        // Gets the addresses for the test tokens
-        this.testTokensAddresses.AAA = await this.tokenDispenserContract.methods
-            .token1().call();
-        this.testTokensAddresses.BBB = await this.tokenDispenserContract.methods
-            .token2().call();
-        this.testTokensAddresses.CCC = await this.tokenDispenserContract.methods
-            .token3().call();
-
-        // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
-        this.isAppReady$.next(true);
-    }
-
-    private resetVariables() {
-
-        this.ethboxContract = null;
-        this.tokenDispenserContract = null;
-        this.stakingContract = null;
-
-        this.tokens$.next(null);
-
-        this.isAppReady$.next(false);
-        this.isStakingReady$.next(false);
-        this.isGovernanceReady$.next(false);
-
-        this.isChainSupported$.next(false);
-        this.isEthereumMainnet$.next(false);
-    }
-
-    private async getWeiAllowance(tokenAddress: string): Promise<string> {
-
-        let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
-
-        let allowance = await tokenContract.methods
-            .allowance(this.selectedAccount$.getValue(), this.ethboxAddress)
-            .call({ from: this.selectedAccount$.getValue() });
-
-        return allowance;
-    }
-
-    private async getBox(boxIndex: number) {
-        return await this.ethboxContract.methods.getBox(boxIndex)
-            .call({ from: this.selectedAccount$.getValue() });
     }
 
 }

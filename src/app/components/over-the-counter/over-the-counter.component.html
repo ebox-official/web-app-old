@@ -5,7 +5,7 @@
   }"
 ></app-password-strength-visualizer>
 
-<div class="main py-5 px-3">
+<div class="main centerer py-5 px-3">
   <div class="container-small">
     <!-- swapper -->
     <div class="bg-lightalpha rounded-alot shadow-lg">
@@ -140,8 +140,78 @@
         </div>
         <!-- end of request amount input -->
 
+        <div class="text-end">
+          <a class="btn btn-outline-eboxprimary rounded-alot" data-bs-toggle="collapse" href="#advanced-options">
+            Advanced options
+            <i class="bi bi-three-dots-vertical"></i>
+          </a>
+        </div>
+
+        <div class="collapse" id="advanced-options">
+          <div class="d-flex flex-column gap-3 border p-3 mt-3 rounded-alot">
+            <!-- allow partial checkbox -->
+            <!-- <div class="bg-eboxdark p-3 rounded-alot text-white">
+              <input class="form-check-input me-3" type="checkbox" value="" id="allow-partial-checkbox">
+              <label class="form-check-label" for="allow-partial-checkbox">
+                Allow partial withdrawals
+              </label>
+            </div> -->
+            <!-- end of allow partial checkbox -->
+
+            <!-- timelock input -->
+            <!-- <div class="bg-eboxdark rounded-alot text-white">
+              <label for="date-lock-input" class="pt-3 px-3 w-100">
+                Time available at
+              </label>
+              <div class="d-flex flex-column flex-lg-row gap-3 p-3">
+                <input 
+                  id="date-lock-input"
+                  type="date"
+                  class="border-0 p-2 rounded-alot"
+                  style="outline: none">
+                <input 
+                  id="time-lock-input"
+                  type="time"
+                  class="border-0 p-2 rounded-alot"
+                  style="outline: none">
+              </div>
+            </div> -->
+            <!-- end of timelock input -->
+
+            <!-- email address input -->
+            <!-- <div class="bg-eboxdark rounded-alot text-muted">
+              <label for="recipient-input" class="pt-3 px-3 w-100" style="opacity: .5">
+                Notify email addresses (not yet available)
+              </label>
+              <div class="d-flex p-3 pt-1" style="opacity: .5">
+                <ul class="list-unstyled flex-grow-1 mb-0">
+                  <li>
+                    <button class="btn text-muted">
+                      <i class="bi bi-dash-circle-fill"></i>
+                    </button>
+                    abc@abc.com
+                  </li>
+                </ul>
+                <button class="btn text-muted">
+                  <i class="bi bi-plus-circle-fill"></i>
+                </button>
+              </div>
+            </div> -->
+            <!-- end of email address input -->
+
+            <!-- privacy checkbox -->
+            <!-- <div class="bg-eboxdark p-3 rounded-alot text-muted">
+              <input class="form-check-input me-3" type="checkbox" value="" id="privacy-checkbox" disabled>
+              <label class="form-check-label" for="privacy-checkbox">
+                Enable privacy mode (not yet available)
+              </label>
+            </div> -->
+            <!-- end of privacy checkbox -->
+          </div>
+        </div>
+
         <button
-          class="btn btn-eboxprimary rounded-alot p-3"
+          class="btn btn-eboxprimary rounded-alot p-3 mt-3"
           (click)="buttonFunction()"
           [disabled]="
             isButtonDisabled || (loadingIndicatorServ.isLoading$ | async)

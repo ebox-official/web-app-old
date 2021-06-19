@@ -1,17 +1,18 @@
-export interface Balance {
-    wei: string;
-    weiAllowance: string;
-    decimals: string | number;
-    decimalValue: string;
-    decimalAllowance: string;
-}
-
-export interface TokenInfo {
+export interface TokenData {
+    address: string;
     name: string;
     symbol: string;
-    thumb: string;
-    address: string;
     decimals: string | number;
+    thumb?: string;
+    
+}
+
+export interface TokenBalance {
+    address: string;
+    wei: string;
+    weiAllowance: string;
+    decimalValue: string;
+    decimalAllowance: string;
 }
 
 export interface Box {
@@ -25,12 +26,12 @@ export interface Box {
     readonly requestValue: string;
     readonly taken: boolean;
     index?: number;
-    sendTokenInfo?: TokenInfo;
-    requestTokenInfo?: TokenInfo;
-    readableTimestamp?: string;
-    sendDecimalValue?: string;
-    requestDecimalValue?: string;
     addressBookName?: string;
+    readableTimestamp?: string;
+    sendTokenInfo?: TokenData;
+    sendDecimalValue?: string;
+    requestTokenInfo?: TokenData;
+    requestDecimalValue?: string;
 }
 
 export interface BoxInputs {
@@ -59,6 +60,7 @@ export interface ConfirmOptions {
 export interface PromptOptions {
     dialogName?: string;
     message: string;
+    messageColor?: string;
     inputs: {
         [key: string]: PromptInput;
     };

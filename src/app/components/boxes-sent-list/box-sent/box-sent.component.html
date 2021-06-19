@@ -42,34 +42,41 @@
           </small>
         </div>
       </div>
-      <div
-        [class.text-eboxprimary]="!box.taken"
-        class="fs-5 text-end"
-      >
-        <div>
-          <span class="me-2">{{ 
-            box.sendDecimalValue.length < 7
-              ? box.sendDecimalValue
-              : box.sendDecimalValue.slice(0, 6) + '...'
-          }}</span>
-          <span class="font-monospace fw-bold">{{ box.sendTokenInfo.symbol }}</span>
+      <div class="fs-5 font-monospace flex-grow-1">
+        <div class="d-flex align-items-center justify-content-end gap-2">
+          <span>
+            {{ box.sendDecimalValue.length < 7 ? box.sendDecimalValue : box.sendDecimalValue.slice(0, 6) + '...' }}
+          </span>
+          <span class="fw-bold">
+            {{ box.sendTokenInfo.symbol }}
+          </span>
+          <img
+            *ngIf="box.sendTokenInfo.thumb"
+            [src]="box.sendTokenInfo.thumb"
+            style="width: 1.5rem; height: 1.5rem">
         </div>
-        <div *ngIf="box.requestValue !== '0'">
-          <span class="me-2">{{ 
-            box.requestDecimalValue.length < 7
-              ? box.requestDecimalValue
-              : box.requestDecimalValue.slice(0, 6) + '...'
-          }}</span>
-          <span class="font-monospace fw-bold">{{ box.requestTokenInfo.symbol }}</span>
+        <div *ngIf="box.requestValue !== '0'" class="d-flex align-items-center justify-content-end gap-2">
+          <span>
+            {{ box.requestDecimalValue.length < 7 ? box.requestDecimalValue : box.requestDecimalValue.slice(0, 6) + '...' }}
+          </span>
+          <span class="fw-bold">
+            {{ box.requestTokenInfo.symbol }}
+          </span>
+          <img
+            *ngIf="box.requestTokenInfo.thumb"
+            [src]="box.requestTokenInfo.thumb"
+            style="width: 1.5rem; height: 1.5rem">
         </div>
       </div>
       <div class="col-md-4 text-center text-md-end">
-        <div class="fs-4" *ngIf="box.addressBookName; else address">
-          {{ box.addressBookName.slice(0, 17) }}
+        <div class="fs-4">
+          <ng-container *ngIf="box.addressBookName; else address">
+            {{ box.addressBookName.slice(0, 17) }}
+          </ng-container>
+          <ng-template #address>
+            {{ box.recipient.slice(0, 8) }}...{{ box.recipient.slice(-6) }}
+          </ng-template>
         </div>
-        <ng-template #address>
-          {{ box.recipient.slice(0, 8) }}...{{ box.recipient.slice(-6) }}
-        </ng-template>
         <small class="text-muted">{{ box.readableTimestamp }}</small>
       </div>
     </div>
@@ -84,9 +91,13 @@
               To:
               <a
                 [href]="
-                  contractServ.isEthereum()
+                  contractServ.isEthereumMainnet()
                     ? 'https://etherscan.io/address/' + box.recipient
-                    : 'https://bscscan.com/address/' + box.recipient
+                    : (contractServ.isEthereumTestnet
+                      ? 'https://rinkeby.etherscan.io/address/' + box.recipient
+                      : (contractServ.isBinanceMainnet()
+                        ? 'https://bscscan.com/address/' + box.recipient
+                        : 'https://testnet.bscscan.com/' + box.recipient))
                 "
                 target="_blank"
                 class="text-reset"
@@ -95,7 +106,7 @@
                   {{ box.addressBookName.slice(0, 11) }}
                 </span>
                 <ng-template #address>
-                  {{ box.recipient.slice(0, 5) }}...{{ box.recipient.slice(-3) }}
+                  {{ box.recipient.slice(0, 8) }}...{{ box.recipient.slice(-6) }}
                 </ng-template>
               </a>
             </small>
@@ -119,20 +130,33 @@
             <div class="fs-4">
               {{ box.sendDecimalValue }}
             </div>
-            <div
-              class="rounded-alot position-absolute top-50 translate-middle-y"
-              style="right: 1rem"
-            >
-              <div class="text-end">
+            <div class="token-info-wrapper rounded-alot text-end">
+              <div>
                 {{ sendTokenBalance?.decimalValue | toFixed: 3 }}
               </div>
-              <div class="d-flex align-items-center justify-content-end">
-                <img
-                  class="me-1"
-                  [src]="box.sendTokenInfo?.thumb"
-                  style="width: 1.25rem; height: 1.25rem"
-                />
+              <div class="d-flex align-items-center justify-content-end gap-2">
                 {{ box.sendTokenInfo?.symbol }}
+                <img
+                  *ngIf="box.sendTokenInfo.thumb"
+                  [src]="box.sendTokenInfo.thumb"
+                  style="width: 1.5rem; height: 1.5rem">
+              </div>
+              <div>
+                <a
+                  [href]="
+                    contractServ.isEthereumMainnet()
+                      ? 'https://etherscan.io/address/' + box.sendTokenInfo.address
+                      : (contractServ.isEthereumTestnet
+                        ? 'https://rinkeby.etherscan.io/address/' + box.sendTokenInfo.address
+                        : (contractServ.isBinanceMainnet()
+                          ? 'https://bscscan.com/address/' + box.sendTokenInfo.address
+                          : 'https://testnet.bscscan.com/' + box.sendTokenInfo.address))
+                  "
+                  target="_blank"
+                  class="text-reset text-break"
+                >
+                  {{ box.sendTokenInfo.address.slice(0, 8) }}...{{ box.sendTokenInfo.address.slice(-6) }}
+                </a>
               </div>
             </div>
           </div>
@@ -153,19 +177,33 @@
             <div class="fs-4">
               {{ box.requestDecimalValue }}
             </div>
-            <div
-              class="rounded-alot position-absolute top-50 translate-middle-y" style="right: 1rem"
-            >
-              <div class="text-end">
+            <div class="token-info-wrapper rounded-alot text-end">
+              <div>
                 {{ requestTokenBalance?.decimalValue | toFixed: 3 }}
               </div>
-              <div class="d-flex align-items-center justify-content-end">
-                <img
-                  class="me-1"
-                  [src]="box.requestTokenInfo?.thumb"
-                  style="width: 1.25rem; height: 1.25rem"
-                />
+              <div class="d-flex align-items-center justify-content-end gap-2">
                 {{ box.requestTokenInfo?.symbol }}
+                <img
+                  *ngIf="box.requestTokenInfo.thumb"
+                  [src]="box.requestTokenInfo.thumb"
+                  style="width: 1.5rem; height: 1.5rem">
+              </div>
+              <div>
+                <a
+                  [href]="
+                    contractServ.isEthereumMainnet()
+                      ? 'https://etherscan.io/address/' + box.requestTokenInfo.address
+                      : (contractServ.isEthereumTestnet
+                        ? 'https://rinkeby.etherscan.io/address/' + box.requestTokenInfo.address
+                        : (contractServ.isBinanceMainnet()
+                          ? 'https://bscscan.com/address/' + box.requestTokenInfo.address
+                          : 'https://testnet.bscscan.com/' + box.requestTokenInfo.address))
+                  "
+                  target="_blank"
+                  class="text-reset text-break"
+                >
+                  {{ box.requestTokenInfo.address.slice(0, 8) }}...{{ box.requestTokenInfo.address.slice(-6) }}
+                </a>
               </div>
             </div>
           </div>
