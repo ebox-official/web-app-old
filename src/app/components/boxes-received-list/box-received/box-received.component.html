@@ -39,7 +39,7 @@
           style="height: 64px"
           src="assets/img/boxes-exchange-open.png"
         />
-        <div class="ms-md-3 text-center text-md-end">
+        <div class="ms-md-3 text-center text-md-start">
           <div class="fs-4">{{ box.requestValue !== "0" ? "OTC Trade" : "One-way" }} {{ box.hasPrivacy ? "privacy" : "" }}</div>
           <small class="text-muted">
             <a
@@ -106,7 +106,7 @@
                 [href]="
                   contractServ.isEthereumMainnet()
                     ? 'https://etherscan.io/address/' + box.sender
-                    : (contractServ.isEthereumTestnet
+                    : (contractServ.isEthereumTestnet()
                       ? 'https://rinkeby.etherscan.io/address/' + box.sender
                       : (contractServ.isBinanceMainnet()
                         ? 'https://bscscan.com/address/' + box.sender
@@ -158,7 +158,7 @@
                   [href]="
                     contractServ.isEthereumMainnet()
                       ? 'https://etherscan.io/address/' + box.sendTokenInfo.address
-                      : (contractServ.isEthereumTestnet
+                      : (contractServ.isEthereumTestnet()
                         ? 'https://rinkeby.etherscan.io/address/' + box.sendTokenInfo.address
                         : (contractServ.isBinanceMainnet()
                           ? 'https://bscscan.com/address/' + box.sendTokenInfo.address
