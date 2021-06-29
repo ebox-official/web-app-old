@@ -26,8 +26,8 @@ export class ContractService {
     // These variables are just for the boxes loop, there is a SmartInterval objects that's used to fetch boxes over time so that a new request doesn't happen before the last has already resolved
     incomingBoxes$ = new BehaviorSubject(null);
     outgoingBoxes$ = new BehaviorSubject(null);
-    private boxesIntervalCycleDelay = 15e3;
-    private boxesIntervalStartDelay = 0;
+    private boxesIntervalCycleDelay = 10e3;
+    private boxesIntervalStartDelay = 1e3;
     private boxesInterval;
 
     chainId$ = new BehaviorSubject(null);
@@ -67,8 +67,8 @@ export class ContractService {
     private Fortmatic = win.Fortmatic;
 
     // API keys for various providers
-    private WALLECTCONNECT_APIKEY = '8043bb2cf99347b1bfadfb233c5325c0'; // Mikko's key
-    private FORTMATIC_APIKEY = 'pk_test_391E26A3B43A3350'; // Mikko's key
+    private WALLECTCONNECT_APIKEY = 'b5b51030cf3e451bb523a3f2ca10e3ff';
+    private FORTMATIC_APIKEY = 'pk_test_ADCE42E053643A95';
 
     private web3Modal;
     private provider;
@@ -306,11 +306,6 @@ export class ContractService {
         this.isEthereumMainnet$.next(false);
     }
 
-    private async getBox(boxIndex: number) {
-        return await this.ethboxContract.methods.getBox(boxIndex)
-            .call({ from: this.selectedAccount$.getValue() });
-    }
-
     give100TestToken(testTokenSymbol: string): void {
 
         this.tokenDispenserContract.methods
@@ -536,6 +531,146 @@ export class ContractService {
         return box.passHashHash === sha3(sha3(password));
     }
 
+    async getIncomingBoxes(): Promise<Box[]> {
+
+        let indices = await this.ethboxContract.methods
+            .getBoxesIncoming()
+            .call({ from: this.selectedAccount$.getValue() });
+
+        let boxes = [];
+        for (let index of indices) {
+            
+            let box = await this.ethboxContract.methods
+                .getBox(index)
+                .call({ from: this.selectedAccount$.getValue() });
+
+            if (this.selectedAccount$.getValue() == box.sender) {
+                continue;
+            }
+            
+            boxes.push({
+                hasPrivacy: false,
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: box.requestToken,
+                requestValue: box.requestValue,
+                recipientHash: null,
+                senderHash: null,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
+            });
+        }
+
+        // These are boxes with privacy
+        let indices2 = await this.ethboxContract.methods
+            .getBoxesIncomingWithPrivacy()
+            .call({ from: this.selectedAccount$.getValue() });
+        
+        for (let index of indices2) {
+            
+            let box = await this.ethboxContract.methods
+                .getBoxWithPrivacy(index)
+                .call({ from: this.selectedAccount$.getValue() });
+
+            if (win.Web3.utils.soliditySha3(this.selectedAccount$.getValue()) == box.senderHash) {
+                continue;
+            }
+            
+            boxes.push({
+                hasPrivacy: true,
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: null,
+                requestValue: null,
+                recipientHash: box.recipientHash,
+                senderHash: box.senderHash,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
+            });
+        }
+
+        // Sort boxes by date from newest to oldest
+        boxes.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+        });
+
+        console.log('getIncomingBoxes()', boxes);
+
+        return boxes;
+    }
+
+    async getOutgoingBoxes(): Promise<Box[]> {
+     
+        let indices = await this.ethboxContract.methods
+            .getBoxesOutgoing()
+            .call({ from: this.selectedAccount$.getValue() });
+
+        let boxes = [];
+        for (let index of indices) {
+            
+            let box = await this.ethboxContract.methods
+                .getBox(index)
+                .call({ from: this.selectedAccount$.getValue() });
+            
+            boxes.push({
+                hasPrivacy: false,
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: box.requestToken,
+                requestValue: box.requestValue,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
+            });
+        }
+
+        // These are boxes with privacy
+        let indices2 = await this.ethboxContract.methods
+            .getBoxesOutgoingWithPrivacy()
+            .call({ from: this.selectedAccount$.getValue() });
+        
+        for (let index of indices2) {
+            
+            let box = await this.ethboxContract.methods
+                .getBoxWithPrivacy(index)
+                .call({ from: this.selectedAccount$.getValue() });
+            
+            boxes.push({
+                hasPrivacy: true,
+                passHashHash: box.passHashHash,
+                recipient: box.recipient,
+                requestToken: null,
+                requestValue: null,
+                sendToken: box.sendToken,
+                sendValue: box.sendValue,
+                sender: box.sender,
+                taken: box.taken,
+                timestamp: box.timestamp * 1e3,
+                index
+            });
+        }
+
+        // Sort boxes by date from newest to oldest
+        boxes.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+        });
+
+        console.log('getOutgoingBoxes()', boxes);
+
+        return boxes;
+    }
+
     async createBox(boxInputs: BoxInputs): Promise<void> {
 
         let passHashHash = win.Web3.utils.soliditySha3(
@@ -605,69 +740,68 @@ export class ContractService {
                 }));
     }
 
-    async getIncomingBoxes(): Promise<Box[]> {
+    async createBoxWithPrivacy(boxInputs: BoxInputs): Promise<void> {
 
-        let incomingBoxesIndices = await this.ethboxContract.methods.getBoxesIncoming()
-            .call({ from: this.selectedAccount$.getValue() });
-        
-        let incomingBoxes = [];
-        for (let index of incomingBoxesIndices) {
-            
-            let box = await this.getBox(index);
-            
-            incomingBoxes.push({
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: box.requestToken,
-                requestValue: box.requestValue,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
+        let recipientHash = win.Web3.utils.soliditySha3(boxInputs.recipient);
+
+        let passHashHash = win.Web3.utils.soliditySha3(
+            win.Web3.utils.soliditySha3(boxInputs.password)
+        );
+
+        let sendTokenData = await this.getTokenData(boxInputs.sendTokenAddress);
+        let sendWei = this.decimalToWei(
+            boxInputs.sendDecimalValue,
+            sendTokenData.decimals);
+
+        let baseTokenWei = ZERO;
+        if (boxInputs.sendTokenAddress == ADDRESS_ZERO) {
+            baseTokenWei = sendWei;
         }
 
-        // Sort boxes by date from newest to oldest
-        incomingBoxes.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-        });
+        this.loadingIndicatorServ.on();
+        this.ethboxContract.methods
+            .createBoxWithPrivacy(
+                recipientHash,
+                boxInputs.sendTokenAddress,
+                sendWei,
+                passHashHash)
+            .send({
+                from: this.selectedAccount$.getValue(),
+                value: baseTokenWei
+            })
+            .on('transactionHash', hash =>
+                this.ngZone.run(() => {
 
-        return incomingBoxes;
-    }
+                    this.toasterServ.toastMessage$.next({
+                        type: 'secondary',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
+                        duration: 'short'
+                    });
+                }))
+            .on('receipt', receipt =>
+                this.ngZone.run(() => {
 
-    async getOutgoingBoxes(): Promise<Box[]> {
-     
-        let outgoingBoxesIndices = await this.ethboxContract.methods
-            .getBoxesOutgoing()
-            .call({ from: this.selectedAccount$.getValue() });
-        
-        let outgoingBoxes = [];
-        for (let index of outgoingBoxesIndices) {
+                    this.toasterServ.toastMessage$.next({
+                        type: 'success',
+                        message: 'Your outgoing transaction has been confirmed!',
+                        duration: 'long'
+                    });
 
-            let box = await this.getBox(index);
+                    this.boxInteraction$.next(true);
+                    this.loadingIndicatorServ.off();
+                }))
+            .on('error', (error, receipt) =>
+                this.ngZone.run(() => {
 
-            outgoingBoxes.push({
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: box.requestToken,
-                requestValue: box.requestValue,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
-        }
+                    this.toasterServ.toastMessage$.next({
+                        type: 'danger',
+                        message: 'Sending aborted by user.',
+                        duration: 'long'
+                    });
+                    console.log('Box creation aborted', error, receipt);
 
-        // Sort boxes by date from newest to oldest
-        outgoingBoxes.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-        });
-
-        return outgoingBoxes;
+                    this.loadingIndicatorServ.off();
+                }));
     }
 
     async cancelBox(boxIndex: number): Promise<void> {
@@ -675,6 +809,50 @@ export class ContractService {
         this.loadingIndicatorServ.on();
         this.ethboxContract.methods
             .cancelBox(boxIndex)
+            .send({
+                from: this.selectedAccount$.getValue(),
+                value: ZERO
+            })
+            .on('transactionHash', hash =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'secondary',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
+                        duration: 'short'
+                    });
+                }))
+            .on('receipt', receipt =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'success',
+                        message: 'Cancelling transaction successful!',
+                        duration: 'long'
+                    });
+
+                    this.boxInteraction$.next(true);
+                    this.loadingIndicatorServ.off();
+                }))
+            .on('error', (error, receipt) =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'danger',
+                        message: 'Cancelling transaction aborted by user.',
+                        duration: 'long'
+                    });
+                    console.log('Box cancellation aborted', error, receipt);
+
+                    this.loadingIndicatorServ.off();
+                }));
+    }
+
+    async cancelBoxWithPrivacy(boxIndex: number): Promise<void> {
+
+        this.loadingIndicatorServ.on();
+        this.ethboxContract.methods
+            .cancelBoxWithPrivacy(boxIndex)
             .send({
                 from: this.selectedAccount$.getValue(),
                 value: ZERO
@@ -766,6 +944,53 @@ export class ContractService {
             .send({
                 from: selectedAccount,
                 value: baseTokenAmount
+            })
+            .on('transactionHash', hash =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'secondary',
+                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
+                        duration: 'short'
+                    });
+                }))
+            .on('receipt', receipt =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'success',
+                        message: 'The box has been accepted!',
+                        duration: 'long'
+                    });
+
+                    this.boxInteraction$.next(true);
+                    this.loadingIndicatorServ.off();
+                }))
+            .on('error', (error, receipt) =>
+                this.ngZone.run(() => {
+
+                    this.toasterServ.toastMessage$.next({
+                        type: 'danger',
+                        message: 'Box approval aborted. Details in the console',
+                        duration: 'long'
+                    });
+                    console.log('Box approval aborted', error, receipt);
+
+                    this.loadingIndicatorServ.off();
+                }));
+    }
+
+    async acceptBoxWithPrivacy(box: Box, password: string): Promise<void> {
+
+        let selectedAccount = this.selectedAccount$.getValue();
+        let passHash = win.Web3.utils.soliditySha3(password);
+
+        this.loadingIndicatorServ.on();
+        this.ethboxContract.methods
+            .clearBoxWithPrivacy(box.index, passHash)
+            .send({
+                from: selectedAccount,
+                value: ZERO
             })
             .on('transactionHash', hash =>
                 this.ngZone.run(() => {

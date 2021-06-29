@@ -25,6 +25,7 @@ export interface Box {
     readonly requestToken: string;
     readonly requestValue: string;
     readonly taken: boolean;
+    hasPrivacy?: boolean;
     index?: number;
     addressBookName?: string;
     readableTimestamp?: string;

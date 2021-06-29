@@ -41,7 +41,8 @@ export class OverTheCounterComponent implements OnInit {
             this.contractServ.isChainSupported$,
             this.contractServ.selectedAccount$,
             this.contractServ.isAppReady$,
-            this.contractServ.boxInteraction$
+            this.contractServ.boxInteraction$,
+            this.contractServ.approvalInteraction$
         ].forEach(obs => 
             this.subscriptions.push(
                 obs.subscribe(() => this.syncButtonFunctionality())));

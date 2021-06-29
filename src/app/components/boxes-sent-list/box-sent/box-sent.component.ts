@@ -28,8 +28,11 @@ export class BoxSentComponent {
             if (this.isExpanded) {
                 this.sendTokenBalance = await this.contractServ
                     .getTokenBalance(this.box.sendTokenInfo.address);
-                this.requestTokenBalance = await this.contractServ
-                    .getTokenBalance(this.box.requestTokenInfo.address);
+                
+                if (this.box.requestToken) {
+                    this.requestTokenBalance = await this.contractServ
+                        .getTokenBalance(this.box.requestTokenInfo.address);
+                }
                 
                 console.log('send token balance', this.sendTokenBalance);
                 console.log('request token balance', this.requestTokenBalance);

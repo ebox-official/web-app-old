@@ -168,12 +168,18 @@
             <!-- end of email address input -->
 
             <!-- privacy checkbox -->
-            <!-- <div class="bg-eboxdark p-3 rounded-alot text-muted">
-              <input class="form-check-input me-3" type="checkbox" value="" id="privacy-checkbox" disabled>
+            <div class="bg-eboxdark p-3 rounded-alot text-white">
+              <input
+                class="form-check-input me-3"
+                type="checkbox"
+                [value]="isPrivacyEnabled"
+                (change)="isPrivacyEnabled = !isPrivacyEnabled"
+                id="privacy-checkbox"
+              >
               <label class="form-check-label" for="privacy-checkbox">
-                Enable privacy mode (not yet available)
+                Enable privacy mode
               </label>
-            </div> -->
+            </div>
             <!-- end of privacy checkbox -->
           </div>
         </div>

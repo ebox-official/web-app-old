@@ -11,6 +11,7 @@ import BigNumber from 'bignumber.js';
 })
 export class SendComponent implements OnInit {
 
+    isPrivacyEnabled = false;
     password = '';
     recipient;
     sendTokenSelected;
@@ -40,7 +41,8 @@ export class SendComponent implements OnInit {
             this.contractServ.isChainSupported$,
             this.contractServ.selectedAccount$,
             this.contractServ.isAppReady$,
-            this.contractServ.boxInteraction$
+            this.contractServ.boxInteraction$,
+            this.contractServ.approvalInteraction$
         ].forEach(obs => 
             this.subscriptions.push(
                 obs.subscribe(() => this.syncButtonFunctionality())));
@@ -158,6 +160,25 @@ export class SendComponent implements OnInit {
 
     sendBox() {
 
+        console.log('Privacy is', this.isPrivacyEnabled);
+        console.log('Passphrase is', this.password);
+        console.log('Recipient is', this.recipient);
+        console.log('Send token address is', this.sendTokenSelected.address);
+        console.log('Send amount is', this.sendValue);
+
+        if (this.isPrivacyEnabled) {
+            this.contractServ.createBoxWithPrivacy({
+                password: this.password,
+                recipient: this.recipient,
+                sender: this.contractServ.selectedAccount$.getValue(),
+                sendTokenAddress: this.sendTokenSelected.address,
+                sendDecimalValue: this.sendValue,
+                requestTokenAddress: ADDRESS_ZERO,
+                requestDecimalValue: ZERO
+            });
+            return;
+        }
+
         this.contractServ.createBox({
             password: this.password,
             recipient: this.recipient,
@@ -168,10 +189,6 @@ export class SendComponent implements OnInit {
             requestDecimalValue: ZERO
         });
 
-        console.log('Passphrase is', this.password);
-        console.log('Recipient is', this.recipient);
-        console.log('Send token address is', this.sendTokenSelected.address);
-        console.log('Send amount is', this.sendValue);
     }
 
 }

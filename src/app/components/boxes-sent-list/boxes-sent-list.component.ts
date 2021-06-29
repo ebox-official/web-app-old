@@ -87,7 +87,7 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                     }
 
                     if (boxes.length === 0) {
-                        this.message = 'No incoming transactions!';
+                        this.message = 'No outgoing transactions!';
                         return;
                     }
 
@@ -96,7 +96,10 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                             addressBookName: this.addressBookMap[box.recipient],
                             ...box
                         }));
-                    this.filterBoxes();
+
+                    this.ngZone.run(() => {
+                        this.filterBoxes();
+                    });
                 })));
     }
 
@@ -154,10 +157,14 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                 box.sendValue,
                 box.sendTokenInfo.decimals);
             
-            box.requestTokenInfo = await this.contractServ.getTokenData(box.requestToken);
-            box.requestDecimalValue = this.contractServ.weiToDecimal(
-                box.requestValue,
-                box.requestTokenInfo.decimals);
+            if (box.requestToken) {
+                box.requestTokenInfo = await this.contractServ.getTokenData(box.requestToken);
+                box.requestDecimalValue = this.contractServ.weiToDecimal(
+                    box.requestValue,
+                    box.requestTokenInfo.decimals);
+            } else {
+                box.requestValue = '0';
+            }
         }
 
         this.message = null; // Remove "Loading..." message
