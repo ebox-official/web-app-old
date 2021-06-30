@@ -108,11 +108,15 @@
                 [href]="
                   contractServ.isEthereumMainnet()
                     ? 'https://etherscan.io/address/' + box.recipient
-                    : (contractServ.isEthereumTestnet()
+                    : contractServ.isEthereumTestnet()
                       ? 'https://rinkeby.etherscan.io/address/' + box.recipient
-                      : (contractServ.isBinanceMainnet()
+                      : contractServ.isBinanceMainnet()
                         ? 'https://bscscan.com/address/' + box.recipient
-                        : 'https://testnet.bscscan.com/' + box.recipient))
+                        : contractServ.isBinanceTestnet()
+                          ? 'https://testnet.bscscan.com/address/' + box.recipient
+                          : contractServ.isMaticMainnet()
+                            ? 'https://polygonscan.com/address/' + box.recipient
+                            : 'https://mumbai.polygonscan.com/address/' + box.recipient
                 "
                 target="_blank"
                 class="text-reset"
@@ -161,11 +165,15 @@
                   [href]="
                     contractServ.isEthereumMainnet()
                       ? 'https://etherscan.io/address/' + box.sendTokenInfo.address
-                      : (contractServ.isEthereumTestnet()
+                      : contractServ.isEthereumTestnet()
                         ? 'https://rinkeby.etherscan.io/address/' + box.sendTokenInfo.address
-                        : (contractServ.isBinanceMainnet()
+                        : contractServ.isBinanceMainnet()
                           ? 'https://bscscan.com/address/' + box.sendTokenInfo.address
-                          : 'https://testnet.bscscan.com/' + box.sendTokenInfo.address))
+                          : contractServ.isBinanceTestnet()
+                          ? 'https://testnet.bscscan.com/address/' + box.sendTokenInfo.address
+                          : contractServ.isMaticMainnet()
+                            ? 'https://polygonscan.com/address/' + box.sendTokenInfo.address
+                            : 'https://mumbai.polygonscan.com/address/' + box.sendTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"
@@ -208,11 +216,15 @@
                   [href]="
                     contractServ.isEthereumMainnet()
                       ? 'https://etherscan.io/address/' + box.requestTokenInfo.address
-                      : (contractServ.isEthereumTestnet
+                      : contractServ.isEthereumTestnet
                         ? 'https://rinkeby.etherscan.io/address/' + box.requestTokenInfo.address
-                        : (contractServ.isBinanceMainnet()
+                        : contractServ.isBinanceMainnet()
                           ? 'https://bscscan.com/address/' + box.requestTokenInfo.address
-                          : 'https://testnet.bscscan.com/' + box.requestTokenInfo.address))
+                          : contractServ.isBinanceTestnet()
+                          ? 'https://testnet.bscscan.com/address/' + box.requestTokenInfo.address
+                          : contractServ.isMaticMainnet()
+                            ? 'https://polygonscan.com/address/' + box.requestTokenInfo.address
+                            : 'https://mumbai.polygonscan.com/address/' + box.requestTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"
