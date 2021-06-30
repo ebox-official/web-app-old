@@ -71,7 +71,7 @@ export class SendComponent implements OnInit {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+            this.buttonMessage = 'Wrong network – Please use Ethereum, BSC or Polygon!';
             this.isButtonDisabled = true;
             return;
         }

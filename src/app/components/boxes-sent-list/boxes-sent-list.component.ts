@@ -68,7 +68,7 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                         return;
                     }
                     if (!this.isChainSupported) {
-                        this.message = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+                        this.message = 'Wrong network – Please use Ethereum, BSC or Polygon!';
                         return;
                     }
                     if (!this.isAppReady) {

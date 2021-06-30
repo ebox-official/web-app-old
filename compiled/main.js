@@ -497,7 +497,7 @@ class BoxesReceivedListComponent {
                 return;
             }
             if (!this.isChainSupported) {
-                this.message = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+                this.message = 'Wrong network – Please use Ethereum, BSC or Polygon!';
                 return;
             }
             if (!this.isAppReady) {
@@ -1923,7 +1923,7 @@ class SendComponent {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+            this.buttonMessage = 'Wrong network – Please use Ethereum, BSC or Polygon!';
             this.isButtonDisabled = true;
             return;
         }
@@ -3149,7 +3149,7 @@ class OverTheCounterComponent {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+            this.buttonMessage = 'Wrong network – Please use Ethereum, BSC or Polygon!';
             this.isButtonDisabled = true;
             return;
         }
@@ -43506,7 +43506,7 @@ class BoxesSentListComponent {
                 return;
             }
             if (!this.isChainSupported) {
-                this.message = 'Wrong network – Please use Ethereum, Binance or Polygon!';
+                this.message = 'Wrong network – Please use Ethereum, BSC or Polygon!';
                 return;
             }
             if (!this.isAppReady) {
