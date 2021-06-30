@@ -68,7 +68,7 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                         return;
                     }
                     if (!this.isChainSupported) {
-                        this.message = 'Wrong network – Please use Rinkeby or BSC Testnet!';
+                        this.message = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
                         return;
                     }
                     if (!this.isAppReady) {

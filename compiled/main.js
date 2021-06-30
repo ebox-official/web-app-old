@@ -497,7 +497,7 @@ class BoxesReceivedListComponent {
                 return;
             }
             if (!this.isChainSupported) {
-                this.message = 'Wrong network – Please use Rinkeby or BSC Testnet!';
+                this.message = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
                 return;
             }
             if (!this.isAppReady) {
@@ -43508,7 +43508,7 @@ class BoxesSentListComponent {
                 return;
             }
             if (!this.isChainSupported) {
-                this.message = 'Wrong network – Please use Rinkeby or BSC Testnet!';
+                this.message = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
                 return;
             }
             if (!this.isAppReady) {
