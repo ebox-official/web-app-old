@@ -517,9 +517,7 @@ class BoxesReceivedListComponent {
             }
             this.fetchedBoxes = boxes
                 .map(box => (Object.assign({ addressBookName: this.addressBookMap[box.recipient] }, box)));
-            this.ngZone.run(() => {
-                this.filterBoxes();
-            });
+            this.filterBoxes();
         })));
     }
     ngOnDestroy() {
@@ -43530,9 +43528,7 @@ class BoxesSentListComponent {
             }
             this.fetchedBoxes = boxes
                 .map(box => (Object.assign({ addressBookName: this.addressBookMap[box.recipient] }, box)));
-            this.ngZone.run(() => {
-                this.filterBoxes();
-            });
+            this.filterBoxes();
         })));
     }
     ngOnDestroy() {

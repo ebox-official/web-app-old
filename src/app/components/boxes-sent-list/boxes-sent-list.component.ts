@@ -97,9 +97,7 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
                             ...box
                         }));
 
-                    this.ngZone.run(() => {
-                        this.filterBoxes();
-                    });
+                    this.filterBoxes();
                 })));
     }
 
