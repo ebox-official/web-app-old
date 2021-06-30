@@ -45392,7 +45392,7 @@ TopBarComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCo
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     } if (rf & 2) {
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](5);
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("ngIf", _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵpipeBind1"](6, 8, ctx.contractServ.isAppReady$) && (ctx.contractServ.isEthereumTestnet() || ctx.contractServ.isBinanceTestnet) && ctx.isMenuUntouched);
+        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("ngIf", _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵpipeBind1"](6, 8, ctx.contractServ.isAppReady$) && (ctx.contractServ.isEthereumTestnet() || ctx.contractServ.isBinanceTestnet() || ctx.contractServ.isMaticTestnet()) && ctx.isMenuUntouched);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](14);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵclassProp"]("shadow", !ctx.areThereIncomingBoxes || ctx.wasIncomingTouched)("btn-eboxpulser", ctx.areThereIncomingBoxes && !ctx.wasIncomingTouched);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](8);
