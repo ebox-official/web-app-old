@@ -110,6 +110,11 @@
       src="assets/img/binance.png"
       style="height: 21px"
     />
+    <img
+      *ngIf="contractServ.isMatic()"
+      src="assets/img/matic.png"
+      style="height: 21px"
+    />
     {{ contractServ.selectedAccount$ | async | slice: 0:6 }}...
     <i class="bi bi-x-circle"></i>
   </button>
@@ -199,21 +204,21 @@
       </div>
       <div class="d-grid gap-3 p-3">
         <button
-          (click)="contractServ.give100TestToken('AAA')"
+          (click)="contractServ.give100TestToken(0)"
           class="btn btn-outline-eboxprimary rounded-alot"
         >
           <span class="fs-5 me-2 text-warning">100</span>
           Token AAA
         </button>
         <button
-          (click)="contractServ.give100TestToken('BBB')"
+          (click)="contractServ.give100TestToken(1)"
           class="btn btn-outline-eboxprimary rounded-alot"
         >
           <span class="fs-5 me-2 text-warning">100</span>
           Token BBB
         </button>
         <button
-          (click)="contractServ.give100TestToken('CCC')"
+          (click)="contractServ.give100TestToken(2)"
           class="btn btn-outline-eboxprimary rounded-alot"
         >
           <span class="fs-5 me-2 text-warning">100</span>

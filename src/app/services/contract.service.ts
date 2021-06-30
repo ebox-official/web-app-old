@@ -48,15 +48,10 @@ export class ContractService {
     tokensMap;
 
     // These fields are changing values when chain is changed (look fetchVariables())
-    private testTokensAddresses = {
-        'AAA': null,
-        'BBB': null,
-        'CCC': null
-    };
     private ethboxAddress;
+    private ethboxContract;
     private tokenDispenserAddress;
     private tokenDispenserContract;
-    private ethboxContract;
 
     private stakingAddress;
     private stakingContract;
@@ -192,7 +187,6 @@ export class ContractService {
         // If the user is on the wrong chain, then resets and return
         if (chainId == 1) { // 1 = Ethereum Mainnet
 
-            // Signaling mainnet
             this.isEthereumMainnet$.next(true);
 
             // Instantiating the staking contract
@@ -206,17 +200,16 @@ export class ContractService {
             console.log('Selected chain is Ethereum');
             console.log('Staking contract address is', this.stakingAddress);
         }
-        else if (chainId == 4) { // 4 = Rinkeby
+        else if (chainId == 4) { // 4 = ETHEREUM_TESTNET
 
-            // Signaling the chain is supported
             this.isChainSupported$.next(true);
 
-            this.ethboxAddress = ETHBOX.ADDRESSES.RINKEBY;
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.RINKEBY;
+            this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
+            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
             this.loadTokens();
             this.boxesInterval.start();
 
-            console.log('Selected chain is Rinkeby');
+            console.log('Selected chain is Ethereum Testnet');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', this.tokens$.getValue());
 
@@ -224,7 +217,6 @@ export class ContractService {
         }
         else if (chainId == 97) { // 97 = BSC Testnet
 
-            // Signaling the chain is supported
             this.isChainSupported$.next(true);
 
             this.ethboxAddress = ETHBOX.ADDRESSES.BSC_TESTNET;
@@ -233,6 +225,21 @@ export class ContractService {
             this.boxesInterval.start();
 
             console.log('Selected chain is BSC Testnet');
+            console.log('Ethbox contract address is', this.ethboxAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+
+            await this.instantiateAppContracts();
+        }
+        else if (chainId == 80001) { // 80001 = Matic Testnet
+
+            this.isChainSupported$.next(true);
+
+            this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
+            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            console.log('Selected chain is Matic Testnet');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', this.tokens$.getValue());
 
@@ -274,14 +281,6 @@ export class ContractService {
         this.tokenDispenserContract = new this.web3.eth
             .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
 
-        // Gets the addresses for the test tokens
-        this.testTokensAddresses.AAA = await this.tokenDispenserContract.methods
-            .token1().call();
-        this.testTokensAddresses.BBB = await this.tokenDispenserContract.methods
-            .token2().call();
-        this.testTokensAddresses.CCC = await this.tokenDispenserContract.methods
-            .token3().call();
-
         // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
         this.isAppReady$.next(true);
     }
@@ -306,12 +305,12 @@ export class ContractService {
         this.isEthereumMainnet$.next(false);
     }
 
-    give100TestToken(testTokenSymbol: string): void {
+    give100TestToken(testTokenIndex: string): void {
 
         this.tokenDispenserContract.methods
-            .give_token(
-                win.Web3.utils.toWei('100'),
-                this.testTokensAddresses[testTokenSymbol])
+            .giveToken(
+                testTokenIndex,
+                win.Web3.utils.toWei('100'))
             .send({ from: this.selectedAccount$.getValue() })
             .on('transactionHash', hash =>
                 this.ngZone.run(() => {
@@ -329,7 +328,7 @@ export class ContractService {
 
                     this.toasterServ.toastMessage$.next({
                         type: 'success',
-                        message: `You have received 100 ${testTokenSymbol} tokens!`,
+                        message: `You have received 100 test tokens!`,
                         duration: 'long'
                     });
 
@@ -358,6 +357,10 @@ export class ContractService {
         return [56, 97].includes(this.chainId$.getValue());
     }
 
+    isMatic(): boolean {
+        return [137, 80001].includes(this.chainId$.getValue());
+    }
+
     isEthereumMainnet(): boolean {
         return this.chainId$.getValue() == 1;
     }
@@ -366,12 +369,20 @@ export class ContractService {
         return this.chainId$.getValue() == 56;
     }
 
+    isMaticMainnet(): boolean {
+        return this.chainId$.getValue() == 137;
+    }
+
     isEthereumTestnet(): boolean {
         return this.chainId$.getValue() == 4;
     }
 
     isBinanceTestnet(): boolean {
         return this.chainId$.getValue() == 97;
+    }
+
+    isMaticTestnet(): boolean {
+        return this.chainId$.getValue() == 80001;
     }
 
     isValidAddress(address: string): boolean {

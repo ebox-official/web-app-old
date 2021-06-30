@@ -32029,21 +32029,21 @@ export let chainTokenDictionary = {
       name: "Test Token",
       symbol: "AAA",
       thumb: "assets/img/crash-test.png",
-      address: "0x0200aC1132560363fe203c9463561e4c537E70DA",
+      address: "0xB89f9673c46b126d7A0052D972cdB9C448f92D35",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "BBB",
       thumb: "assets/img/crash-test.png",
-      address: "0xa03f623C1C4bE380Ee5C80a4157A26aD7bE710bc",
+      address: "0x0b91f9d9657e8edc725a519BC9e9fB3C785815a0",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "CCC",
       thumb: "assets/img/crash-test.png",
-      address: "0x7820690CdE6B23Fb3C214C88d6546fcC28A8D34C",
+      address: "0x4B73517Ae7Ac55B46b8B993A41842Af399fbfa25",
       decimals: 18,
     },
     {
@@ -39208,21 +39208,21 @@ export let chainTokenDictionary = {
       name: "Test Token",
       symbol: "AAA",
       thumb: "assets/img/crash-test.png",
-      address: "0x27C3a321Ae930CFc9d04F96A8b2721F249E673FB",
+      address: "0xbF2EBD4b347732F96C95f2D3116A34095baB3F90",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "BBB",
       thumb: "assets/img/crash-test.png",
-      address: "0x8eFcd775904750383CA8267cccf04C8532caA5B9",
+      address: "0x6b0b8E503696076AAB140C10c689f22DC15FF87D",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "CCC",
       thumb: "assets/img/crash-test.png",
-      address: "0xFD306cb7701a0267b0B3Af6A902D9Eb3608e0933",
+      address: "0x69f90E517C21E3117e1535fA2092dC1f3633F560",
       decimals: 18,
     },
     {
@@ -39231,6 +39231,49 @@ export let chainTokenDictionary = {
       thumb: "https://v1exchange.pancakeswap.finance/images/coins/bnb.png",
       address: "0x0000000000000000000000000000000000000000",
       decimals: 18,
+    }
+  ],
+  // Matic mainnet
+  137: [
+    {
+      name: "Polygon",
+      symbol: "MATIC",
+      thumb:
+        "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
+        address: "0x0000000000000000000000000000000000000000",
+      decimals: "18",
+    }
+  ],
+  // Matic testnet
+  80001: [
+    {
+      name: "Test Token",
+      symbol: "AAA",
+      thumb: "assets/img/crash-test.png",
+      address: "0xE38A5C3da5FFf6E2865BF64cF6674265cFfd9e7f",
+      decimals: 18,
+    },
+    {
+      name: "Test Token",
+      symbol: "BBB",
+      thumb: "assets/img/crash-test.png",
+      address: "0xb40d2f3B8e2465DF9132ae2DF43E80Dbb67d3369",
+      decimals: 18,
+    },
+    {
+      name: "Test Token",
+      symbol: "CCC",
+      thumb: "assets/img/crash-test.png",
+      address: "0x7190Bb56c586Bf9Dd8013C450af8C51af5EaE156",
+      decimals: 18,
+    },
+    {
+      name: "Polygon",
+      symbol: "MATIC",
+      thumb:
+        "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
+        address: "0x0000000000000000000000000000000000000000",
+      decimals: "18",
     }
   ]
 };
