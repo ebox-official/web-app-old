@@ -9,8 +9,8 @@ export let ETHBOX = {
     ADDRESSES: {
         ETHEREUM: null,
         ETHEREUM_TESTNET: '0xAAa491Cf3cA23D59a77eB56Ab487169F4B49e4e2',
-        BSC: null,
-        BSC_TESTNET: '0xF559344bF9A51bF778fB0Ff38cc690bAF7E61081',
+        BINANCE: null,
+        BINANCE_TESTNET: '0xF559344bF9A51bF778fB0Ff38cc690bAF7E61081',
         MATIC: null,
         MATIC_TESTNET: '0x6c1cd6434B5Ee4A75605981387cBb3cdDc5596d0'
     },
@@ -20,7 +20,7 @@ export let ETHBOX = {
 export let TOKEN_DISPENSER = {
     ADDRESSES: {
         ETHEREUM_TESTNET: '0x919fff8bD2888602FfaeE77E656F42E5741Cdb9A',
-        BSC_TESTNET: '0x0D4f413f643E23C5Cae7b3D5E9E80FE97e4fd392',
+        BINANCE_TESTNET: '0x0D4f413f643E23C5Cae7b3D5E9E80FE97e4fd392',
         MATIC_TESTNET: '0x963e8acF143eD9638376923Ad14b28D39D8FbF2D'
     },
     ABI: [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"stateMutability":"payable","type":"fallback"},{"inputs":[{"internalType":"uint8","name":"_token","type":"uint8"},{"internalType":"uint256","name":"_value","type":"uint256"}],"name":"giveToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"tokenA","outputs":[{"internalType":"contract ERC20Interface","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokenB","outputs":[{"internalType":"contract ERC20Interface","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tokenC","outputs":[{"internalType":"contract ERC20Interface","name":"","type":"address"}],"stateMutability":"view","type":"function"}]

@@ -68,7 +68,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
                         return;
                     }
                     if (!this.isChainSupported) {
-                        this.message = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
+                        this.message = 'Wrong network – Please use Ethereum, Binance or Polygon!';
                         return;
                     }
                     if (!this.isAppReady) {

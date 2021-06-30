@@ -71,7 +71,7 @@ export class OverTheCounterComponent implements OnInit {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
+            this.buttonMessage = 'Wrong network – Please use Ethereum, Binance or Polygon!';
             this.isButtonDisabled = true;
             return;
         }

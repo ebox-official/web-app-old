@@ -33,6 +33,8 @@ export class ContractService {
     chainId$ = new BehaviorSubject(null);
     isChainSupported$ = new BehaviorSubject(false);
     isEthereumMainnet$ = new BehaviorSubject(false);
+    isBinanceMainnet$ = new BehaviorSubject(false);
+    isMaticMainnet$ = new BehaviorSubject(false);
     selectedAccount$ = new BehaviorSubject(null);
     
     isAppReady$ = new BehaviorSubject(false);
@@ -188,54 +190,123 @@ export class ContractService {
         if (chainId == 1) { // 1 = Ethereum Mainnet
 
             this.isEthereumMainnet$.next(true);
+            this.isChainSupported$.next(true);
 
+            // Instantiates the contracts
+            this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            
             // Instantiating the staking contract
             this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
             this.stakingContract = new this.web3.eth
                 .Contract(STAKING.ABI, this.stakingAddress);
 
+            this.loadTokens();
+            this.boxesInterval.start();
+
             this.isStakingReady$.next(true);
             this.isGovernanceReady$.next(true);
 
             console.log('Selected chain is Ethereum');
+            console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Staking contract address is', this.stakingAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+
+            this.isAppReady$.next(true);
         }
-        else if (chainId == 4) { // 4 = ETHEREUM_TESTNET
+        else if (chainId == 4) { // 4 = Ethereum Testnet
 
             this.isChainSupported$.next(true);
 
+            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            this.tokenDispenserContract = new this.web3.eth
+                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            
             this.loadTokens();
             this.boxesInterval.start();
 
             console.log('Selected chain is Ethereum Testnet');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', this.tokens$.getValue());
-
-            await this.instantiateAppContracts();
+            
+            this.isAppReady$.next(true);
         }
-        else if (chainId == 97) { // 97 = BSC Testnet
+        else if (chainId == 56) { // 56 = Binance Mainnet
 
+            this.isBinanceMainnet$.next(true);
             this.isChainSupported$.next(true);
 
-            this.ethboxAddress = ETHBOX.ADDRESSES.BSC_TESTNET;
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BSC_TESTNET;
+            // Instantiates the contracts
+            this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+
             this.loadTokens();
             this.boxesInterval.start();
 
-            console.log('Selected chain is BSC Testnet');
+            console.log('Selected chain is Binance');
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', this.tokens$.getValue());
 
-            await this.instantiateAppContracts();
+            this.isAppReady$.next(true);
+        }
+        else if (chainId == 97) { // 97 = Binance Testnet
+
+            this.isChainSupported$.next(true);
+
+            // Instantiates the contracts
+            this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
+            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            this.tokenDispenserContract = new this.web3.eth
+                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            console.log('Selected chain is Binance Testnet');
+            console.log('Ethbox contract address is', this.ethboxAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+            
+            this.isAppReady$.next(true);
+        }
+        else if (chainId == 137) { // 137 = Matic Mainnet
+
+            this.isMaticMainnet$.next(true);
+            this.isChainSupported$.next(true);
+
+            // Instantiates the contracts
+            this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            console.log('Selected chain is Matic');
+            console.log('Ethbox contract address is', this.ethboxAddress);
+            console.log('Supported tokens are', this.tokens$.getValue());
+
+            this.isAppReady$.next(true);
         }
         else if (chainId == 80001) { // 80001 = Matic Testnet
 
             this.isChainSupported$.next(true);
 
+            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
+            this.ethboxContract = new this.web3.eth
+                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            this.tokenDispenserContract = new this.web3.eth
+                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            
             this.loadTokens();
             this.boxesInterval.start();
 
@@ -243,7 +314,7 @@ export class ContractService {
             console.log('Ethbox contract address is', this.ethboxAddress);
             console.log('Supported tokens are', this.tokens$.getValue());
 
-            await this.instantiateAppContracts();
+            this.isAppReady$.next(true);
         }
         else {
             this.resetVariables();
@@ -271,18 +342,6 @@ export class ContractService {
         let mergedResults = [...customTokens, ...curatedTokens];
         this.tokensMap = mergedResults.reduce((a, b) => (a[b.address] = b, a), {});;
         this.tokens$.next(mergedResults);
-    }
-
-    private async instantiateAppContracts() {
-
-        // Instantiates the contracts
-        this.ethboxContract = new this.web3.eth
-            .Contract(ETHBOX.ABI, this.ethboxAddress);
-        this.tokenDispenserContract = new this.web3.eth
-            .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
-
-        // The app is ready and both ethboxContract and tokenDispenserContract can be used safely
-        this.isAppReady$.next(true);
     }
 
     private resetVariables() {
