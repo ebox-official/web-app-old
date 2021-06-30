@@ -71,7 +71,7 @@ export class SendComponent implements OnInit {
             return;
         }
         if (!this.isChainSupported) {
-            this.buttonMessage = 'Wrong network – Please use Rinkeby|BSC Testnet|Matic Mumbai!';
+            this.buttonMessage = 'Wrong network – Please use Rinkeby, BSC Testnet or Polygon Testnet!';
             this.isButtonDisabled = true;
             return;
         }
