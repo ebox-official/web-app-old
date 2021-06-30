@@ -1178,7 +1178,7 @@ BoxSentComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineC
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx.box.taken && ctx.box.requestValue !== "0");
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](3);
-        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate2"]("", ctx.box.requestValue !== "0" ? "OTC Trade" : "One-way", " ", ctx.box.hasPrivacy ? "privacy" : "", "");
+        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate2"]("", ctx.box.requestValue !== "0" ? "OTC Trade" : "One-way", " ", ctx.box.hasPrivacy ? "Privacy" : "", "");
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](2);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("href", "#box-collapse_" + ctx.box.timestamp, _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsanitizeUrl"]);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
@@ -2693,7 +2693,7 @@ BoxReceivedComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdef
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx.box.taken && ctx.box.requestValue !== "0");
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](3);
-        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate2"]("", ctx.box.requestValue !== "0" ? "OTC Trade" : "One-way", " ", ctx.box.hasPrivacy ? "privacy" : "", "");
+        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate2"]("", ctx.box.requestValue !== "0" ? "OTC Trade" : "One-way", " ", ctx.box.hasPrivacy ? "Privacy" : "", "");
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](2);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("href", "#box-collapse_" + ctx.box.timestamp, _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵsanitizeUrl"]);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
