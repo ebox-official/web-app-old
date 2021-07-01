@@ -14,7 +14,7 @@ module.exports = __webpack_require__(/*! C:\Users\fredo corleone\Documents\GitHu
 
 /***/ "6dgf":
 /*!***************************************************************************!*\
-  !*** ./src/app/v1/components/toaster-notifier/toaster-notifier.component.ts ***!
+  !*** ./src/app/components/toaster-notifier/toaster-notifier.component.ts ***!
   \***************************************************************************/
 /*! exports provided: ToasterNotifierComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -24,7 +24,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ToasterNotifierComponent", function() { return ToasterNotifierComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_toaster_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/v1/services/toaster.service */ "Ymxs");
+/* harmony import */ var src_app_services_toaster_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/toaster.service */ "Ymxs");
 
 
 
@@ -106,7 +106,7 @@ ToasterNotifierComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵ�
 
 /***/ "74S9":
 /*!*********************************************!*\
-  !*** ./src/app/v1/services/staking.service.ts ***!
+  !*** ./src/app/services/staking.service.ts ***!
   \*********************************************/
 /*! exports provided: StakingService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -158,7 +158,7 @@ StakingService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineIn
 
 /***/ "7e/F":
 /*!***************************************************!*\
-  !*** ./src/app/v1/services/prompt-dialog.service.ts ***!
+  !*** ./src/app/services/prompt-dialog.service.ts ***!
   \***************************************************/
 /*! exports provided: PromptDialogService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -271,7 +271,7 @@ PromptDialogService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdef
 
 /***/ "96TB":
 /*!************************************************!*\
-  !*** ./src/app/v1/services/governance.service.ts ***!
+  !*** ./src/app/services/governance.service.ts ***!
   \************************************************/
 /*! exports provided: GovernanceService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -418,7 +418,7 @@ GovernanceService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefin
 
 /***/ "9Gnl":
 /*!*********************************************************************************!*\
-  !*** ./src/app/v1/components/boxes-received-list/boxes-received-list.component.ts ***!
+  !*** ./src/app/components/boxes-received-list/boxes-received-list.component.ts ***!
   \*********************************************************************************/
 /*! exports provided: BoxesReceivedListComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -429,7 +429,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/address-book.service */ "A0Uf");
+/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/address-book.service */ "A0Uf");
 /* harmony import */ var _body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../body-bg-changer/body-bg-changer.component */ "tVpc");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _box_received_box_received_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./box-received/box-received.component */ "TO45");
@@ -700,7 +700,7 @@ BoxesReceivedListComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["�
 
 /***/ "A0Uf":
 /*!**************************************************!*\
-  !*** ./src/app/v1/services/address-book.service.ts ***!
+  !*** ./src/app/services/address-book.service.ts ***!
   \**************************************************/
 /*! exports provided: AddressBookService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -838,7 +838,7 @@ const environment = {
 
 /***/ "CTj4":
 /*!***************************************************************************!*\
-  !*** ./src/app/v1/components/boxes-sent-list/box-sent/box-sent.component.ts ***!
+  !*** ./src/app/components/boxes-sent-list/box-sent/box-sent.component.ts ***!
   \***************************************************************************/
 /*! exports provided: BoxSentComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -849,7 +849,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/loading-indicator.service */ "mrmJ");
+/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/loading-indicator.service */ "mrmJ");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../pipes/to-fixed.pipe */ "EGkj");
 
@@ -1238,7 +1238,7 @@ BoxSentComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineC
 
 /***/ "EGkj":
 /*!****************************************!*\
-  !*** ./src/app/v1/pipes/to-fixed.pipe.ts ***!
+  !*** ./src/app/pipes/to-fixed.pipe.ts ***!
   \****************************************/
 /*! exports provided: ToFixedPipe */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -1294,7 +1294,7 @@ ToFixedPipe.ɵpipe = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefinePipe"
 
 /***/ "JzmT":
 /*!***********************************************************************!*\
-  !*** ./src/app/v1/components/page-not-found/page-not-found.component.ts ***!
+  !*** ./src/app/components/page-not-found/page-not-found.component.ts ***!
   \***********************************************************************/
 /*! exports provided: PageNotFoundComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -1340,7 +1340,7 @@ PageNotFoundComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵde
 
 /***/ "M+sQ":
 /*!***********************************************************************!*\
-  !*** ./src/app/v1/components/token-selector/token-selector.component.ts ***!
+  !*** ./src/app/components/token-selector/token-selector.component.ts ***!
   \***********************************************************************/
 /*! exports provided: TokenSelectorComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -1352,8 +1352,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../assets/js/custom-utils */ "Ms4u");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_prompt_dialog_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! src/app/v1/services/prompt-dialog.service */ "7e/F");
-/* harmony import */ var src_app_services_toaster_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! src/app/v1/services/toaster.service */ "Ymxs");
+/* harmony import */ var src_app_services_prompt_dialog_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! src/app/services/prompt-dialog.service */ "7e/F");
+/* harmony import */ var src_app_services_toaster_service__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! src/app/services/toaster.service */ "Ymxs");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../pipes/to-fixed.pipe */ "EGkj");
 
@@ -1717,7 +1717,7 @@ TokenSelectorComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵd
 
 /***/ "MKOL":
 /*!****************************************************************!*\
-  !*** ./src/app/v1/components/governance/voter/voter.component.ts ***!
+  !*** ./src/app/components/governance/voter/voter.component.ts ***!
   \****************************************************************/
 /*! exports provided: VoterComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -1852,7 +1852,7 @@ VoterComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCom
 
 /***/ "MlEp":
 /*!***************************************************!*\
-  !*** ./src/app/v1/components/send/send.component.ts ***!
+  !*** ./src/app/components/send/send.component.ts ***!
   \***************************************************/
 /*! exports provided: SendComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -1865,7 +1865,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! bignumber.js */ "kB5k");
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(bignumber_js__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! src/app/v1/services/loading-indicator.service */ "mrmJ");
+/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! src/app/services/loading-indicator.service */ "mrmJ");
 /* harmony import */ var _password_strength_visualizer_password_strength_visualizer_component__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../password-strength-visualizer/password-strength-visualizer.component */ "vnM/");
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @angular/router */ "tyNb");
 /* harmony import */ var _address_book_address_book_component__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../address-book/address-book.component */ "mNyo");
@@ -2207,7 +2207,7 @@ SmartInterval.prototype.stop = function () {
 
 /***/ "QHpQ":
 /*!*****************************************************************!*\
-  !*** ./src/app/v1/components/coming-soon/coming-soon.component.ts ***!
+  !*** ./src/app/components/coming-soon/coming-soon.component.ts ***!
   \*****************************************************************/
 /*! exports provided: ComingSoonComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2250,7 +2250,7 @@ ComingSoonComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefi
 
 /***/ "RP2t":
 /*!*****************************************************************************!*\
-  !*** ./src/app/v1/components/loading-indicator/loading-indicator.component.ts ***!
+  !*** ./src/app/components/loading-indicator/loading-indicator.component.ts ***!
   \*****************************************************************************/
 /*! exports provided: LoadingIndicatorComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2294,7 +2294,7 @@ LoadingIndicatorComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵ
 
 /***/ "Sy1n":
 /*!**********************************!*\
-  !*** ./src/app/v1/app.component.ts ***!
+  !*** ./src/app/app.component.ts ***!
   \**********************************/
 /*! exports provided: AppComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2342,7 +2342,7 @@ AppComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCompo
 
 /***/ "TO45":
 /*!***************************************************************************************!*\
-  !*** ./src/app/v1/components/boxes-received-list/box-received/box-received.component.ts ***!
+  !*** ./src/app/components/boxes-received-list/box-received/box-received.component.ts ***!
   \***************************************************************************************/
 /*! exports provided: BoxReceivedComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2353,7 +2353,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/loading-indicator.service */ "mrmJ");
+/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/loading-indicator.service */ "mrmJ");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../../pipes/to-fixed.pipe */ "EGkj");
 
@@ -2755,7 +2755,7 @@ BoxReceivedComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdef
 
 /***/ "WF6Q":
 /*!***********************************!*\
-  !*** ./src/app/v1/constants/abis.js ***!
+  !*** ./src/app/constants/abis.js ***!
   \***********************************/
 /*! exports provided: STAKING, ETHBOX, TOKEN_DISPENSER, ERC20_ABI */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2916,7 +2916,7 @@ let ERC20_ABI = [
 
 /***/ "Ymxs":
 /*!*********************************************!*\
-  !*** ./src/app/v1/services/toaster.service.ts ***!
+  !*** ./src/app/services/toaster.service.ts ***!
   \*********************************************/
 /*! exports provided: ToasterService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -2948,7 +2948,7 @@ ToasterService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineIn
 
 /***/ "ZAI4":
 /*!*******************************!*\
-  !*** ./src/app/v1/app.module.ts ***!
+  !*** ./src/app/app.module.ts ***!
   \*******************************/
 /*! exports provided: AppModule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -3082,7 +3082,7 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector
 
 /***/ "fjh7":
 /*!***************************************************************************!*\
-  !*** ./src/app/v1/components/over-the-counter/over-the-counter.component.ts ***!
+  !*** ./src/app/components/over-the-counter/over-the-counter.component.ts ***!
   \***************************************************************************/
 /*! exports provided: OverTheCounterComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -3094,7 +3094,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bignumber.js */ "kB5k");
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(bignumber_js__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/loading-indicator.service */ "mrmJ");
+/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/loading-indicator.service */ "mrmJ");
 /* harmony import */ var _password_strength_visualizer_password_strength_visualizer_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../password-strength-visualizer/password-strength-visualizer.component */ "vnM/");
 /* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/router */ "tyNb");
 /* harmony import */ var _address_book_address_book_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../address-book/address-book.component */ "mNyo");
@@ -3393,7 +3393,7 @@ OverTheCounterComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵ
 
 /***/ "gngU":
 /*!*********************************************************!*\
-  !*** ./src/app/v1/components/staking/staking.component.ts ***!
+  !*** ./src/app/components/staking/staking.component.ts ***!
   \*********************************************************/
 /*! exports provided: StakingComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -3403,8 +3403,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StakingComponent", function() { return StakingComponent; });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/v1/services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_staking_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/staking.service */ "74S9");
+/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/contract.service */ "oYcS");
+/* harmony import */ var src_app_services_staking_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/staking.service */ "74S9");
 /* harmony import */ var _body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../body-bg-changer/body-bg-changer.component */ "tVpc");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../pipes/to-fixed.pipe */ "EGkj");
@@ -3749,7 +3749,7 @@ StakingComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineC
 
 /***/ "hgUb":
 /*!*************************************!*\
-  !*** ./src/app/v1/constants/tokens.js ***!
+  !*** ./src/app/constants/tokens.js ***!
   \*************************************/
 /*! exports provided: chainTokenDictionary */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43040,7 +43040,7 @@ let chainTokenDictionary = {
 
 /***/ "iGbM":
 /*!********************************************************************************************!*\
-  !*** ./src/app/v1/components/governance/governance-proposal/governance-proposal.component.ts ***!
+  !*** ./src/app/components/governance/governance-proposal/governance-proposal.component.ts ***!
   \********************************************************************************************/
 /*! exports provided: GovernanceProposalComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43050,8 +43050,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GovernanceProposalComponent", function() { return GovernanceProposalComponent; });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/v1/services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_governance_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/governance.service */ "96TB");
+/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/contract.service */ "oYcS");
+/* harmony import */ var src_app_services_governance_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/governance.service */ "96TB");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _voter_voter_component__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../voter/voter.component */ "MKOL");
 /* harmony import */ var _pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../../pipes/to-fixed.pipe */ "EGkj");
@@ -43273,7 +43273,7 @@ GovernanceProposalComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["
 
 /***/ "jrIS":
 /*!************************************************************************************!*\
-  !*** ./src/app/v1/components/governance/governance-area/governance-area.component.ts ***!
+  !*** ./src/app/components/governance/governance-area/governance-area.component.ts ***!
   \************************************************************************************/
 /*! exports provided: GovernanceAreaComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43427,7 +43427,7 @@ GovernanceAreaComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵ
 
 /***/ "lRWK":
 /*!*************************************************************************!*\
-  !*** ./src/app/v1/components/boxes-sent-list/boxes-sent-list.component.ts ***!
+  !*** ./src/app/components/boxes-sent-list/boxes-sent-list.component.ts ***!
   \*************************************************************************/
 /*! exports provided: BoxesSentListComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43438,7 +43438,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _services_contract_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/address-book.service */ "A0Uf");
+/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/address-book.service */ "A0Uf");
 /* harmony import */ var _body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../body-bg-changer/body-bg-changer.component */ "tVpc");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @angular/common */ "ofXK");
 /* harmony import */ var _box_sent_box_sent_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./box-sent/box-sent.component */ "CTj4");
@@ -43709,7 +43709,7 @@ BoxesSentListComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵd
 
 /***/ "lVXr":
 /*!***************************************************************!*\
-  !*** ./src/app/v1/components/bottom-bar/bottom-bar.component.ts ***!
+  !*** ./src/app/components/bottom-bar/bottom-bar.component.ts ***!
   \***************************************************************/
 /*! exports provided: BottomBarComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43763,7 +43763,7 @@ BottomBarComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefin
 
 /***/ "mNyo":
 /*!*******************************************************************!*\
-  !*** ./src/app/v1/components/address-book/address-book.component.ts ***!
+  !*** ./src/app/components/address-book/address-book.component.ts ***!
   \*******************************************************************/
 /*! exports provided: AddressBookComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43772,8 +43772,8 @@ BottomBarComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefin
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AddressBookComponent", function() { return AddressBookComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! src/app/v1/services/contract.service */ "oYcS");
-/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/v1/services/address-book.service */ "A0Uf");
+/* harmony import */ var src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! src/app/services/contract.service */ "oYcS");
+/* harmony import */ var src_app_services_address_book_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/address-book.service */ "A0Uf");
 /* harmony import */ var _angular_common__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/common */ "ofXK");
 
 
@@ -43943,7 +43943,7 @@ AddressBookComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdef
 
 /***/ "mrmJ":
 /*!*******************************************************!*\
-  !*** ./src/app/v1/services/loading-indicator.service.ts ***!
+  !*** ./src/app/services/loading-indicator.service.ts ***!
   \*******************************************************/
 /*! exports provided: LoadingIndicatorService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -43992,7 +43992,7 @@ LoadingIndicatorService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵ�
 
 /***/ "mwOl":
 /*!**************************************!*\
-  !*** ./src/app/v1/constants/various.js ***!
+  !*** ./src/app/constants/various.js ***!
   \**************************************/
 /*! exports provided: ADDRESS_ZERO, ZERO, MAX_VALUE */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -44010,7 +44010,7 @@ let MAX_VALUE = '115792089237316195423570985008687907853269984665640564039457584
 
 /***/ "nLDa":
 /*!****************************************************!*\
-  !*** ./src/app/v1/services/confirm-dialog.service.ts ***!
+  !*** ./src/app/services/confirm-dialog.service.ts ***!
   \****************************************************/
 /*! exports provided: ConfirmDialogService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -44105,7 +44105,7 @@ ConfirmDialogService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵde
 
 /***/ "oVDT":
 /*!***************************************************************!*\
-  !*** ./src/app/v1/components/governance/governance.component.ts ***!
+  !*** ./src/app/components/governance/governance.component.ts ***!
   \***************************************************************/
 /*! exports provided: GovernanceComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -44115,8 +44115,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GovernanceComponent", function() { return GovernanceComponent; });
 /* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "mrSG");
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/v1/services/loading-indicator.service */ "mrmJ");
-/* harmony import */ var src_app_services_governance_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/v1/services/governance.service */ "96TB");
+/* harmony import */ var src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! src/app/services/loading-indicator.service */ "mrmJ");
+/* harmony import */ var src_app_services_governance_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! src/app/services/governance.service */ "96TB");
 /* harmony import */ var _body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../body-bg-changer/body-bg-changer.component */ "tVpc");
 /* harmony import */ var _governance_area_governance_area_component__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./governance-area/governance-area.component */ "jrIS");
 
@@ -44239,7 +44239,7 @@ GovernanceComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefi
 
 /***/ "oYcS":
 /*!**********************************************!*\
-  !*** ./src/app/v1/services/contract.service.ts ***!
+  !*** ./src/app/services/contract.service.ts ***!
   \**********************************************/
 /*! exports provided: ContractService */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -45190,7 +45190,7 @@ ContractService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineI
 
 /***/ "q1A0":
 /*!*********************************************************!*\
-  !*** ./src/app/v1/components/top-bar/top-bar.component.ts ***!
+  !*** ./src/app/components/top-bar/top-bar.component.ts ***!
   \*********************************************************/
 /*! exports provided: TopBarComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -45416,7 +45416,7 @@ TopBarComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineCo
 
 /***/ "tVpc":
 /*!*************************************************************************!*\
-  !*** ./src/app/v1/components/body-bg-changer/body-bg-changer.component.ts ***!
+  !*** ./src/app/components/body-bg-changer/body-bg-changer.component.ts ***!
   \*************************************************************************/
 /*! exports provided: BodyBgChangerComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -45458,7 +45458,7 @@ BodyBgChangerComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵd
 
 /***/ "vY5A":
 /*!***************************************!*\
-  !*** ./src/app/v1/app-routing.module.ts ***!
+  !*** ./src/app/app-routing.module.ts ***!
   \***************************************/
 /*! exports provided: AppRoutingModule */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -45514,7 +45514,7 @@ AppRoutingModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineI
 
 /***/ "vnM/":
 /*!***************************************************************************************************!*\
-  !*** ./src/app/v1/components/password-strength-visualizer/password-strength-visualizer.component.ts ***!
+  !*** ./src/app/components/password-strength-visualizer/password-strength-visualizer.component.ts ***!
   \***************************************************************************************************/
 /*! exports provided: PasswordStrengthVisualizerComponent */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -45637,7 +45637,7 @@ PasswordStrengthVisualizerComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODU
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./environments/environment */ "AytR");
-/* harmony import */ var _app_app_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app/v1/app.module */ "ZAI4");
+/* harmony import */ var _app_app_module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app/app.module */ "ZAI4");
 /* harmony import */ var _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/platform-browser */ "jhN1");
 
 
