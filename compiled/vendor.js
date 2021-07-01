@@ -34682,7 +34682,7 @@ Console.ɵprov = ɵɵdefineInjectable({ token: Console, factory: Console.ɵfac }
  * ```typescript
  * import { LOCALE_ID } from '@angular/core';
  * import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
- * import { AppModule } from './app/app.module';
+ * import { AppModule } from './app/v1/app.module';
  *
  * platformBrowserDynamic().bootstrapModule(AppModule, {
  *   providers: [{provide: LOCALE_ID, useValue: 'en-US' }]
@@ -34721,7 +34721,7 @@ const LOCALE_ID$1 = new InjectionToken('LocaleId');
  *
  * ```typescript
  * import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
- * import { AppModule } from './app/app.module';
+ * import { AppModule } from './app/v1/app.module';
  *
  * platformBrowserDynamic().bootstrapModule(AppModule, {
  *   providers: [{provide: DEFAULT_CURRENCY_CODE, useValue: 'EUR' }]
@@ -34743,7 +34743,7 @@ const DEFAULT_CURRENCY_CODE = new InjectionToken('DefaultCurrencyCode');
  * ```typescript
  * import { TRANSLATIONS } from '@angular/core';
  * import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
- * import { AppModule } from './app/app.module';
+ * import { AppModule } from './app/v1/app.module';
  *
  * // content of your translation file
  * const translations = '....';
@@ -34768,7 +34768,7 @@ const TRANSLATIONS = new InjectionToken('Translations');
  * ```typescript
  * import { TRANSLATIONS_FORMAT } from '@angular/core';
  * import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
- * import { AppModule } from './app/app.module';
+ * import { AppModule } from './app/v1/app.module';
  *
  * platformBrowserDynamic().bootstrapModule(AppModule, {
  *   providers: [{provide: TRANSLATIONS_FORMAT, useValue: 'xlf' }]
@@ -34792,7 +34792,7 @@ const TRANSLATIONS_FORMAT = new InjectionToken('TranslationsFormat');
  * ```typescript
  * import { MissingTranslationStrategy } from '@angular/core';
  * import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
- * import { AppModule } from './app/app.module';
+ * import { AppModule } from './app/v1/app.module';
  *
  * platformBrowserDynamic().bootstrapModule(AppModule, {
  *   missingTranslation: MissingTranslationStrategy.Error
@@ -47021,14 +47021,14 @@ const APP_BASE_HREF = new _angular_core__WEBPACK_IMPORTED_MODULE_0__["InjectionT
  * If you're using `PathLocationStrategy`, you must provide a {@link APP_BASE_HREF}
  * or add a `<base href>` element to the document.
  *
- * For instance, if you provide an `APP_BASE_HREF` of `'/my/app/'` and call
+ * For instance, if you provide an `APP_BASE_HREF` of `'/my/app/v1/'` and call
  * `location.go('/foo')`, the browser's URL will become
- * `example.com/my/app/foo`. To ensure all relative URIs resolve correctly,
+ * `example.com/my/app/v1/foo`. To ensure all relative URIs resolve correctly,
  * the `<base href>` and/or `APP_BASE_HREF` should end with a `/`.
  *
- * Similarly, if you add `<base href='/my/app/'/>` to the document and call
+ * Similarly, if you add `<base href='/my/app/v1/'/>` to the document and call
  * `location.go('/foo')`, the browser's URL will become
- * `example.com/my/app/foo`.
+ * `example.com/my/app/v1/foo`.
  *
  * Note that when using `PathLocationStrategy`, neither the query nor
  * the fragment in the `<base href>` will be preserved, as outlined
@@ -47212,9 +47212,9 @@ HashLocationStrategy.ctorParameters = () => [
  * `Location` is responsible for normalizing the URL against the application's base href.
  * A normalized URL is absolute from the URL host, includes the application's base href, and has no
  * trailing slash:
- * - `/my/app/user/123` is normalized
- * - `my/app/user/123` **is not** normalized
- * - `/my/app/user/123/` **is not** normalized
+ * - `/my/app/v1/user/123` is normalized
+ * - `my/app/v1/user/123` **is not** normalized
+ * - `/my/app/v1/user/123/` **is not** normalized
  *
  * ### Example
  *
