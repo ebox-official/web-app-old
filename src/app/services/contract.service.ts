@@ -113,10 +113,10 @@ export class ContractService {
 
         if (this.provider.close) {
             await this.provider.close();
-
-            // If the cached provider is not cleared, WalletConnect will default to the existing session and does not allow to re-scan the QR code with a new wallet
-            await this.web3Modal.clearCachedProvider();
         }
+        
+        // If the cached provider is not cleared, WalletConnect will default to the existing session and does not allow to re-scan the QR code with a new wallet
+        await this.web3Modal.clearCachedProvider();
 
         this.provider = null;
 
@@ -149,7 +149,7 @@ export class ContractService {
         };
 
         this.web3Modal = new this.Web3Modal({
-            cacheProvider: false,
+            cacheProvider: true,
             providerOptions,
             disableInjectedProvider: false
         });
@@ -163,6 +163,8 @@ export class ContractService {
             this.boxesIntervalCycleDelay,
             this.boxesIntervalStartDelay
         );
+
+        this.connect();
     }
 
     private async fetchVariables(): Promise<void> {
