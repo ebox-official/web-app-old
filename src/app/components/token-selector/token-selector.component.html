@@ -96,7 +96,12 @@
                 <small class="text-uppercase">{{ token.symbol }}</small>
               </a>
             </h5>
-            <small>{{ token.address }}</small>
+            <ng-container *ngIf="token.address === '0x0000000000000000000000000000000000000000'; else showTokenAddress">
+              <small>Network base token</small>
+            </ng-container>
+            <ng-template #showTokenAddress>
+              <small>{{ token.address }}</small>
+            </ng-template>
           </div>
         </div>
         <div class="text-center">

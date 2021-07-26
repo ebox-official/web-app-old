@@ -107,17 +107,17 @@ export class ContractService {
 
     async disconnect(): Promise<void> {
 
+        this.web3 = null;
+        this.provider.removeAllListeners('chainChanged');
+        this.provider.removeAllListeners('accountsChanged');
+
         if (this.provider.close) {
             await this.provider.close();
 
             // If the cached provider is not cleared, WalletConnect will default to the existing session and does not allow to re-scan the QR code with a new wallet
             await this.web3Modal.clearCachedProvider();
-            this.provider = null;
         }
 
-        this.web3 = null;
-        this.provider.removeAllListeners('chainChanged');
-        this.provider.removeAllListeners('accountsChanged');
         this.provider = null;
 
         this.chainId$.next(null);

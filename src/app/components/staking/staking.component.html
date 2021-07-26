@@ -12,6 +12,23 @@
     <p>
       For details, find our staking model explained in this <a class="text-reset" href="https://ethbox.medium.com/introducing-ebox-staking-rewards-4c65c07fc89d" target="_blank">Medium article</a>.
     </p>
+    
+    <div *ngIf="selectedAccount" class=" py-3 fw-lighter">
+      <p>You can choose to claim your staking rewards on either <b>Ethereum</b> or <b>Binance Smart Chain</b>!<br><i>(Default in case of no choice: Ethereum)</i></p>
+      <div class="d-grid d-md-flex justify-content-center gap-2">
+        <button 
+          class="btn btn-eboxprimary rounded-alot"
+          (click)="rewardsToChain(0)">
+          Get future rewards on Ethereum
+        </button>
+        <button 
+          class="btn btn-eboxprimary rounded-alot"
+          (click)="rewardsToChain(1)">
+          Get future rewards on BSC
+        </button>
+      </div>
+    </div>
+
   </header>
   <!-- end of header -->
 

@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ContractService } from 'src/app/services/contract.service';
 import { StakingService } from 'src/app/services/staking.service';
+import { ToasterService } from 'src/app/services/toaster.service';
 
 @Component({
     selector: 'app-staking',
@@ -32,7 +33,8 @@ export class StakingComponent implements OnInit, OnDestroy {
 
     constructor(
         public contractServ: ContractService,
-        private stakingServ: StakingService) { }
+        private stakingServ: StakingService,
+        private toasterServ: ToasterService) { }
 
     async ngOnInit() {
 
@@ -103,6 +105,45 @@ export class StakingComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(): void {
         this.subscriptions.forEach(sub => sub.unsubscribe());
+    }
+
+    async rewardsToChain(chainIndex) { // Be careful that the chainIndex is not the chainId
+        
+        chainIndex = +chainIndex;
+
+        let endpoint = "https://www.ethbox.org/app/set_chain.php";
+        let selectedAccount = this.contractServ.selectedAccount$.getValue();
+
+        let newNetwork = ["Ethereum", "Binance Smart Chain"][chainIndex];
+
+        // Build a magic string as message
+        let msg = `ethbox Staking - Set default chain:\r\n${newNetwork}`;
+
+        // Sign the message
+        let { result }: any = await this.contractServ.signMessage(msg);
+
+        console.log("Signed message is", result);
+
+        // Send the signed message to the backend
+        let formData = new FormData();
+        formData.append("action", "set_chain");
+        formData.append("address", selectedAccount);
+        formData.append("signed_msg", result);
+        formData.append("chain", chainIndex);
+
+        let response = await fetch(endpoint, { method: 'POST', body: formData });
+        let status = await response.json();
+
+        console.log("Status of the request is", status);
+
+        // Notify, via toaster, the fact that the server has switched the network
+        if ("error" in status && status.error === 0) {
+            this.toasterServ.toastMessage$.next({
+                type: "success",
+                message: `Staking rewards have successfully switched to ${newNetwork}!`,
+                duration: "medium"
+            });
+        }
     }
 
     async onPaginationPreviousClick() {
