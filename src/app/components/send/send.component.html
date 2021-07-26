@@ -38,7 +38,7 @@
               type="text"
               placeholder="Insert recipient address"
               [disabled]="
-                !isAppReady ? 'disabled' : null
+                !isAppReady || (loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null
               "
             />
             <app-address-book
@@ -66,16 +66,16 @@
               type="password"
               placeholder="Choose a passphrase"
               [disabled]="
-                !isAppReady ? 'disabled' : null
+                !isAppReady || (loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null
               "
             />
             <button
               (mousedown)="passwordInput.setAttribute('type', 'text')"
               (mouseup)="passwordInput.setAttribute('type', 'password')"
               [disabled]="
-                !isAppReady ? 'disabled' : null
+                !isAppReady || (loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null
               "
-              class="btn text-muted"
+              class="btn text-white"
             >
               <i class="bi bi-eye"></i>
             </button>
@@ -97,7 +97,7 @@
               type="text"
               placeholder="0.0"
               [disabled]="
-                !isAppReady ? 'disabled' : null
+                !isAppReady || (loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null
               "
             />
             <app-token-selector

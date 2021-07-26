@@ -151,6 +151,10 @@
   outline: none;
 }
 
+.input-nostyle:disabled {
+  color: #B5B0B4;
+}
+
 .container-small {
   max-width: 420px;
   width: 100%;

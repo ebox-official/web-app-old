@@ -22,6 +22,7 @@
     data-bs-toggle="modal"
     [attr.data-bs-target]="'#' + randomId"
     class="btn btn-eboxprimary rounded-alot w-100"
+    [disabled]="(loadingIndicatorServ.isLoading$ | async) ? 'disabled' : null"
   >
     <ng-container *ngIf="isBalanceEnabled">
       <div *ngIf="isBalanceLoading">
@@ -31,7 +32,7 @@
         {{ selectedTokenBalance.decimalValue | toFixed: 3 }}
       </div>
     </ng-container>
-    <div class="d-flex align-items-center justify-content-center gap-1">
+    <div class="d-flex align-items-center justify-content-center gap-1 text-uppercase">
       <i class="bi bi-chevron-expand"></i>
       {{ selectedToken.symbol }}
       <img

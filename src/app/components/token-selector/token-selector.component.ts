@@ -4,6 +4,7 @@ import { ContractService } from '../../services/contract.service';
 import { SmartInterval } from '../../../assets/js/custom-utils';
 import { PromptDialogService } from 'src/app/services/prompt-dialog.service';
 import { ToasterService } from 'src/app/services/toaster.service';
+import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
 
 @Component({
     selector: 'app-token-selector',
@@ -30,6 +31,7 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
     private subscription;
 
     constructor(
+        public loadingIndicatorServ: LoadingIndicatorService,
         private contractServ: ContractService,
         private ngZone: NgZone,
         private promptDialogServ: PromptDialogService,
