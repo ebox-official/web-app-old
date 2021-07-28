@@ -1,3 +1,16 @@
+html {
+  transition: filter .2s ease-in-out;
+}
+
+html[theme="dark-mode"] {
+  filter: invert(1) hue-rotate(180deg) contrast(0.9) saturate(0.6) brightness(0.8)
+}
+
+html[theme="dark-mode"] img,
+html[theme="dark-mode"] .btn {
+  filter: invert(1) hue-rotate( 180deg);
+}
+
 .main {
   min-height: calc(100vh - 128px);
   margin-top: 64px;
