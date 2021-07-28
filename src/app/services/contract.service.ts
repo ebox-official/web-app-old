@@ -9,6 +9,7 @@ import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
 import { SmartInterval } from '../../assets/js/custom-utils';
+import { ViewConsoleService } from './view-console.service';
 
 // This is needed to get Web3 and Web3Modal into this service
 let win: any = window;
@@ -75,7 +76,8 @@ export class ContractService {
         private loadingIndicatorServ: LoadingIndicatorService,
         private ngZone: NgZone,
         private toasterServ: ToasterService,
-        private confirmDialogServ: ConfirmDialogService) {
+        private confirmDialogServ: ConfirmDialogService,
+        private viewConsoleServ: ViewConsoleService) {
         this.init();
     }
 
@@ -87,18 +89,19 @@ export class ContractService {
         }
         catch (error) {
             this.toasterServ.toastMessage$.next({
-                type: 'danger',
-                message: 'Wallet connection failed!',
-                duration: 'long'
+                type: "danger",
+                message: "Wallet connection failed!",
+                duration: "long"
             });
-            console.log('Could not get a wallet connection', error);
+
+            this.viewConsoleServ.error("Could not get a wallet connection");
             return;
         }
 
         // Adds listeners to refresh variables on chain and accounts changes
-        this.provider.on('chainChanged', () =>
+        this.provider.on("chainChanged", () =>
             this.ngZone.run(() => this.fetchVariables()));
-        this.provider.on('accountsChanged', () =>
+        this.provider.on("accountsChanged", () =>
             this.ngZone.run(() => this.fetchVariables()));
 
         // Wallet initialized
@@ -114,7 +117,7 @@ export class ContractService {
         if (this.provider.close) {
             await this.provider.close();
         }
-        
+
         // If the cached provider is not cleared, WalletConnect will default to the existing session and does not allow to re-scan the QR code with a new wallet
         await this.web3Modal.clearCachedProvider();
 
@@ -131,8 +134,6 @@ export class ContractService {
 
     private init(): void {
 
-        console.log('WalletConnectProvider is', this.WalletConnectProvider);
-        console.log('Fortmatic is', this.Fortmatic);
         let providerOptions = {
             walletconnect: {
                 package: this.WalletConnectProvider,
@@ -153,7 +154,6 @@ export class ContractService {
             providerOptions,
             disableInjectedProvider: false
         });
-        console.log('Web3Modal instance is', this.web3Modal);
 
         this.boxesInterval = new SmartInterval(
             async () => {
@@ -210,11 +210,6 @@ export class ContractService {
             this.isStakingReady$.next(true);
             this.isGovernanceReady$.next(true);
 
-            console.log('Selected chain is Ethereum');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Staking contract address is', this.stakingAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
-
             this.isAppReady$.next(true);
         }
         else if (chainId == 4) { // 4 = Ethereum Testnet
@@ -231,10 +226,6 @@ export class ContractService {
             
             this.loadTokens();
             this.boxesInterval.start();
-
-            console.log('Selected chain is Ethereum Testnet');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
             
             this.isAppReady$.next(true);
         }
@@ -250,10 +241,6 @@ export class ContractService {
 
             this.loadTokens();
             this.boxesInterval.start();
-
-            console.log('Selected chain is Binance');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
 
             this.isAppReady$.next(true);
         }
@@ -271,10 +258,6 @@ export class ContractService {
             
             this.loadTokens();
             this.boxesInterval.start();
-
-            console.log('Selected chain is Binance Testnet');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
             
             this.isAppReady$.next(true);
         }
@@ -290,10 +273,6 @@ export class ContractService {
 
             this.loadTokens();
             this.boxesInterval.start();
-
-            console.log('Selected chain is Matic');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
 
             this.isAppReady$.next(true);
         }
@@ -312,15 +291,26 @@ export class ContractService {
             this.loadTokens();
             this.boxesInterval.start();
 
-            console.log('Selected chain is Matic Testnet');
-            console.log('Ethbox contract address is', this.ethboxAddress);
-            console.log('Supported tokens are', this.tokens$.getValue());
-
             this.isAppReady$.next(true);
         }
         else {
             this.resetVariables();
         }
+
+        if (this.isAppReady$.getValue()) {
+
+            this.viewConsoleServ.log(`Connected user is ${selectedAccount}`);
+
+            this.viewConsoleServ.log(`Selected chain is ${chainId}`);
+            this.viewConsoleServ.log("1 - Ethereum, 4 - Rinkeby, 56 - BSC, 97 - BSC Testnet, 137 Matic, 80001 - Matic Testnet");
+
+            this.viewConsoleServ.log(`Ethbox contract address is ${this.ethboxAddress}`);
+
+            this.viewConsoleServ.log(`Staking contract address is ${this.stakingAddress}`);
+
+            this.viewConsoleServ.log(`Supported tokens are loaded (${this.tokens$.getValue()?.length})`);
+        }
+
         this.loadingIndicatorServ.off();
     }
 
@@ -371,40 +361,45 @@ export class ContractService {
         this.tokenDispenserContract.methods
             .giveToken(
                 testTokenIndex,
-                win.Web3.utils.toWei('100'))
+                win.Web3.utils.toWei("100"))
             .send({ from: this.selectedAccount$.getValue() })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
 
                     this.loadingIndicatorServ.on();
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: `You have received 100 test tokens!`,
-                        duration: 'long'
+                        type: "success",
+                        message: "You have received 100 test tokens!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Received 100 test tokens (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.tokenDispenserInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Token dispending aborted by user.',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Token dispending aborted by user.",
+                        duration: "long"
                     });
-                    console.log('Token dispensing aborted', error, receipt);
+
+                    this.viewConsoleServ.error("Token dispensing aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -478,7 +473,7 @@ export class ContractService {
         let name,
             symbol,
             decimals;
-        let thumb = 'assets/img/unknown-icon.png';
+        let thumb = "assets/img/unknown-icon.png";
 
         // If the token resides in the curated list, then take it the data from there
         if (this.tokensMap[tokenAddress]) {
@@ -504,11 +499,13 @@ export class ContractService {
             }
             catch (err) {
                 this.toasterServ.toastMessage$.next({
-                    type: 'danger',
-                    message: 'Address interface is not that of a valid contract!',
-                    duration: 'long'
+                    type: "danger",
+                    message: "Address interface is not that of a valid contract!",
+                    duration: "long"
                 });
-                console.log('getTokenData() error:', err);
+
+                this.viewConsoleServ.error("getTokenData() error: Address interface is not valid");
+
                 return;
             }
         }
@@ -549,11 +546,13 @@ export class ContractService {
             }
             catch (err) {
                 this.toasterServ.toastMessage$.next({
-                    type: 'danger',
-                    message: 'Address interface is not that of a valid contract!',
-                    duration: 'long'
+                    type: "danger",
+                    message: "Address interface is not that of a valid contract!",
+                    duration: "long"
                 });
-                console.log('getTokenBalance() error:', err);
+
+                this.viewConsoleServ.error("getTokenBalance() error: Address interface is not valid");
+
                 return;
             }
         }
@@ -578,21 +577,24 @@ export class ContractService {
                 .send({ from: this.selectedAccount$.getValue() });
 
             this.toasterServ.toastMessage$.next({
-                type: 'success',
-                message: 'Approval successful – You can now send / trade this token!',
-                duration: 'long'
+                type: "success",
+                message: "Approval successful – You can now send / trade this token!",
+                duration: "long"
             });
+
+            this.viewConsoleServ.log(`Successfully approved unlimited allowance of ${tokenAddress}`);
 
             this.approvalInteraction$.next(true);
             this.loadingIndicatorServ.off();
         }
         catch (error) {
             this.toasterServ.toastMessage$.next({
-                type: 'danger',
-                message: 'Token approval failed!',
-                duration: 'long'
+                type: "danger",
+                message: "Token approval failed!",
+                duration: "long"
             });
-            console.log('Approval aborted', error);
+
+            this.viewConsoleServ.error(`Approval for unlimited allowance of ${tokenAddress} aborted`);
 
             this.loadingIndicatorServ.off();
         }
@@ -674,7 +676,7 @@ export class ContractService {
             return b.timestamp - a.timestamp;
         });
 
-        console.log('getIncomingBoxes()', boxes);
+        // console.log("getIncomingBoxes()", boxes);
 
         return boxes;
     }
@@ -738,7 +740,7 @@ export class ContractService {
             return b.timestamp - a.timestamp;
         });
 
-        console.log('getOutgoingBoxes()', boxes);
+        // console.log("getOutgoingBoxes()", boxes);
 
         return boxes;
     }
@@ -777,36 +779,42 @@ export class ContractService {
                 from: this.selectedAccount$.getValue(),
                 value: baseTokenWei
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'Your outgoing transaction has been confirmed!',
-                        duration: 'long'
+                        type: "success",
+                        message: "Your outgoing transaction has been confirmed!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Sending aborted by user.',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Sending aborted by user.",
+                        duration: "long"
                     });
-                    console.log('Box creation aborted', error, receipt);
+
+                    this.viewConsoleServ.error("Box creation aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -841,36 +849,42 @@ export class ContractService {
                 from: this.selectedAccount$.getValue(),
                 value: baseTokenWei
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'Your outgoing transaction has been confirmed!',
-                        duration: 'long'
+                        type: "success",
+                        message: "Your outgoing transaction has been confirmed!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box with privacy creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Sending aborted by user.',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Sending aborted by user.",
+                        duration: "long"
                     });
-                    console.log('Box creation aborted', error, receipt);
+
+                    this.viewConsoleServ.error("Box with privacy creation aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -885,36 +899,42 @@ export class ContractService {
                 from: this.selectedAccount$.getValue(),
                 value: ZERO
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'Cancelling transaction successful!',
-                        duration: 'long'
+                        type: "success",
+                        message: "Cancelling transaction successful!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Cancelling transaction aborted by user.',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Cancelling transaction aborted by user.",
+                        duration: "long"
                     });
-                    console.log('Box cancellation aborted', error, receipt);
+                    
+                    this.viewConsoleServ.error("Box cancellation aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -929,36 +949,42 @@ export class ContractService {
                 from: this.selectedAccount$.getValue(),
                 value: ZERO
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'Cancelling transaction successful!',
-                        duration: 'long'
+                        type: "success",
+                        message: "Cancelling transaction successful!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box with privacy cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Cancelling transaction aborted by user.',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Cancelling transaction aborted by user.",
+                        duration: "long"
                     });
-                    console.log('Box cancellation aborted', error, receipt);
+                    
+                    this.viewConsoleServ.error("Box with privacy cancellation aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -983,9 +1009,9 @@ export class ContractService {
             if ((new BigNumber(box.requestValue)).gt(tokenBalance.wei)) {
 
                 this.toasterServ.toastMessage$.next({
-                    type: 'danger',
+                    type: "danger",
                     message: `Your have ${tokenBalance.decimalValue} ${box.requestTokenInfo.symbol}, not enough for the exchange.`,
-                    duration: 'long'
+                    duration: "long"
                 });
                 return;
             }
@@ -994,9 +1020,9 @@ export class ContractService {
             if ((new BigNumber(box.requestValue)).gt(tokenBalance.weiAllowance)) {
             
                 let isConfirmed = await this.confirmDialogServ.spawn({
-                    dialogName: 'Do you want to approve?',
+                    dialogName: "Do you want to approve?",
                     message: 'To accept the exchange you need to approve the requested token first. The approval is required only once per token.<br><span class="fw-bold">Do you want to approve?<span>',
-                    confirmButtonName: 'Approve'
+                    confirmButtonName: "Approve"
                 });
 
                 // Confirm dialog dismissed
@@ -1017,36 +1043,42 @@ export class ContractService {
                 from: selectedAccount,
                 value: baseTokenAmount
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'The box has been accepted!',
-                        duration: 'long'
+                        type: "success",
+                        message: "The box has been accepted!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Box approval aborted. Details in the console',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Box approval aborted. Details in the console",
+                        duration: "long"
                     });
-                    console.log('Box approval aborted', error, receipt);
+                    
+                    this.viewConsoleServ.error("Box approval aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -1064,36 +1096,42 @@ export class ContractService {
                 from: selectedAccount,
                 value: ZERO
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'The box has been accepted!',
-                        duration: 'long'
+                        type: "success",
+                        message: "The box has been accepted!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Box with privacy approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.boxInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Box approval aborted. Details in the console',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Box with privacy approval aborted. Details in the console",
+                        duration: "long"
                     });
-                    console.log('Box approval aborted', error, receipt);
+                    
+                    this.viewConsoleServ.error("Box approval aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
@@ -1105,20 +1143,25 @@ export class ContractService {
 
         return new Promise((resolve, reject) => {
             this.provider.sendAsync({
-                method: 'personal_sign',
+                method: "personal_sign",
                 params: [message, selectedAccount],
                 from: selectedAccount
             }, (error, response) => {
 
                 if (error) {
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Sign of message aborted. Details in the console',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Sign of message aborted. Details in the console",
+                        duration: "long"
                     });
-                    console.log('Sign of message aborted', error);
-                    reject(error);
+
+                    this.viewConsoleServ.error("Sign of message aborted");
+
+                    return reject(error);
                 }
+
+                this.viewConsoleServ.log(`A message was signed successfully (message: ${message}, sign: ${response.result})`);
+
                 resolve(response);
 
             });
@@ -1141,36 +1184,42 @@ export class ContractService {
             .send({
                 from: this.selectedAccount$.getValue()
             })
-            .on('transactionHash', hash =>
+            .on("transactionHash", hash =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'secondary',
-                        message: 'Waiting for transaction to confirm (may take a while, depending on network load)...',
-                        duration: 'short'
+                        type: "secondary",
+                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                        duration: "short"
                     });
+
+                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+
                 }))
-            .on('receipt', receipt =>
+            .on("receipt", receipt =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'success',
-                        message: 'Reward has been claimed!',
-                        duration: 'long'
+                        type: "success",
+                        message: "Reward has been claimed!",
+                        duration: "long"
                     });
+
+                    this.viewConsoleServ.log(`Rewards claimed successfully (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
                     this.stakingInteraction$.next(true);
                     this.loadingIndicatorServ.off();
                 }))
-            .on('error', (error, receipt) =>
+            .on("error", error =>
                 this.ngZone.run(() => {
 
                     this.toasterServ.toastMessage$.next({
-                        type: 'danger',
-                        message: 'Reward claiming aborted. Details in the console',
-                        duration: 'long'
+                        type: "danger",
+                        message: "Reward claiming aborted. Details in the console",
+                        duration: "long"
                     });
-                    console.log('Reward claiming aborted', error, receipt);
+
+                    this.viewConsoleServ.error("Reward claiming aborted");
 
                     this.loadingIndicatorServ.off();
                 }));
