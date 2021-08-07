@@ -14,8 +14,13 @@
     </p>
     
     <div *ngIf="selectedAccount" class=" py-3 fw-lighter">
-      <p>You can choose to claim your staking rewards on either <b>Ethereum</b> or <b>Binance Smart Chain</b>!<br><i>(Default in case of no choice: Ethereum)</i></p>
-      <div class="d-grid d-md-flex justify-content-center gap-2">
+      <p>Use the switch to choose where to claim your staking rewards: either <b>Ethereum</b> or <b>Binance Smart Chain</b>!<br><i>(Default in case of no choice: Ethereum)</i></p>
+
+      <div *ngIf="selectedNetwork !== null">
+        <input type="checkbox" name="checkbox" class="switch" [checked]="selectedNetwork" #selectNetworkCheckbox (input)="rewardsToChain(selectNetworkCheckbox)">
+      </div>
+
+      <!-- <div class="d-grid d-md-flex justify-content-center gap-2">
         <button 
           class="btn btn-eboxprimary rounded-alot"
           (click)="rewardsToChain(0)">
@@ -26,7 +31,7 @@
           (click)="rewardsToChain(1)">
           Get future rewards on BSC
         </button>
-      </div>
+      </div> -->
     </div>
 
   </header>

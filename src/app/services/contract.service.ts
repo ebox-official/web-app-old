@@ -239,8 +239,16 @@ export class ContractService {
             this.ethboxContract = new this.web3.eth
                 .Contract(ETHBOX.ABI, this.ethboxAddress);
 
+            // Instantiating the staking contract
+            this.stakingAddress = STAKING.ADDRESSES.BINANCE;
+            this.stakingContract = new this.web3.eth
+                .Contract(STAKING.ABI, this.stakingAddress);
+
             this.loadTokens();
             this.boxesInterval.start();
+
+            this.isStakingReady$.next(true);
+            this.isGovernanceReady$.next(true);
 
             this.isAppReady$.next(true);
         }

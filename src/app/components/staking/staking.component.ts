@@ -23,6 +23,8 @@ export class StakingComponent implements OnInit, OnDestroy {
     isStakingReady;
     message;
 
+    selectedNetwork = null; // false Ethereum, true BSC
+
     private numberOfDaysInMonths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     private subscriptions = [];
     private minMonth;
@@ -44,7 +46,6 @@ export class StakingComponent implements OnInit, OnDestroy {
         // Setting up the reactive code to load the reward
         [
             this.contractServ.chainId$,
-            this.contractServ.isEthereumMainnet$,
             this.contractServ.selectedAccount$,
             this.contractServ.isStakingReady$,
             this.contractServ.stakingInteraction$
@@ -59,7 +60,6 @@ export class StakingComponent implements OnInit, OnDestroy {
 
                     // Updating local variables
                     this.chainId = this.contractServ.chainId$.getValue();
-                    this.isEthereumMainnet = this.contractServ.isEthereumMainnet$.getValue();
                     this.selectedAccount = this.contractServ.selectedAccount$.getValue();
                     this.isStakingReady = this.contractServ.isStakingReady$.getValue();
 
@@ -68,14 +68,16 @@ export class StakingComponent implements OnInit, OnDestroy {
                         this.message = 'Please connect your wallet first!';
                         return;
                     }
-                    if (!this.isEthereumMainnet) {
-                        this.message = 'Wrong network – Please use the Ethereum Mainnet!';
+                    if (!this.contractServ.isEthereumMainnet() && !this.contractServ.isBinanceMainnet()) {
+                        this.message = 'Please connect to Ethereum mainnet or BSC mainnet.';
                         return;
                     }
                     if (!this.isStakingReady) {
                         this.message = 'Initializing ethbox smart contract...';
                         return;
                     }
+
+                    await this.setSelectedNetwork();
 
                     // Loading message displayed to the user
                     this.message = 'Loading your reward...';
@@ -107,9 +109,29 @@ export class StakingComponent implements OnInit, OnDestroy {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
 
-    async rewardsToChain(chainIndex) { // Be careful that the chainIndex is not the chainId
-        
-        chainIndex = +chainIndex;
+    async setSelectedNetwork() {
+        let endpoint = "https://www.ethbox.org/app/set_chain.php";
+        let selectedAccount = this.contractServ.selectedAccount$.getValue();
+
+        // Send the signed message to the backend
+        let formData = new FormData();
+        formData.append("action", "get_chain");
+        formData.append("address", selectedAccount);
+
+        let response = await fetch(endpoint, { method: 'POST', body: formData });
+        let status = await response.json();
+
+        console.log("Status of the request is", status);
+
+        // If error, then return error?
+
+        this.selectedNetwork = !!!status.result;
+    }
+
+    async rewardsToChain(checkbox) { // Be careful that the chainIndex is not the chainId
+
+        // There's a bit of confusion here because I want Ethereum on the left and to do that I need to check when the result is 0 (inverted)
+        let chainIndex = checkbox.checked ? '0' : '1';
 
         let endpoint = "https://www.ethbox.org/app/set_chain.php";
         let selectedAccount = this.contractServ.selectedAccount$.getValue();
@@ -119,8 +141,15 @@ export class StakingComponent implements OnInit, OnDestroy {
         // Build a magic string as message
         let msg = `ethbox Staking - Set default chain:\r\n${newNetwork}`;
 
-        // Sign the message
-        let { result }: any = await this.contractServ.signMessage(msg);
+        let result;
+        try {
+            // Sign the message
+            result = (await <any>this.contractServ.signMessage(msg)).result;
+        } catch (e) {
+            // If sign is refused then revert the checkbox
+            checkbox.checked = !checkbox.checked;
+            return;
+        }
 
         console.log("Signed message is", result);
 
@@ -143,6 +172,14 @@ export class StakingComponent implements OnInit, OnDestroy {
                 message: `Staking rewards have successfully switched to ${newNetwork}!`,
                 duration: "medium"
             });
+        } else {
+            this.toasterServ.toastMessage$.next({
+                type: "error",
+                message: "Something went wrong.",
+                duration: "medium"
+            });
+            // If there's any problem with the API then revert the checkbox
+            checkbox.checked = !checkbox.checked ;
         }
     }
 
