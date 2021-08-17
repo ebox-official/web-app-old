@@ -774,58 +774,65 @@ export class ContractService {
             baseTokenWei = sendWei;
         }
 
-        this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .createBox(
-                boxInputs.recipient,
-                boxInputs.sendTokenAddress,
-                sendWei,
-                boxInputs.requestTokenAddress,
-                requestWei,
-                passHashHash)
-            .send({
-                from: this.selectedAccount$.getValue(),
-                value: baseTokenWei
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
-
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
-
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "Your outgoing transaction has been confirmed!",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.log(`Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Sending aborted by user.",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.error("Box creation aborted");
-
-                    this.loadingIndicatorServ.off();
-                }));
+        // Wrapping this into a promise so that I can have the result back by awaiting it
+        return new Promise((resolve, reject) => {
+            this.loadingIndicatorServ.on();
+            this.ethboxContract.methods
+                .createBox(
+                    boxInputs.recipient,
+                    boxInputs.sendTokenAddress,
+                    sendWei,
+                    boxInputs.requestTokenAddress,
+                    requestWei,
+                    passHashHash)
+                .send({
+                    from: this.selectedAccount$.getValue(),
+                    value: baseTokenWei
+                })
+                .on("transactionHash", hash =>
+                    this.ngZone.run(() => {
+    
+                        this.toasterServ.toastMessage$.next({
+                            type: "secondary",
+                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                            duration: "short"
+                        });
+    
+                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+    
+                    }))
+                .on("receipt", receipt =>
+                    this.ngZone.run(() => {
+    
+                        this.toasterServ.toastMessage$.next({
+                            type: "success",
+                            message: "Your outgoing transaction has been confirmed!",
+                            duration: "long"
+                        });
+    
+                        this.viewConsoleServ.log(`Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+    
+                        this.boxInteraction$.next(true);
+                        this.loadingIndicatorServ.off();
+    
+                        resolve(receipt);
+                    }))
+                .on("error", error =>
+                    this.ngZone.run(() => {
+    
+                        this.toasterServ.toastMessage$.next({
+                            type: "danger",
+                            message: "Sending aborted.",
+                            duration: "long"
+                        });
+    
+                        this.viewConsoleServ.error("Box creation aborted");
+    
+                        this.loadingIndicatorServ.off();
+    
+                        reject(error);
+                    }));
+        });
     }
 
     async createBoxWithPrivacy(boxInputs: BoxInputs): Promise<void> {
@@ -846,56 +853,63 @@ export class ContractService {
             baseTokenWei = sendWei;
         }
 
-        this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .createBoxWithPrivacy(
-                recipientHash,
-                boxInputs.sendTokenAddress,
-                sendWei,
-                passHashHash)
-            .send({
-                from: this.selectedAccount$.getValue(),
-                value: baseTokenWei
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
+        // Wrapping this into a promise so that I can have the result back by awaiting it
+        return new Promise((resolve, reject) => {
+            this.loadingIndicatorServ.on();
+            this.ethboxContract.methods
+                .createBoxWithPrivacy(
+                    recipientHash,
+                    boxInputs.sendTokenAddress,
+                    sendWei,
+                    passHashHash)
+                .send({
+                    from: this.selectedAccount$.getValue(),
+                    value: baseTokenWei
+                })
+                .on("transactionHash", hash =>
+                    this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
+                        this.toasterServ.toastMessage$.next({
+                            type: "secondary",
+                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                            duration: "short"
+                        });
 
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
 
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
+                    }))
+                .on("receipt", receipt =>
+                    this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "Your outgoing transaction has been confirmed!",
-                        duration: "long"
-                    });
+                        this.toasterServ.toastMessage$.next({
+                            type: "success",
+                            message: "Your outgoing transaction has been confirmed!",
+                            duration: "long"
+                        });
 
-                    this.viewConsoleServ.log(`Box with privacy creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+                        this.viewConsoleServ.log(`Box with privacy creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
+                        this.boxInteraction$.next(true);
+                        this.loadingIndicatorServ.off();
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Sending aborted by user.",
-                        duration: "long"
-                    });
+                        resolve(receipt);
+                    }))
+                .on("error", error =>
+                    this.ngZone.run(() => {
 
-                    this.viewConsoleServ.error("Box with privacy creation aborted");
+                        this.toasterServ.toastMessage$.next({
+                            type: "danger",
+                            message: "Sending aborted.",
+                            duration: "long"
+                        });
 
-                    this.loadingIndicatorServ.off();
-                }));
+                        this.viewConsoleServ.error("Box with privacy creation aborted");
+
+                        this.loadingIndicatorServ.off();
+
+                        reject(error);
+                    }));
+        });
     }
 
     async cancelBox(boxIndex: number): Promise<void> {

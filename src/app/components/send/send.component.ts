@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
 import { ContractService } from '../../services/contract.service';
 import { ADDRESS_ZERO, ZERO } from '../../constants/various';
@@ -11,6 +11,13 @@ import BigNumber from 'bignumber.js';
 })
 export class SendComponent implements OnInit {
 
+    @ViewChild("recipientInput") recipientInput;
+    @ViewChild("passwordInput") passphraseInput;
+    @ViewChild("sendValueInput") sendAmountInput;
+
+    isAdvancedUser = JSON.parse(localStorage.getItem("isAdvancedUser")) || false;
+    keepInputs = JSON.parse(localStorage.getItem("shouldSendKeepInputs")) || false;
+    
     isPrivacyEnabled = false;
     password = '';
     recipient;
@@ -52,6 +59,16 @@ export class SendComponent implements OnInit {
 
         // When the component gets destroyed unsubscribe from everything to prevent memory leaks
         this.subscriptions.forEach(s => s.unsubscribe());
+    }
+
+    setAdvancedUser() {
+        this.isAdvancedUser = !this.isAdvancedUser;
+        localStorage.setItem("isAdvancedUser", JSON.stringify(this.isAdvancedUser));
+    }
+
+    setKeepInputs(checkbox) {
+        this.keepInputs = checkbox.checked;
+        localStorage.setItem("shouldSendKeepInputs", JSON.stringify(checkbox.checked));
     }
 
     // This is where the button gets its text and functionality updated
@@ -158,7 +175,7 @@ export class SendComponent implements OnInit {
         return (new BigNumber(value)).gt(decimalValue);
     }
 
-    sendBox() {
+    async sendBox() {
 
         console.log('Privacy is', this.isPrivacyEnabled);
         console.log('Passphrase is', this.password);
@@ -179,16 +196,26 @@ export class SendComponent implements OnInit {
             return;
         }
 
-        this.contractServ.createBox({
-            password: this.password,
-            recipient: this.recipient,
-            sender: this.contractServ.selectedAccount$.getValue(),
-            sendTokenAddress: this.sendTokenSelected.address,
-            sendDecimalValue: this.sendValue,
-            requestTokenAddress: ADDRESS_ZERO,
-            requestDecimalValue: ZERO
-        });
-
+        try {
+            let receipt = await this.contractServ.createBox({
+                password: this.password,
+                recipient: this.recipient,
+                sender: this.contractServ.selectedAccount$.getValue(),
+                sendTokenAddress: this.sendTokenSelected.address,
+                sendDecimalValue: this.sendValue,
+                requestTokenAddress: ADDRESS_ZERO,
+                requestDecimalValue: ZERO
+            });
+            
+            // Clean the inputs if keepInputs is false
+            if (!this.keepInputs) {
+                this.recipientInput.nativeElement.value = "";
+                this.passphraseInput.nativeElement.value = "";
+                this.sendAmountInput.nativeElement.value = "";
+            }
+        } catch(e) {
+            // NOP because the error is already shown to the user by the toaster
+        }
     }
 
 }

@@ -134,13 +134,13 @@
         <!-- end of request amount input -->
 
         <div class="text-end">
-          <a class="btn btn-outline-eboxprimary rounded-alot" data-bs-toggle="collapse" href="#advanced-options">
+          <a class="btn btn-outline-eboxprimary rounded-alot" data-bs-toggle="collapse" href="#advanced-options" (click)="setAdvancedUser()">
             Advanced options
             <i class="bi bi-three-dots-vertical"></i>
           </a>
         </div>
 
-        <div class="collapse" id="advanced-options">
+        <div class="collapse" [class.show]="isAdvancedUser" id="advanced-options">
           <div class="d-flex flex-column gap-3 border p-3 mt-3 rounded-alot">
             <!-- allow partial checkbox -->
             <!-- <div class="bg-eboxdark p-3 rounded-alot text-white">

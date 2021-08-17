@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
 import { ContractService } from '../../services/contract.service';
 import BigNumber from 'bignumber.js';
@@ -9,6 +9,13 @@ import BigNumber from 'bignumber.js';
     styleUrls: ['./over-the-counter.component.css']
 })
 export class OverTheCounterComponent implements OnInit {
+
+    @ViewChild("recipientInput") recipientInput;
+    @ViewChild("passwordInput") passphraseInput;
+    @ViewChild("sendValueInput") sendAmountInput;
+    @ViewChild("requestValueInput") receiveAmountInput;
+
+    isAdvancedUser = JSON.parse(localStorage.getItem("isAdvancedUser")) || false;
 
     password = '';
     recipient;
@@ -52,6 +59,11 @@ export class OverTheCounterComponent implements OnInit {
 
         // When the component gets destroyed unsubscribe from everything to prevent memory leaks
         this.subscriptions.forEach(s => s.unsubscribe());
+    }
+
+    setAdvancedUser() {
+        this.isAdvancedUser = !this.isAdvancedUser;
+        localStorage.setItem("isAdvancedUser", JSON.stringify(this.isAdvancedUser));
     }
 
     // This is where the button gets its text and functionality updated
@@ -175,17 +187,7 @@ export class OverTheCounterComponent implements OnInit {
         return (new BigNumber(value)).gt(decimalValue);
     }
 
-    sendBox() {
-
-        this.contractServ.createBox({
-            password: this.password,
-            recipient: this.recipient,
-            sender: this.contractServ.selectedAccount$.getValue(),
-            sendTokenAddress: this.sendTokenSelected.address,
-            sendDecimalValue: this.sendValue,
-            requestTokenAddress: this.requestTokenSelected.address,
-            requestDecimalValue: this.requestValue
-        });
+    async sendBox() {
 
         console.log('Recipient is', this.recipient);
         console.log('Passphrase is', this.password);
@@ -193,6 +195,27 @@ export class OverTheCounterComponent implements OnInit {
         console.log('Send amount is', this.sendValue);
         console.log('Request token address is', this.requestTokenSelected.address);
         console.log('Request amount is', this.requestValue);
+
+        try {
+            let receipt = await this.contractServ.createBox({
+                password: this.password,
+                recipient: this.recipient,
+                sender: this.contractServ.selectedAccount$.getValue(),
+                sendTokenAddress: this.sendTokenSelected.address,
+                sendDecimalValue: this.sendValue,
+                requestTokenAddress: this.requestTokenSelected.address,
+                requestDecimalValue: this.requestValue
+            });
+
+            // Clean the inputs
+            this.recipientInput.nativeElement.value = "";
+            this.passphraseInput.nativeElement.value = "";
+            this.sendAmountInput.nativeElement.value = "";
+            this.receiveAmountInput.nativeElement.value = "";
+        } catch (e) {
+            // NOP because the error is already shown to the user by the toaster
+        }
+        
     }
 
 }
