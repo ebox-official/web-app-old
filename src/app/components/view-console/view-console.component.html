@@ -1,4 +1,4 @@
-<input hidden id="console-opening-trigger" type="checkbox">
+<input hidden id="console-opening-trigger" type="checkbox" #consoleOpeningCheckbox (input)="setConsoleShowState(consoleOpeningCheckbox)">
 <div id="view-console-wrapper" class="position-fixed">
     <label for="console-opening-trigger" id="view-console-handle" class="position-absolute start-100 top-50 rounded-alot-top border-top border-dark">Console</label>
     <div id="view-console" class="px-3 pt-3 overflow-auto font-monospace text-break">
