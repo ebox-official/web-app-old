@@ -34,6 +34,11 @@ export class SendComponent implements OnInit {
     buttonFunction;
     buttonMessage;
 
+    recipientInputText;
+    recipientInputColor = "text-muted";
+    sendValueInputText;
+    sendValueInputColor = "text-muted";
+
     private subscriptions = [];
 
     constructor(
@@ -98,13 +103,60 @@ export class SendComponent implements OnInit {
             return;
         }
 
-        // About the token
+        // About the passphrase
+        // First on top because it's NON mandatory
+        let { score: passStrength } = (<any>window).zxcvbn(this.password);
+        Array.from(document.querySelectorAll(".pass-rect-strength"))
+            .forEach((e, i) => {
+                if (!this.password || i > passStrength) {
+                    e.classList.add("d-none");
+                } else {
+                    e.classList.remove("d-none");
+                }
+            });
+
+        // About the recipient
+        if (!this.recipient) {
+
+            this.recipientInputColor = "text-warning";
+            this.recipientInputText = "Recipient is required";
+
+            this.buttonMessage = 'Recipient is required';
+            this.isButtonDisabled = true;
+            return;
+        }
+        if (!this.contractServ.isValidAddress(this.recipient)) {
+
+            this.recipientInputColor = "text-danger";
+            this.recipientInputText = "Recipient is invalid";
+
+            this.buttonMessage = 'Recipient is invalid';
+            this.isButtonDisabled = true;
+            return;
+        }
+        // Recipient tests are passed
+        this.recipientInputText = null;
+        // Showing a message for self-boxes
+        if (this.recipient === this.selectedAccount) {
+            this.recipientInputColor = "text-muted";
+            this.recipientInputText = "Recipient is your own address";
+        }
+
+        // About the send token
         if (!this.sendTokenSelected) {
+
+            this.sendValueInputColor = "text-warning";
+            this.sendValueInputText = "Choose a token";
+
             this.buttonMessage = 'Choose a token';
             this.isButtonDisabled = true;
             return;
         }
         if (this.sendTokenSelected && !this.sendTokenBalance) {
+
+            this.sendValueInputColor = "text-muted";
+            this.sendValueInputText = "Loading token balance...";
+
             this.buttonMessage = 'Loading token balance...';
             this.isButtonDisabled = true;
             return;
@@ -114,46 +166,54 @@ export class SendComponent implements OnInit {
         && this.sendTokenBalance.decimalAllowance == '0'
         || (new BigNumber(this.sendValue)).gt(this.sendTokenBalance.decimalAllowance)) {
 
+            this.sendValueInputColor = "text-warning";
+            this.sendValueInputText = `You have to approve ${this.sendTokenSelected.symbol}`;
+
             this.buttonMessage = `Approve ${this.sendTokenSelected.symbol}`;
             this.buttonFunction = () => 
                 this.contractServ.approveMax(this.sendTokenSelected.address);
             this.isButtonDisabled = false;
             return;
         }
-
-        // About the recipient
-        if (!this.recipient) {
-            this.buttonMessage = 'Recipient is required';
-            this.isButtonDisabled = true;
-            return;
-        }
-        if (!this.contractServ.isValidAddress(this.recipient)) {
-            this.buttonMessage = 'Recipient is invalid';
-            this.isButtonDisabled = true;
-            return;
-        }
-
         // About the send value
         if (!this.sendValue) {
+
+            this.sendValueInputColor = "text-warning";
+            this.sendValueInputText = "Send amount is required";
+
             this.buttonMessage = 'Send amount is required';
             this.isButtonDisabled = true;
             return;
         }
         if (this.isValueInvalid(this.sendValue)) {
+            
+            this.sendValueInputColor = "text-danger";
+            this.sendValueInputText = "Send amount is invalid";
+
             this.buttonMessage = 'Send amount is invalid';
             this.isButtonDisabled = true;
             return;
         }
         if (this.isValueTooLow(this.sendValue, this.sendTokenSelected.decimals)) {
+            
+            this.sendValueInputColor = "text-danger";
+            this.sendValueInputText = "Send amount is too low";
+
             this.buttonMessage = 'Send amount is too low';
             this.isButtonDisabled = true;
             return;
         }
         if (this.isValueTooHigh(this.sendValue, this.sendTokenBalance.decimalValue)) {
+            
+            this.sendValueInputColor = "text-danger";
+            this.sendValueInputText = "Send amount is too high";
+
             this.buttonMessage = 'Send amount is too high';
             this.isButtonDisabled = true;
             return;
         }
+        // Send Value tests are passed
+        this.sendValueInputText = null;
 
         // All checks are passed
         this.buttonMessage = 'Send';
@@ -183,35 +243,50 @@ export class SendComponent implements OnInit {
         console.log('Send token address is', this.sendTokenSelected.address);
         console.log('Send amount is', this.sendValue);
 
-        if (this.isPrivacyEnabled) {
-            this.contractServ.createBoxWithPrivacy({
-                password: this.password,
-                recipient: this.recipient,
-                sender: this.contractServ.selectedAccount$.getValue(),
-                sendTokenAddress: this.sendTokenSelected.address,
-                sendDecimalValue: this.sendValue,
-                requestTokenAddress: ADDRESS_ZERO,
-                requestDecimalValue: ZERO
-            });
-            return;
-        }
-
         try {
-            let receipt = await this.contractServ.createBox({
-                password: this.password,
-                recipient: this.recipient,
-                sender: this.contractServ.selectedAccount$.getValue(),
-                sendTokenAddress: this.sendTokenSelected.address,
-                sendDecimalValue: this.sendValue,
-                requestTokenAddress: ADDRESS_ZERO,
-                requestDecimalValue: ZERO
-            });
-            
+            let receipt;
+            if (this.isPrivacyEnabled) {
+                let receipt = await this.contractServ.createBoxWithPrivacy({
+                    password: this.password,
+                    recipient: this.recipient,
+                    sender: this.contractServ.selectedAccount$.getValue(),
+                    sendTokenAddress: this.sendTokenSelected.address,
+                    sendDecimalValue: this.sendValue,
+                    requestTokenAddress: ADDRESS_ZERO,
+                    requestDecimalValue: ZERO
+                });
+                return;
+            } else {
+                let receipt = await this.contractServ.createBox({
+                    password: this.password,
+                    recipient: this.recipient,
+                    sender: this.contractServ.selectedAccount$.getValue(),
+                    sendTokenAddress: this.sendTokenSelected.address,
+                    sendDecimalValue: this.sendValue,
+                    requestTokenAddress: ADDRESS_ZERO,
+                    requestDecimalValue: ZERO
+                });
+            }
+
             // Clean the inputs if keepInputs is false
             if (!this.keepInputs) {
-                this.recipientInput.nativeElement.value = "";
-                this.passphraseInput.nativeElement.value = "";
-                this.sendAmountInput.nativeElement.value = "";
+                // To reset the inputs and everything tied to those I have to:
+                // 1. Reset the nativeElement value
+                // 2. Dispatch an input event
+                [
+                    this.recipientInput.nativeElement,
+                    this.passphraseInput.nativeElement,
+                    this.sendAmountInput.nativeElement
+                ]
+                .forEach(e => {
+                    e.value = "";
+                    e.dispatchEvent(
+                        new Event(
+                            "input",
+                            { bubbles: true, cancelable: true }
+                        )
+                    );
+                });
             }
         } catch(e) {
             // NOP because the error is already shown to the user by the toaster
