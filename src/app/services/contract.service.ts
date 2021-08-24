@@ -11,6 +11,8 @@ import { ConfirmDialogService } from './confirm-dialog.service';
 import { SmartInterval } from '../../assets/js/custom-utils';
 import { ViewConsoleService } from './view-console.service';
 
+import { WalletLink } from 'walletlink';
+
 // This is needed to get Web3 and Web3Modal into this service
 let win: any = window;
 
@@ -62,11 +64,9 @@ export class ContractService {
     // Unpkg imports
     private Web3Modal = win.Web3Modal.default;
     private WalletConnectProvider = win.WalletConnectProvider.default;
-    private Fortmatic = win.Fortmatic;
 
     // API keys for various providers
-    private WALLECTCONNECT_APIKEY = 'b5b51030cf3e451bb523a3f2ca10e3ff';
-    private FORTMATIC_APIKEY = 'pk_test_ADCE42E053643A95';
+    private INFURA_ID = 'b5b51030cf3e451bb523a3f2ca10e3ff';
 
     private web3Modal;
     private provider;
@@ -77,7 +77,8 @@ export class ContractService {
         private ngZone: NgZone,
         private toasterServ: ToasterService,
         private confirmDialogServ: ConfirmDialogService,
-        private viewConsoleServ: ViewConsoleService) {
+        private viewConsoleServ: ViewConsoleService
+    ) {
         this.init();
     }
 
@@ -111,8 +112,10 @@ export class ContractService {
     async disconnect(): Promise<void> {
 
         this.web3 = null;
-        this.provider.removeAllListeners('chainChanged');
-        this.provider.removeAllListeners('accountsChanged');
+        if ("removeAllListeners" in this.provider) {
+            this.provider.removeAllListeners('chainChanged');
+            this.provider.removeAllListeners('accountsChanged');
+        }
 
         if (this.provider.close) {
             await this.provider.close();
@@ -135,16 +138,52 @@ export class ContractService {
     private init(): void {
 
         let providerOptions = {
+            "custom-binancechainwallet": {
+                display: {
+                  logo: "../../assets/img/binance-logo.svg",
+                  name: "Binance Chain Wallet",
+                  description: "Connect to your Binance Chain Wallet"
+                },
+                package: true,
+                connector: async () => {
+                    let provider = null;
+                    if (typeof win.BinanceChain !== 'undefined') {
+                        provider = win.BinanceChain;
+                        try {
+                        await provider.request({ method: 'eth_requestAccounts' })
+                        } catch (error) {
+                        throw new Error("User Rejected");
+                        }
+                    } else {
+                        throw new Error("No Binance Chain Wallet found");
+                    }
+                    return provider;
+                }
+            },
             walletconnect: {
                 package: this.WalletConnectProvider,
                 options: {
-                    infuraId: this.WALLECTCONNECT_APIKEY
+                    infuraId: this.INFURA_ID
                 }
             },
-            fortmatic: {
-                package: this.Fortmatic,
+            "custom-coinbase": {
+                display: {
+                    logo: '../../assets/img/coinbase-logo.svg', 
+                    name: 'Coinbase',
+                    description: 'Scan with WalletLink to connect'
+                },
                 options: {
-                    key: this.FORTMATIC_APIKEY
+                    appName: 'ethbox',
+                    networkUrl: `https://mainnet.infura.io/v3/${this.INFURA_ID}`,
+                    chainId: 1
+                },
+                package: WalletLink,
+                connector: async (_, options) => {
+                    let { appName, networkUrl, chainId } = options
+                    let walletLink = new WalletLink({ appName });
+                    let provider = walletLink.makeWeb3Provider(networkUrl, chainId);
+                    await provider.enable();
+                    return provider;
                 }
             }
         };
