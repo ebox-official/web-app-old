@@ -12,6 +12,39 @@ module.exports = __webpack_require__(/*! C:\Users\fredo corleone\Documents\GitHu
 
 /***/ }),
 
+/***/ 1:
+/*!************************!*\
+  !*** buffer (ignored) ***!
+  \************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 2:
+/*!**********************!*\
+  !*** util (ignored) ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 3:
+/*!**********************!*\
+  !*** util (ignored) ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/* (ignored) */
+
+/***/ }),
+
 /***/ "6dgf":
 /*!***************************************************************************!*\
   !*** ./src/app/components/toaster-notifier/toaster-notifier.component.ts ***!
@@ -44897,10 +44930,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! bignumber.js */ "kB5k");
 /* harmony import */ var bignumber_js__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(bignumber_js__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../../assets/js/custom-utils */ "Ms4u");
-/* harmony import */ var _loading_indicator_service__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./loading-indicator.service */ "mrmJ");
-/* harmony import */ var _toaster_service__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./toaster.service */ "Ymxs");
-/* harmony import */ var _confirm_dialog_service__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./confirm-dialog.service */ "nLDa");
-/* harmony import */ var _view_console_service__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./view-console.service */ "Uykc");
+/* harmony import */ var walletlink__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! walletlink */ "Py8h");
+/* harmony import */ var walletlink__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(walletlink__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _loading_indicator_service__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./loading-indicator.service */ "mrmJ");
+/* harmony import */ var _toaster_service__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./toaster.service */ "Ymxs");
+/* harmony import */ var _confirm_dialog_service__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ./confirm-dialog.service */ "nLDa");
+/* harmony import */ var _view_console_service__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ./view-console.service */ "Uykc");
+
 
 
 
@@ -44948,10 +44984,8 @@ class ContractService {
         // Unpkg imports
         this.Web3Modal = win.Web3Modal.default;
         this.WalletConnectProvider = win.WalletConnectProvider.default;
-        this.Fortmatic = win.Fortmatic;
         // API keys for various providers
-        this.WALLECTCONNECT_APIKEY = 'b5b51030cf3e451bb523a3f2ca10e3ff';
-        this.FORTMATIC_APIKEY = 'pk_test_ADCE42E053643A95';
+        this.INFURA_ID = 'b5b51030cf3e451bb523a3f2ca10e3ff';
         this.init();
     }
     connect() {
@@ -44979,8 +45013,10 @@ class ContractService {
     disconnect() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             this.web3 = null;
-            this.provider.removeAllListeners('chainChanged');
-            this.provider.removeAllListeners('accountsChanged');
+            if ("removeAllListeners" in this.provider) {
+                this.provider.removeAllListeners('chainChanged');
+                this.provider.removeAllListeners('accountsChanged');
+            }
             if (this.provider.close) {
                 yield this.provider.close();
             }
@@ -44997,17 +45033,55 @@ class ContractService {
     }
     init() {
         let providerOptions = {
+            "custom-binancechainwallet": {
+                display: {
+                    logo: "../../assets/img/binance-logo.svg",
+                    name: "Binance Chain Wallet",
+                    description: "Connect to your Binance Chain Wallet"
+                },
+                package: true,
+                connector: () => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+                    let provider = null;
+                    if (typeof win.BinanceChain !== 'undefined') {
+                        provider = win.BinanceChain;
+                        try {
+                            yield provider.request({ method: 'eth_requestAccounts' });
+                        }
+                        catch (error) {
+                            throw new Error("User Rejected");
+                        }
+                    }
+                    else {
+                        throw new Error("No Binance Chain Wallet found");
+                    }
+                    return provider;
+                })
+            },
             walletconnect: {
                 package: this.WalletConnectProvider,
                 options: {
-                    infuraId: this.WALLECTCONNECT_APIKEY
+                    infuraId: this.INFURA_ID
                 }
             },
-            fortmatic: {
-                package: this.Fortmatic,
+            "custom-coinbase": {
+                display: {
+                    logo: '../../assets/img/coinbase-logo.svg',
+                    name: 'Coinbase',
+                    description: 'Scan with WalletLink to connect'
+                },
                 options: {
-                    key: this.FORTMATIC_APIKEY
-                }
+                    appName: 'ethbox',
+                    networkUrl: `https://mainnet.infura.io/v3/${this.INFURA_ID}`,
+                    chainId: 1
+                },
+                package: walletlink__WEBPACK_IMPORTED_MODULE_8__["WalletLink"],
+                connector: (_, options) => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+                    let { appName, networkUrl, chainId } = options;
+                    let walletLink = new walletlink__WEBPACK_IMPORTED_MODULE_8__["WalletLink"]({ appName });
+                    let provider = walletLink.makeWeb3Provider(networkUrl, chainId);
+                    yield provider.enable();
+                    return provider;
+                })
             }
         };
         this.web3Modal = new this.Web3Modal({
@@ -45841,14 +45915,14 @@ class ContractService {
         }));
     }
 }
-ContractService.ɵfac = function ContractService_Factory(t) { return new (t || ContractService)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_loading_indicator_service__WEBPACK_IMPORTED_MODULE_8__["LoadingIndicatorService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["NgZone"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_toaster_service__WEBPACK_IMPORTED_MODULE_9__["ToasterService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_confirm_dialog_service__WEBPACK_IMPORTED_MODULE_10__["ConfirmDialogService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_view_console_service__WEBPACK_IMPORTED_MODULE_11__["ViewConsoleService"])); };
+ContractService.ɵfac = function ContractService_Factory(t) { return new (t || ContractService)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_loading_indicator_service__WEBPACK_IMPORTED_MODULE_9__["LoadingIndicatorService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["NgZone"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_toaster_service__WEBPACK_IMPORTED_MODULE_10__["ToasterService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_confirm_dialog_service__WEBPACK_IMPORTED_MODULE_11__["ConfirmDialogService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵinject"](_view_console_service__WEBPACK_IMPORTED_MODULE_12__["ViewConsoleService"])); };
 ContractService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjectable"]({ token: ContractService, factory: ContractService.ɵfac, providedIn: 'root' });
 /*@__PURE__*/ (function () { _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](ContractService, [{
         type: _angular_core__WEBPACK_IMPORTED_MODULE_1__["Injectable"],
         args: [{
                 providedIn: 'root'
             }]
-    }], function () { return [{ type: _loading_indicator_service__WEBPACK_IMPORTED_MODULE_8__["LoadingIndicatorService"] }, { type: _angular_core__WEBPACK_IMPORTED_MODULE_1__["NgZone"] }, { type: _toaster_service__WEBPACK_IMPORTED_MODULE_9__["ToasterService"] }, { type: _confirm_dialog_service__WEBPACK_IMPORTED_MODULE_10__["ConfirmDialogService"] }, { type: _view_console_service__WEBPACK_IMPORTED_MODULE_11__["ViewConsoleService"] }]; }, null); })();
+    }], function () { return [{ type: _loading_indicator_service__WEBPACK_IMPORTED_MODULE_9__["LoadingIndicatorService"] }, { type: _angular_core__WEBPACK_IMPORTED_MODULE_1__["NgZone"] }, { type: _toaster_service__WEBPACK_IMPORTED_MODULE_10__["ToasterService"] }, { type: _confirm_dialog_service__WEBPACK_IMPORTED_MODULE_11__["ConfirmDialogService"] }, { type: _view_console_service__WEBPACK_IMPORTED_MODULE_12__["ViewConsoleService"] }]; }, null); })();
 
 
 /***/ }),
