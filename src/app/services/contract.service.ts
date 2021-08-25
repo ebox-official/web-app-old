@@ -140,7 +140,7 @@ export class ContractService {
         let providerOptions = {
             "custom-binancechainwallet": {
                 display: {
-                  logo: "../../assets/img/binance-logo.svg",
+                  logo: "assets/img/binance-logo.svg",
                   name: "Binance Chain Wallet",
                   description: "Connect to your Binance Chain Wallet"
                 },
@@ -168,7 +168,7 @@ export class ContractService {
             },
             "custom-coinbase": {
                 display: {
-                    logo: '../../assets/img/coinbase-logo.svg', 
+                    logo: 'assets/img/coinbase-logo.svg', 
                     name: 'Coinbase',
                     description: 'Scan with WalletLink to connect'
                 },
