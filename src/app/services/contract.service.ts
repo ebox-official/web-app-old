@@ -8,7 +8,7 @@ import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
-import { SmartInterval } from '../../assets/js/custom-utils';
+import { SmartInterval, deviceType } from '../../assets/js/custom-utils';
 import { ViewConsoleService } from './view-console.service';
 
 import { WalletLink } from 'walletlink';
@@ -137,7 +137,48 @@ export class ContractService {
 
     private init(): void {
 
-        let providerOptions = {
+        let MetaMaskOpts = {
+            "custom-metamask": {
+                display: {
+                  logo: "assets/img/metamask-logo.svg",
+                  name: "MetaMask Wallet",
+                  description: "Connect to your MetaMask Wallet"
+                },
+                package: true,
+                connector: async () => {
+
+                    // Ask the user on mobile to open the MetaMask app
+                    if (deviceType() !== "desktop") {
+                        win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
+                        return;
+                    }
+
+                    let provider = null;
+                    if (typeof win.ethereum !== 'undefined') {
+                        provider = win.ethereum;
+                        try {
+                            await provider.request({ method: 'eth_requestAccounts' });
+                        } catch (error) {
+                            throw new Error("User Rejected");
+                        }
+                    } else {
+                        throw new Error("No MetaMask Wallet found");
+                    }
+                    return provider;
+                }
+            }
+        };
+
+        let WalletConnectOpts = {
+            walletconnect: {
+                package: this.WalletConnectProvider,
+                options: {
+                    infuraId: this.INFURA_ID
+                }
+            }
+        };
+
+        let BinanceChainWalletOpts = {
             "custom-binancechainwallet": {
                 display: {
                   logo: "assets/img/binance-logo.svg",
@@ -150,22 +191,19 @@ export class ContractService {
                     if (typeof win.BinanceChain !== 'undefined') {
                         provider = win.BinanceChain;
                         try {
-                        await provider.request({ method: 'eth_requestAccounts' })
+                            await provider.request({ method: 'eth_requestAccounts' });
                         } catch (error) {
-                        throw new Error("User Rejected");
+                            throw new Error("User Rejected");
                         }
                     } else {
                         throw new Error("No Binance Chain Wallet found");
                     }
                     return provider;
                 }
-            },
-            walletconnect: {
-                package: this.WalletConnectProvider,
-                options: {
-                    infuraId: this.INFURA_ID
-                }
-            },
+            }
+        };
+
+        let CoinbaseWalletOpts = {
             "custom-coinbase": {
                 display: {
                     logo: 'assets/img/coinbase-logo.svg', 
@@ -188,10 +226,22 @@ export class ContractService {
             }
         };
 
+        // Put here providers that work on every device
+        let providerOptions = {
+            ...MetaMaskOpts,
+            ...WalletConnectOpts,
+            ...CoinbaseWalletOpts
+        };
+
+        // Put here providers that only works on desktop
+        if (deviceType() === "desktop") {
+            Object.assign(providerOptions, BinanceChainWalletOpts);
+        }
+
         this.web3Modal = new this.Web3Modal({
-            cacheProvider: true,
+            cacheProvider: deviceType() === "desktop", // Clear cache only on desktop to avoid getting stuck when using deep link
             providerOptions,
-            disableInjectedProvider: false
+            disableInjectedProvider: true
         });
 
         this.boxesInterval = new SmartInterval(
