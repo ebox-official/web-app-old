@@ -229,8 +229,7 @@ export class StakingComponent implements OnInit, OnDestroy {
         this.fetchedRewards = results
             .map(result => ({ 
                 ...result,
-                apy: 100 * 12 * result.reward / result.balance,
-                apr: 100 * (1 + result.reward / result.balance) ** 12 - 1
+                apy: 100 * ((1 + result.reward / result.balance) ** 12 - 1)
             }));
 
         this.userRewardObjAPI = this.fetchedRewards

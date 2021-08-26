@@ -2440,12 +2440,13 @@ SendComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComp
 /*!***************************************!*\
   !*** ./src/assets/js/custom-utils.js ***!
   \***************************************/
-/*! exports provided: SmartInterval */
+/*! exports provided: SmartInterval, deviceType */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SmartInterval", function() { return SmartInterval; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deviceType", function() { return deviceType; });
 function SmartInterval(asyncFn, cycledDelay, startDelay) {
 
     this.asyncFn = asyncFn;
@@ -2488,6 +2489,16 @@ SmartInterval.prototype.stop = function () {
     console.log('SmartInterval stopped.');
     this.runningState = { isRunning: false };
 };
+
+function deviceType() {
+    let ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+        return "tablet";
+    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+        return "mobile";
+    }
+    return "desktop";
+}
 
 
 /***/ }),
@@ -4037,46 +4048,35 @@ function StakingComponent_div_14_div_14_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](36, "div", 29);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](37, "div", 30);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](38, "div");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](39, "APR");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](40, "div", 31);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](41);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipe"](42, "toFixed");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](36, "div", 32);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](37, "div", 29);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](38, "div", 30);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](39, "div");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](40, "DuckDAO Bonus");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](43, "div", 32);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](44, "div", 29);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](45, "div", 30);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](46, "div");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](47, "DuckDAO Bonus");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](48, "div", 31);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](49);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](41, "div", 31);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](42);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](50, "div", 29);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](51, "div", 30);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](52, "div");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](53, "Liquidity Provider Bonus");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](43, "div", 29);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](44, "div", 30);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](45, "div");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](46, "Liquidity Provider Bonus");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](54, "div", 31);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](55);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](47, "div", 31);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](48);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](56, "div", 29);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](57, "div", 30);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](58, "div");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](59, "Long-term Holder Months");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](49, "div", 29);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](50, "div", 30);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](51, "div");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](52, "Long-term Holder Months");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](60, "div", 31);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](61);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](53, "div", 31);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](54);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
@@ -4087,13 +4087,11 @@ function StakingComponent_div_14_div_14_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](10);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate2"]("", ctx_r8.monthsNames[ctx_r8.pageMonth], " ", ctx_r8.pageDate, "");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](10);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](21, 9, ctx_r8.userRewardObjAPI.balance, 2));
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](21, 8, ctx_r8.userRewardObjAPI.balance, 2));
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](7);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](28, 12, ctx_r8.userRewardObjAPI.reward, 2));
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate"](_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](28, 11, ctx_r8.userRewardObjAPI.reward, 2));
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](7);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate1"]("", _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](35, 15, ctx_r8.userRewardObjAPI.apy, 2), "%");
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](7);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate1"]("", _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](42, 18, ctx_r8.userRewardObjAPI.apr, 2), "%");
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate1"]("", _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵpipeBind2"](35, 14, ctx_r8.userRewardObjAPI.apy, 2), "%");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](8);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate"](ctx_r8.userRewardObjAPI.bonus_duck === "1" ? "Yes" : "No");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](6);
@@ -4123,7 +4121,7 @@ function StakingComponent_div_14_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](13, StakingComponent_div_14_div_13_Template, 3, 1, "div", 6);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](14, StakingComponent_div_14_div_14_Template, 62, 21, "div", 20);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtemplate"](14, StakingComponent_div_14_div_14_Template, 55, 17, "div", 20);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
@@ -4314,7 +4312,7 @@ class StakingComponent {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             let results = yield this.stakingServ.getData(this.pageMonth, this.pageDate);
             this.fetchedRewards = results
-                .map(result => (Object.assign(Object.assign({}, result), { apy: 100 * 12 * result.reward / result.balance, apr: 100 * Math.pow((1 + result.reward / result.balance), 12) - 1 })));
+                .map(result => (Object.assign(Object.assign({}, result), { apy: 100 * (Math.pow((1 + result.reward / result.balance), 12) - 1) })));
             this.userRewardObjAPI = this.fetchedRewards
                 .find(item => item.address.toLowerCase() == this.selectedAccount.toLowerCase());
             console.log(this.userRewardObjAPI);
@@ -4322,7 +4320,7 @@ class StakingComponent {
     }
 }
 StakingComponent.ɵfac = function StakingComponent_Factory(t) { return new (t || StakingComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](src_app_services_contract_service__WEBPACK_IMPORTED_MODULE_2__["ContractService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](src_app_services_staking_service__WEBPACK_IMPORTED_MODULE_3__["StakingService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](src_app_services_toaster_service__WEBPACK_IMPORTED_MODULE_4__["ToasterService"])); };
-StakingComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({ type: StakingComponent, selectors: [["app-staking"]], decls: 15, vars: 4, consts: [[3, "imgSrc"], [1, "main", "py-5", "px-3"], [1, "container-medium", "text-center", "mb-5"], [1, "lead"], ["href", "https://ethbox.medium.com/introducing-ebox-staking-rewards-4c65c07fc89d", "target", "_blank", 1, "text-reset"], ["class", " py-3 fw-lighter", 4, "ngIf"], ["class", "container-medium text-center", 4, "ngIf"], ["class", "container-medium", 4, "ngIf"], [1, "py-3", "fw-lighter"], [4, "ngIf"], ["type", "checkbox", "name", "checkbox", 1, "switch", 3, "checked", "input"], ["selectNetworkCheckbox", ""], [1, "container-medium", "text-center"], [1, "container-medium"], [1, "box-wrapper", "position-relative"], [1, "highlight"], [1, "bg-lightalpha", "rounded-alot", "p-3"], [1, "d-grid", "gap-2", "text-center", "d-md-flex", "align-items-md-center", "justify-content-md-between", "mb-3"], [1, "fs-4", "text-truncate", "p-3"], [1, "btn", "bgn-lg", "btn-eboxprimary", "rounded-alot", "text-uppercase", 3, "disabled", "click"], ["class", "bg-eboxdark text-white p-3 rounded-alot shadow", 4, "ngIf"], [1, "bg-eboxdark", "text-white", "p-3", "rounded-alot", "shadow"], [1, "pagination", "justify-content-center", "mb-0"], [1, "page-item"], ["href", "#", 1, "bg-light", "page-link", "rounded-alot-start", 3, "click"], [1, "page-item", "disabled"], ["href", "#", "tabindex", "-1", 1, "bg-lightalpha", "page-link"], ["href", "#", 1, "bg-light", "rounded-alot-end", "page-link", 3, "click"], [1, "row", "row-cols-1", "row-cols-md-4", "g-3", "mb-3"], [1, "col"], [1, "p-3", "border", "border-secondary", "rounded-alot"], [1, "fs-5"], [1, "row", "row-cols-1", "row-cols-md-3", "g-3"]], template: function StakingComponent_Template(rf, ctx) { if (rf & 1) {
+StakingComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComponent"]({ type: StakingComponent, selectors: [["app-staking"]], decls: 15, vars: 4, consts: [[3, "imgSrc"], [1, "main", "py-5", "px-3"], [1, "container-medium", "text-center", "mb-5"], [1, "lead"], ["href", "https://ethbox.medium.com/introducing-ebox-staking-rewards-4c65c07fc89d", "target", "_blank", 1, "text-reset"], ["class", " py-3 fw-lighter", 4, "ngIf"], ["class", "container-medium text-center", 4, "ngIf"], ["class", "container-medium", 4, "ngIf"], [1, "py-3", "fw-lighter"], [4, "ngIf"], ["type", "checkbox", "name", "checkbox", 1, "switch", 3, "checked", "input"], ["selectNetworkCheckbox", ""], [1, "container-medium", "text-center"], [1, "container-medium"], [1, "box-wrapper", "position-relative"], [1, "highlight"], [1, "bg-lightalpha", "rounded-alot", "p-3"], [1, "d-grid", "gap-2", "text-center", "d-md-flex", "align-items-md-center", "justify-content-md-between", "mb-3"], [1, "fs-4", "text-truncate", "p-3"], [1, "btn", "bgn-lg", "btn-eboxprimary", "rounded-alot", "text-uppercase", 3, "disabled", "click"], ["class", "bg-eboxdark text-white p-3 rounded-alot shadow", 4, "ngIf"], [1, "bg-eboxdark", "text-white", "p-3", "rounded-alot", "shadow"], [1, "pagination", "justify-content-center", "mb-0"], [1, "page-item"], ["href", "#", 1, "bg-light", "page-link", "rounded-alot-start", 3, "click"], [1, "page-item", "disabled"], ["href", "#", "tabindex", "-1", 1, "bg-lightalpha", "page-link"], ["href", "#", 1, "bg-light", "rounded-alot-end", "page-link", 3, "click"], [1, "row", "row-cols-1", "row-cols-md-3", "g-3", "mb-3"], [1, "col"], [1, "p-3", "border", "border-secondary", "rounded-alot"], [1, "fs-5"], [1, "row", "row-cols-1", "row-cols-md-3", "g-3"]], template: function StakingComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelement"](0, "app-body-bg-changer", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](1, "div", 1);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](2, "header", 2);
@@ -4352,7 +4350,7 @@ StakingComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineC
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx.message && !ctx.selectedAccount);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx.selectedAccount);
-    } }, directives: [_body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_5__["BodyBgChangerComponent"], _angular_common__WEBPACK_IMPORTED_MODULE_6__["NgIf"]], pipes: [_pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_7__["ToFixedPipe"]], styles: [".switch[_ngcontent-%COMP%] {\r\n  position: relative;\r\n  width: 130px;\r\n  height: 50px;\r\n  margin: 0px;\r\n  -moz-appearance: none;\r\n       appearance: none;\r\n  -webkit-appearance: none;\r\n\r\n  background-image: url(\"/assets/img/binance-switch.png\");\r\n  background-size: cover;\r\n  background-repeat: no-repeat;\r\n  border-radius: 25px;\r\n  box-shadow: inset 0px 0px 2px rgba(255, 255, 255, 0.7);\r\n  transition: background-image 0.7s ease-in-out;\r\n  outline: none;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:checked {\r\n  background-image: url(\"/assets/img/ethereum-switch.png\");\r\n  background-size: cover;\r\n  transition: background-image 1s ease-in-out;\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:after {\r\n  content: \"\";\r\n  width: 46px;\r\n  height: 46px;\r\n  border-radius: 50%;\r\n  background-color: #fff;\r\n  position: absolute;\r\n  left: 2px;\r\n  top: 2px;\r\n  transform: translateX(0px);\r\n  animation: off 0.7s forwards cubic-bezier(0.8, 0.5, 0.2, 1.4);\r\n  box-shadow: inset 5px -5px 4px rgba(0,0,0,.3);\r\n}\r\n\r\n@keyframes off {\r\n  0% {\r\n    transform: translateX(80px);\r\n    width: 46px;\r\n  }\r\n  50% {\r\n    width: 75px;\r\n    border-radius: 25px;\r\n  }\r\n  100% {\r\n    transform: translateX(0px);\r\n    width: 46px;\r\n  }\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:checked:after {\r\n  animation: on 0.7s forwards cubic-bezier(0.8, 0.5, 0.2, 1.4);\r\n  box-shadow: inset -5px -5px 4px rgba(0,0,0,.3);\r\n}\r\n\r\n@keyframes on {\r\n  0% {\r\n    transform: translateX(0px);\r\n    width: 46px;\r\n  }\r\n  50% {\r\n    width: 75px;\r\n    border-radius: 25px;\r\n  }\r\n  100% {\r\n    transform: translateX(80px);\r\n    width: 46px;\r\n  }\r\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9hcHAvY29tcG9uZW50cy9zdGFraW5nL3N0YWtpbmcuY29tcG9uZW50LmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQTtFQUNFLGtCQUFrQjtFQUNsQixZQUFZO0VBQ1osWUFBWTtFQUNaLFdBQVc7RUFDWCxxQkFBZ0I7T0FBaEIsZ0JBQWdCO0VBQ2hCLHdCQUF3Qjs7RUFFeEIsdURBQXVEO0VBQ3ZELHNCQUFzQjtFQUN0Qiw0QkFBNEI7RUFDNUIsbUJBQW1CO0VBQ25CLHNEQUFzRDtFQUN0RCw2Q0FBNkM7RUFDN0MsYUFBYTtFQUNiLGVBQWU7RUFDZixnQkFBZ0I7QUFDbEI7O0FBRUE7RUFDRSx3REFBd0Q7RUFDeEQsc0JBQXNCO0VBQ3RCLDJDQUEyQztBQUM3Qzs7QUFFQTtFQUNFLFdBQVc7RUFDWCxXQUFXO0VBQ1gsWUFBWTtFQUNaLGtCQUFrQjtFQUNsQixzQkFBc0I7RUFDdEIsa0JBQWtCO0VBQ2xCLFNBQVM7RUFDVCxRQUFRO0VBQ1IsMEJBQTBCO0VBQzFCLDZEQUE2RDtFQUM3RCw2Q0FBNkM7QUFDL0M7O0FBRUE7RUFDRTtJQUNFLDJCQUEyQjtJQUMzQixXQUFXO0VBQ2I7RUFDQTtJQUNFLFdBQVc7SUFDWCxtQkFBbUI7RUFDckI7RUFDQTtJQUNFLDBCQUEwQjtJQUMxQixXQUFXO0VBQ2I7QUFDRjs7QUFFQTtFQUNFLDREQUE0RDtFQUM1RCw4Q0FBOEM7QUFDaEQ7O0FBRUE7RUFDRTtJQUNFLDBCQUEwQjtJQUMxQixXQUFXO0VBQ2I7RUFDQTtJQUNFLFdBQVc7SUFDWCxtQkFBbUI7RUFDckI7RUFDQTtJQUNFLDJCQUEyQjtJQUMzQixXQUFXO0VBQ2I7QUFDRiIsImZpbGUiOiJzcmMvYXBwL2NvbXBvbmVudHMvc3Rha2luZy9zdGFraW5nLmNvbXBvbmVudC5jc3MiLCJzb3VyY2VzQ29udGVudCI6WyIuc3dpdGNoIHtcclxuICBwb3NpdGlvbjogcmVsYXRpdmU7XHJcbiAgd2lkdGg6IDEzMHB4O1xyXG4gIGhlaWdodDogNTBweDtcclxuICBtYXJnaW46IDBweDtcclxuICBhcHBlYXJhbmNlOiBub25lO1xyXG4gIC13ZWJraXQtYXBwZWFyYW5jZTogbm9uZTtcclxuXHJcbiAgYmFja2dyb3VuZC1pbWFnZTogdXJsKFwiL2Fzc2V0cy9pbWcvYmluYW5jZS1zd2l0Y2gucG5nXCIpO1xyXG4gIGJhY2tncm91bmQtc2l6ZTogY292ZXI7XHJcbiAgYmFja2dyb3VuZC1yZXBlYXQ6IG5vLXJlcGVhdDtcclxuICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIGJveC1zaGFkb3c6IGluc2V0IDBweCAwcHggMnB4IHJnYmEoMjU1LCAyNTUsIDI1NSwgMC43KTtcclxuICB0cmFuc2l0aW9uOiBiYWNrZ3JvdW5kLWltYWdlIDAuN3MgZWFzZS1pbi1vdXQ7XHJcbiAgb3V0bGluZTogbm9uZTtcclxuICBjdXJzb3I6IHBvaW50ZXI7XHJcbiAgb3ZlcmZsb3c6IGhpZGRlbjtcclxufVxyXG5cclxuLnN3aXRjaDpjaGVja2VkIHtcclxuICBiYWNrZ3JvdW5kLWltYWdlOiB1cmwoXCIvYXNzZXRzL2ltZy9ldGhlcmV1bS1zd2l0Y2gucG5nXCIpO1xyXG4gIGJhY2tncm91bmQtc2l6ZTogY292ZXI7XHJcbiAgdHJhbnNpdGlvbjogYmFja2dyb3VuZC1pbWFnZSAxcyBlYXNlLWluLW91dDtcclxufVxyXG5cclxuLnN3aXRjaDphZnRlciB7XHJcbiAgY29udGVudDogXCJcIjtcclxuICB3aWR0aDogNDZweDtcclxuICBoZWlnaHQ6IDQ2cHg7XHJcbiAgYm9yZGVyLXJhZGl1czogNTAlO1xyXG4gIGJhY2tncm91bmQtY29sb3I6ICNmZmY7XHJcbiAgcG9zaXRpb246IGFic29sdXRlO1xyXG4gIGxlZnQ6IDJweDtcclxuICB0b3A6IDJweDtcclxuICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMHB4KTtcclxuICBhbmltYXRpb246IG9mZiAwLjdzIGZvcndhcmRzIGN1YmljLWJlemllcigwLjgsIDAuNSwgMC4yLCAxLjQpO1xyXG4gIGJveC1zaGFkb3c6IGluc2V0IDVweCAtNXB4IDRweCByZ2JhKDAsMCwwLC4zKTtcclxufVxyXG5cclxuQGtleWZyYW1lcyBvZmYge1xyXG4gIDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCg4MHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxuICA1MCUge1xyXG4gICAgd2lkdGg6IDc1cHg7XHJcbiAgICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIH1cclxuICAxMDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCgwcHgpO1xyXG4gICAgd2lkdGg6IDQ2cHg7XHJcbiAgfVxyXG59XHJcblxyXG4uc3dpdGNoOmNoZWNrZWQ6YWZ0ZXIge1xyXG4gIGFuaW1hdGlvbjogb24gMC43cyBmb3J3YXJkcyBjdWJpYy1iZXppZXIoMC44LCAwLjUsIDAuMiwgMS40KTtcclxuICBib3gtc2hhZG93OiBpbnNldCAtNXB4IC01cHggNHB4IHJnYmEoMCwwLDAsLjMpO1xyXG59XHJcblxyXG5Aa2V5ZnJhbWVzIG9uIHtcclxuICAwJSB7XHJcbiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxuICA1MCUge1xyXG4gICAgd2lkdGg6IDc1cHg7XHJcbiAgICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIH1cclxuICAxMDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCg4MHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxufVxyXG4iXX0= */"] });
+    } }, directives: [_body_bg_changer_body_bg_changer_component__WEBPACK_IMPORTED_MODULE_5__["BodyBgChangerComponent"], _angular_common__WEBPACK_IMPORTED_MODULE_6__["NgIf"]], pipes: [_pipes_to_fixed_pipe__WEBPACK_IMPORTED_MODULE_7__["ToFixedPipe"]], styles: [".switch[_ngcontent-%COMP%] {\r\n  position: relative;\r\n  width: 130px;\r\n  height: 50px;\r\n  margin: 0px;\r\n  -moz-appearance: none;\r\n       appearance: none;\r\n  -webkit-appearance: none;\r\n\r\n  background-image: url('binance-switch.png');\r\n  background-size: cover;\r\n  background-repeat: no-repeat;\r\n  border-radius: 25px;\r\n  box-shadow: inset 0px 0px 2px rgba(255, 255, 255, 0.7);\r\n  transition: background-image 0.7s ease-in-out;\r\n  outline: none;\r\n  cursor: pointer;\r\n  overflow: hidden;\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:checked {\r\n  background-image: url('ethereum-switch.png');\r\n  background-size: cover;\r\n  transition: background-image 1s ease-in-out;\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:after {\r\n  content: \"\";\r\n  width: 46px;\r\n  height: 46px;\r\n  border-radius: 50%;\r\n  background-color: #fff;\r\n  position: absolute;\r\n  left: 2px;\r\n  top: 2px;\r\n  transform: translateX(0px);\r\n  animation: off 0.7s forwards cubic-bezier(0.8, 0.5, 0.2, 1.4);\r\n  box-shadow: inset 5px -5px 4px rgba(0,0,0,.3);\r\n}\r\n\r\n@keyframes off {\r\n  0% {\r\n    transform: translateX(80px);\r\n    width: 46px;\r\n  }\r\n  50% {\r\n    width: 75px;\r\n    border-radius: 25px;\r\n  }\r\n  100% {\r\n    transform: translateX(0px);\r\n    width: 46px;\r\n  }\r\n}\r\n\r\n.switch[_ngcontent-%COMP%]:checked:after {\r\n  animation: on 0.7s forwards cubic-bezier(0.8, 0.5, 0.2, 1.4);\r\n  box-shadow: inset -5px -5px 4px rgba(0,0,0,.3);\r\n}\r\n\r\n@keyframes on {\r\n  0% {\r\n    transform: translateX(0px);\r\n    width: 46px;\r\n  }\r\n  50% {\r\n    width: 75px;\r\n    border-radius: 25px;\r\n  }\r\n  100% {\r\n    transform: translateX(80px);\r\n    width: 46px;\r\n  }\r\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInNyYy9hcHAvY29tcG9uZW50cy9zdGFraW5nL3N0YWtpbmcuY29tcG9uZW50LmNzcyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQTtFQUNFLGtCQUFrQjtFQUNsQixZQUFZO0VBQ1osWUFBWTtFQUNaLFdBQVc7RUFDWCxxQkFBZ0I7T0FBaEIsZ0JBQWdCO0VBQ2hCLHdCQUF3Qjs7RUFFeEIsMkNBQTBEO0VBQzFELHNCQUFzQjtFQUN0Qiw0QkFBNEI7RUFDNUIsbUJBQW1CO0VBQ25CLHNEQUFzRDtFQUN0RCw2Q0FBNkM7RUFDN0MsYUFBYTtFQUNiLGVBQWU7RUFDZixnQkFBZ0I7QUFDbEI7O0FBRUE7RUFDRSw0Q0FBMkQ7RUFDM0Qsc0JBQXNCO0VBQ3RCLDJDQUEyQztBQUM3Qzs7QUFFQTtFQUNFLFdBQVc7RUFDWCxXQUFXO0VBQ1gsWUFBWTtFQUNaLGtCQUFrQjtFQUNsQixzQkFBc0I7RUFDdEIsa0JBQWtCO0VBQ2xCLFNBQVM7RUFDVCxRQUFRO0VBQ1IsMEJBQTBCO0VBQzFCLDZEQUE2RDtFQUM3RCw2Q0FBNkM7QUFDL0M7O0FBRUE7RUFDRTtJQUNFLDJCQUEyQjtJQUMzQixXQUFXO0VBQ2I7RUFDQTtJQUNFLFdBQVc7SUFDWCxtQkFBbUI7RUFDckI7RUFDQTtJQUNFLDBCQUEwQjtJQUMxQixXQUFXO0VBQ2I7QUFDRjs7QUFFQTtFQUNFLDREQUE0RDtFQUM1RCw4Q0FBOEM7QUFDaEQ7O0FBRUE7RUFDRTtJQUNFLDBCQUEwQjtJQUMxQixXQUFXO0VBQ2I7RUFDQTtJQUNFLFdBQVc7SUFDWCxtQkFBbUI7RUFDckI7RUFDQTtJQUNFLDJCQUEyQjtJQUMzQixXQUFXO0VBQ2I7QUFDRiIsImZpbGUiOiJzcmMvYXBwL2NvbXBvbmVudHMvc3Rha2luZy9zdGFraW5nLmNvbXBvbmVudC5jc3MiLCJzb3VyY2VzQ29udGVudCI6WyIuc3dpdGNoIHtcclxuICBwb3NpdGlvbjogcmVsYXRpdmU7XHJcbiAgd2lkdGg6IDEzMHB4O1xyXG4gIGhlaWdodDogNTBweDtcclxuICBtYXJnaW46IDBweDtcclxuICBhcHBlYXJhbmNlOiBub25lO1xyXG4gIC13ZWJraXQtYXBwZWFyYW5jZTogbm9uZTtcclxuXHJcbiAgYmFja2dyb3VuZC1pbWFnZTogdXJsKFwic3JjL2Fzc2V0cy9pbWcvYmluYW5jZS1zd2l0Y2gucG5nXCIpO1xyXG4gIGJhY2tncm91bmQtc2l6ZTogY292ZXI7XHJcbiAgYmFja2dyb3VuZC1yZXBlYXQ6IG5vLXJlcGVhdDtcclxuICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIGJveC1zaGFkb3c6IGluc2V0IDBweCAwcHggMnB4IHJnYmEoMjU1LCAyNTUsIDI1NSwgMC43KTtcclxuICB0cmFuc2l0aW9uOiBiYWNrZ3JvdW5kLWltYWdlIDAuN3MgZWFzZS1pbi1vdXQ7XHJcbiAgb3V0bGluZTogbm9uZTtcclxuICBjdXJzb3I6IHBvaW50ZXI7XHJcbiAgb3ZlcmZsb3c6IGhpZGRlbjtcclxufVxyXG5cclxuLnN3aXRjaDpjaGVja2VkIHtcclxuICBiYWNrZ3JvdW5kLWltYWdlOiB1cmwoXCJzcmMvYXNzZXRzL2ltZy9ldGhlcmV1bS1zd2l0Y2gucG5nXCIpO1xyXG4gIGJhY2tncm91bmQtc2l6ZTogY292ZXI7XHJcbiAgdHJhbnNpdGlvbjogYmFja2dyb3VuZC1pbWFnZSAxcyBlYXNlLWluLW91dDtcclxufVxyXG5cclxuLnN3aXRjaDphZnRlciB7XHJcbiAgY29udGVudDogXCJcIjtcclxuICB3aWR0aDogNDZweDtcclxuICBoZWlnaHQ6IDQ2cHg7XHJcbiAgYm9yZGVyLXJhZGl1czogNTAlO1xyXG4gIGJhY2tncm91bmQtY29sb3I6ICNmZmY7XHJcbiAgcG9zaXRpb246IGFic29sdXRlO1xyXG4gIGxlZnQ6IDJweDtcclxuICB0b3A6IDJweDtcclxuICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMHB4KTtcclxuICBhbmltYXRpb246IG9mZiAwLjdzIGZvcndhcmRzIGN1YmljLWJlemllcigwLjgsIDAuNSwgMC4yLCAxLjQpO1xyXG4gIGJveC1zaGFkb3c6IGluc2V0IDVweCAtNXB4IDRweCByZ2JhKDAsMCwwLC4zKTtcclxufVxyXG5cclxuQGtleWZyYW1lcyBvZmYge1xyXG4gIDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCg4MHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxuICA1MCUge1xyXG4gICAgd2lkdGg6IDc1cHg7XHJcbiAgICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIH1cclxuICAxMDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCgwcHgpO1xyXG4gICAgd2lkdGg6IDQ2cHg7XHJcbiAgfVxyXG59XHJcblxyXG4uc3dpdGNoOmNoZWNrZWQ6YWZ0ZXIge1xyXG4gIGFuaW1hdGlvbjogb24gMC43cyBmb3J3YXJkcyBjdWJpYy1iZXppZXIoMC44LCAwLjUsIDAuMiwgMS40KTtcclxuICBib3gtc2hhZG93OiBpbnNldCAtNXB4IC01cHggNHB4IHJnYmEoMCwwLDAsLjMpO1xyXG59XHJcblxyXG5Aa2V5ZnJhbWVzIG9uIHtcclxuICAwJSB7XHJcbiAgICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxuICA1MCUge1xyXG4gICAgd2lkdGg6IDc1cHg7XHJcbiAgICBib3JkZXItcmFkaXVzOiAyNXB4O1xyXG4gIH1cclxuICAxMDAlIHtcclxuICAgIHRyYW5zZm9ybTogdHJhbnNsYXRlWCg4MHB4KTtcclxuICAgIHdpZHRoOiA0NnB4O1xyXG4gIH1cclxufVxyXG4iXX0= */"] });
 /*@__PURE__*/ (function () { _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵsetClassMetadata"](StakingComponent, [{
         type: _angular_core__WEBPACK_IMPORTED_MODULE_1__["Component"],
         args: [{
@@ -45032,7 +45030,46 @@ class ContractService {
         });
     }
     init() {
-        let providerOptions = {
+        let MetaMaskOpts = {
+            "custom-metamask": {
+                display: {
+                    logo: "assets/img/metamask-logo.svg",
+                    name: "MetaMask Wallet",
+                    description: "Connect to your MetaMask Wallet"
+                },
+                package: true,
+                connector: () => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
+                    // Ask the user on mobile to open the MetaMask app
+                    if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() !== "desktop") {
+                        win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
+                        return;
+                    }
+                    let provider = null;
+                    if (typeof win.ethereum !== 'undefined') {
+                        provider = win.ethereum;
+                        try {
+                            yield provider.request({ method: 'eth_requestAccounts' });
+                        }
+                        catch (error) {
+                            throw new Error("User Rejected");
+                        }
+                    }
+                    else {
+                        throw new Error("No MetaMask Wallet found");
+                    }
+                    return provider;
+                })
+            }
+        };
+        let WalletConnectOpts = {
+            walletconnect: {
+                package: this.WalletConnectProvider,
+                options: {
+                    infuraId: this.INFURA_ID
+                }
+            }
+        };
+        let BinanceChainWalletOpts = {
             "custom-binancechainwallet": {
                 display: {
                     logo: "assets/img/binance-logo.svg",
@@ -45056,13 +45093,9 @@ class ContractService {
                     }
                     return provider;
                 })
-            },
-            walletconnect: {
-                package: this.WalletConnectProvider,
-                options: {
-                    infuraId: this.INFURA_ID
-                }
-            },
+            }
+        };
+        let CoinbaseWalletOpts = {
             "custom-coinbase": {
                 display: {
                     logo: 'assets/img/coinbase-logo.svg',
@@ -45084,10 +45117,16 @@ class ContractService {
                 })
             }
         };
+        // Put here providers that work on every device
+        let providerOptions = Object.assign(Object.assign(Object.assign({}, MetaMaskOpts), WalletConnectOpts), CoinbaseWalletOpts);
+        // Put here providers that only works on desktop
+        if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() === "desktop") {
+            Object.assign(providerOptions, BinanceChainWalletOpts);
+        }
         this.web3Modal = new this.Web3Modal({
-            cacheProvider: true,
+            cacheProvider: Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() === "desktop",
             providerOptions,
-            disableInjectedProvider: false
+            disableInjectedProvider: true
         });
         this.boxesInterval = new _assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["SmartInterval"](() => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
             this.incomingBoxes$.next(yield this.getIncomingBoxes());
