@@ -45132,7 +45132,9 @@ class ContractService {
             this.incomingBoxes$.next(yield this.getIncomingBoxes());
             this.outgoingBoxes$.next(yield this.getOutgoingBoxes());
         }), this.boxesIntervalCycleDelay, this.boxesIntervalStartDelay);
-        // this.connect(); // This launches the connection modal automatically
+        if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() !== "desktop") {
+            this.connect(); // This launches the connection modal automatically
+        }
     }
     fetchVariables() {
         var _a;

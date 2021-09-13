@@ -253,7 +253,9 @@ export class ContractService {
             this.boxesIntervalStartDelay
         );
 
-        // this.connect(); // This launches the connection modal automatically
+        if (deviceType() !== "desktop") {
+            this.connect(); // This launches the connection modal automatically
+        }
     }
 
     private async fetchVariables(): Promise<void> {
