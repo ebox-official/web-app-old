@@ -8,7 +8,7 @@ import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
-import { SmartInterval, deviceType } from '../../assets/js/custom-utils';
+import { SmartInterval, deviceType, isMetamaskApp } from '../../assets/js/custom-utils';
 import { ViewConsoleService } from './view-console.service';
 
 import { WalletLink } from 'walletlink';
@@ -148,7 +148,7 @@ export class ContractService {
                 connector: async () => {
 
                     // Ask the user on mobile to open the MetaMask app
-                    if (deviceType() !== "desktop") {
+                    if (deviceType() !== "desktop" && !isMetamaskApp()) {
                         win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
                         return;
                     }
@@ -253,8 +253,9 @@ export class ContractService {
             this.boxesIntervalStartDelay
         );
 
-        if (deviceType() !== "desktop") {
-            this.connect(); // This launches the connection modal automatically
+        // If it's MetaMask app connect straight away
+        if (isMetamaskApp()) {
+            this.connect();
         }
     }
 

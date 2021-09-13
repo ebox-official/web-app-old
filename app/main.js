@@ -2440,13 +2440,14 @@ SendComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineComp
 /*!***************************************!*\
   !*** ./src/assets/js/custom-utils.js ***!
   \***************************************/
-/*! exports provided: SmartInterval, deviceType */
+/*! exports provided: SmartInterval, deviceType, isMetamaskApp */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SmartInterval", function() { return SmartInterval; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deviceType", function() { return deviceType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isMetamaskApp", function() { return isMetamaskApp; });
 function SmartInterval(asyncFn, cycledDelay, startDelay) {
 
     this.asyncFn = asyncFn;
@@ -2498,6 +2499,12 @@ function deviceType() {
         return "mobile";
     }
     return "desktop";
+}
+
+function isMetamaskApp() {
+    return deviceType() !== "desktop"
+        && window.ethereum
+        && window.ethereum.isMetaMask;
 }
 
 
@@ -45040,7 +45047,7 @@ class ContractService {
                 package: true,
                 connector: () => Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
                     // Ask the user on mobile to open the MetaMask app
-                    if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() !== "desktop") {
+                    if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() !== "desktop" && !Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["isMetamaskApp"])()) {
                         win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
                         return;
                     }
@@ -45132,8 +45139,9 @@ class ContractService {
             this.incomingBoxes$.next(yield this.getIncomingBoxes());
             this.outgoingBoxes$.next(yield this.getOutgoingBoxes());
         }), this.boxesIntervalCycleDelay, this.boxesIntervalStartDelay);
-        if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["deviceType"])() !== "desktop") {
-            this.connect(); // This launches the connection modal automatically
+        // If it's MetaMask app connect straight away
+        if (Object(_assets_js_custom_utils__WEBPACK_IMPORTED_MODULE_7__["isMetamaskApp"])()) {
+            this.connect();
         }
     }
     fetchVariables() {
