@@ -1,0 +1,140 @@
+#main-content-wrapper {
+  perspective: 100em;
+  width: 100%;
+  height: 100vh;
+  background-image:
+    linear-gradient(
+      #fff 0%,
+      44%,
+      #444 60%,
+      #333 60%,
+      66%,
+      #fff
+    );
+  transition: all .3s ease;
+}
+
+#main-content {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  transform-origin: right;
+  transform: rotateY(0);
+  background-color: #222;
+  transition: all .3s ease;
+}
+
+#main-content-shadow {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform-origin: right;
+  transform:
+    rotateY(-60deg)
+    rotateX(90deg)
+    translateY(50%);
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    #0002,
+    #0000
+  );
+}
+
+label[for="menu-trigger"] {
+  position: fixed;
+  top: 7px;
+  left: 12px;
+  z-index: 99;
+  padding: 16px;
+  line-height: 1;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 1em;
+}
+
+label[for="menu-trigger"]::before {
+  content: "☰";
+}
+
+#menu-trigger:checked ~ label[for="menu-trigger"]::before {
+  content: "✕";
+}
+
+#main-slide-menu {
+  position: absolute;
+  top: 0;
+  z-index: 9;
+  transform: translateX(-100%);
+  display: grid;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1em;
+  min-width: 50%;
+  height: 100vh;
+  color: #111;
+  background-image: 
+    linear-gradient(
+      90deg, #fffa, 75%, #0000
+    );
+  overflow: auto;
+  transition: all .3s ease;
+}
+
+#main-slide-menu a {
+  padding: 1em 1.5em;
+  font-size: 3em;
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: inherit;
+  text-decoration: none;
+  transition: all .3s ease;
+}
+
+#main-slide-menu a:hover {
+  color: #f1c!important;
+}
+
+#main-slide-menu::-webkit-scrollbar {
+  width: 0;
+}
+
+#menu-trigger:checked ~ #main-slide-menu {
+  transform: translateX(0);
+}
+
+#menu-trigger:checked ~ #main-content-wrapper {
+  overflow: hidden;
+  filter: blur(3px);
+}
+
+#menu-trigger:checked ~ #main-content-wrapper:hover {
+  filter: blur(0);
+}
+
+#menu-trigger:checked ~ #main-content-wrapper:hover ~ #main-slide-menu {
+  filter: blur(3px);
+}
+
+#menu-trigger:checked ~ #main-content-wrapper #main-content {
+  transform: rotateY(-60deg);
+  opacity: .85;
+  height: 100%;
+  overflow: auto;
+  cursor: pointer;
+}
+
+#menu-trigger:checked ~ #main-content-wrapper #main-content-shadow {
+  display: block;
+}
+
+@media (max-width: 600px) {
+  #main-slide-menu {
+    width: 100%;
+  }
+
+  #main-slide-menu a {
+    font-size: 1.5em;
+    letter-spacing: 3px;
+  }
+}

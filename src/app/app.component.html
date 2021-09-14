@@ -1,8 +1,120 @@
-<app-top-bar></app-top-bar>
-<app-loading-indicator></app-loading-indicator>
+<input hidden #triggerMenu id="menu-trigger" type="checkbox">
+<label for="menu-trigger"></label>
 
-<router-outlet></router-outlet>
+<div id="main-content-wrapper">
+  <div id="main-content-shadow"></div>
+  <div id="main-content">
 
-<app-toaster-notifier></app-toaster-notifier>
-<app-view-console></app-view-console>
-<app-bottom-bar></app-bottom-bar>
+    <app-top-bar></app-top-bar>
+    <app-loading-indicator></app-loading-indicator>
+    
+    <router-outlet></router-outlet>
+    
+    <app-toaster-notifier></app-toaster-notifier>
+    <app-view-console></app-view-console>
+    <app-bottom-bar></app-bottom-bar>
+    
+  </div>
+</div>
+
+<div id="main-slide-menu">
+  <a
+    href="/"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-box-arrow-left me-1"></i>
+    Main Site
+  </a>
+  <a
+    href="#"
+    routerLink="/send"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-box me-1"></i>
+    Send
+  </a>
+  <a
+    href="#"
+    routerLink="/over-the-counter"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-shuffle me-1"></i>
+    OTC
+  </a>
+  <a
+    href="#"
+    routerLink="/boxes/received"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-list-task me-1"></i>
+    Incoming
+  </a>
+  <a
+    href="#"
+    routerLink="/boxes/sent"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-clock-history me-1"></i>
+    Outgoing
+  </a>
+  <a
+    href="#"
+    routerLink="/staking"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-cash-stack me-1"></i>
+    Staking
+  </a>
+  <a
+    href="#"
+    routerLink="/governance"
+    routerLinkActive="active"
+    (click)="triggerMenu.checked = false;"
+    class="p-3 d-block text-uppercase text-reset text-decoration-none"
+  >
+    <i class="bi bi-people me-1"></i>
+    Governance
+  </a>
+
+  <div *ngIf="(contractServ.isAppReady$ | async) && (contractServ.isEthereumTestnet() || contractServ.isBinanceTestnet() || contractServ.isMaticTestnet())" class="p-3">
+    <div class="text-uppercase my-3 fst-italic">
+      <div class="spinner-grow spinner-grow-sm text-danger me-1"></div>
+      Get test tokens
+      <i class="bi bi-arrow-down"></i>
+    </div>
+    <div class="d-grid gap-3 p-3" style="justify-content: start;">
+      <button
+        (click)="contractServ.give100TestToken(0)"
+        class="btn btn-outline-eboxprimary rounded-alot"
+      >
+        <span class="fs-5 me-2 text-warning">100</span>
+        Token AAA
+      </button>
+      <button
+        (click)="contractServ.give100TestToken(1)"
+        class="btn btn-outline-eboxprimary rounded-alot"
+      >
+        <span class="fs-5 me-2 text-warning">100</span>
+        Token BBB
+      </button>
+      <button
+        (click)="contractServ.give100TestToken(2)"
+        class="btn btn-outline-eboxprimary rounded-alot"
+      >
+        <span class="fs-5 me-2 text-warning">100</span>
+        Token CCC
+      </button>
+    </div>
+  </div>
+
+</div>

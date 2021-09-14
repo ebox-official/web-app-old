@@ -136,7 +136,7 @@ export class StakingComponent implements OnInit, OnDestroy {
         let endpoint = "https://www.ethbox.org/app/set_chain.php";
         let selectedAccount = this.contractServ.selectedAccount$.getValue();
 
-        let newNetwork = ["Ethereum", "Binance Smart Chain"][chainIndex];
+        let newNetwork = ["Binance Smart Chain", "Ethereum"][chainIndex];
 
         // Build a magic string as message
         let msg = `ethbox Staking - Set default chain:\r\n${newNetwork}`;

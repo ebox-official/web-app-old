@@ -1,4 +1,4 @@
-<app-body-bg-changer [imgSrc]="'assets/img/staking.jpg'"></app-body-bg-changer>
+<app-bg-changer [imgSrc]="'assets/img/staking.jpg'"></app-bg-changer>
 
 <div class="main py-5 px-3">
   <!-- header -->
@@ -19,19 +19,6 @@
       <div *ngIf="selectedNetwork !== null">
         <input type="checkbox" name="checkbox" class="switch" [checked]="selectedNetwork" #selectNetworkCheckbox (input)="rewardsToChain(selectNetworkCheckbox)">
       </div>
-
-      <!-- <div class="d-grid d-md-flex justify-content-center gap-2">
-        <button 
-          class="btn btn-eboxprimary rounded-alot"
-          (click)="rewardsToChain(0)">
-          Get future rewards on Ethereum
-        </button>
-        <button 
-          class="btn btn-eboxprimary rounded-alot"
-          (click)="rewardsToChain(1)">
-          Get future rewards on BSC
-        </button>
-      </div> -->
     </div>
 
   </header>

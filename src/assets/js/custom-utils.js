@@ -51,8 +51,7 @@ export function deviceType() {
     return "desktop";
 }
 
-export function isMetamaskApp() {
-    return deviceType() !== "desktop"
-        && window.ethereum
+export function isMetaMaskInstalled() {
+    return window.ethereum
         && window.ethereum.isMetaMask;
 }

@@ -7,8 +7,7 @@ import { ContractService } from '../../services/contract.service';
     styleUrls: ['./top-bar.component.css']
 })
 export class TopBarComponent {
-
-    isMenuUntouched = true;
+    
     areThereIncomingBoxes = false;
     wasIncomingTouched = false;
 

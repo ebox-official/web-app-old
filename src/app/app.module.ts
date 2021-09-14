@@ -13,7 +13,7 @@ import { StakingComponent } from './components/staking/staking.component';
 import { PasswordStrengthVisualizerComponent } from './components/password-strength-visualizer/password-strength-visualizer.component';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { BoxReceivedComponent } from './components/boxes-received-list/box-received/box-received.component';
-import { BodyBgChangerComponent } from './components/body-bg-changer/body-bg-changer.component';
+import { BgChangerComponent } from './components/bg-changer/bg-changer.component';
 import { BoxSentComponent } from './components/boxes-sent-list/box-sent/box-sent.component';
 import { TokenSelectorComponent } from './components/token-selector/token-selector.component';
 import { ComingSoonComponent } from './components/coming-soon/coming-soon.component';
@@ -40,7 +40,7 @@ import { ViewConsoleComponent } from './components/view-console/view-console.com
     PasswordStrengthVisualizerComponent,
     PageNotFoundComponent,
     BoxReceivedComponent,
-    BodyBgChangerComponent,
+    BgChangerComponent,
     BoxSentComponent,
     TokenSelectorComponent,
     ComingSoonComponent,

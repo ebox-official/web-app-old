@@ -8,7 +8,7 @@ import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
-import { SmartInterval, deviceType, isMetamaskApp } from '../../assets/js/custom-utils';
+import { SmartInterval, deviceType, isMetaMaskInstalled } from '../../assets/js/custom-utils';
 import { ViewConsoleService } from './view-console.service';
 
 import { WalletLink } from 'walletlink';
@@ -146,9 +146,7 @@ export class ContractService {
                 },
                 package: true,
                 connector: async () => {
-
-                    // Ask the user on mobile to open the MetaMask app
-                    if (deviceType() !== "desktop" && !isMetamaskApp()) {
+                    if (!isMetaMaskInstalled()) {
                         win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
                         return;
                     }
@@ -253,10 +251,7 @@ export class ContractService {
             this.boxesIntervalStartDelay
         );
 
-        // If it's MetaMask app connect straight away
-        if (isMetamaskApp()) {
-            this.connect();
-        }
+        // this.connect();
     }
 
     private async fetchVariables(): Promise<void> {
