@@ -14,7 +14,7 @@
     </p>
     
     <div *ngIf="selectedAccount" class=" py-3 fw-lighter">
-      <p>Use the switch to choose where to claim your staking rewards: either <b>Ethereum</b> or <b>Binance Smart Chain</b>!<br><i>(Default in case of no choice: Ethereum)</i></p>
+      <p>Use the switch to choose where to claim your staking rewards: either <b>Binance Smart Chain</b> or <b>Ethereum</b>!<br><i>(Default in case of no choice: Binance Smart Chain)</i></p>
 
       <div *ngIf="selectedNetwork !== null">
         <input type="checkbox" name="checkbox" class="switch" [checked]="selectedNetwork" #selectNetworkCheckbox (input)="rewardsToChain(selectNetworkCheckbox)">
