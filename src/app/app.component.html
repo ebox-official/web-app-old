@@ -29,6 +29,7 @@
     href="#"
     routerLink="/send"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['send'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
@@ -39,6 +40,7 @@
     href="#"
     routerLink="/over-the-counter"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['over-the-counter'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
@@ -49,6 +51,7 @@
     href="#"
     routerLink="/boxes/received"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['boxes', 'received'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
@@ -59,6 +62,7 @@
     href="#"
     routerLink="/boxes/sent"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['boxes', 'sent'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
@@ -69,6 +73,7 @@
     href="#"
     routerLink="/staking"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['staking'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
@@ -79,6 +84,7 @@
     href="#"
     routerLink="/governance"
     routerLinkActive="active"
+    (mouseenter)="router.navigate(['governance'])"
     (click)="triggerMenu.checked = false;"
     class="p-3 d-block text-uppercase text-reset text-decoration-none"
   >
