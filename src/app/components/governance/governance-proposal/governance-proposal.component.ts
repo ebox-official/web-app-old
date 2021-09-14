@@ -112,4 +112,47 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
         this.subscriptions.forEach(sub => sub.unsubscribe());
     }
 
+    injectVoters(proposal) {
+        console.log(proposal);
+        let lengthLabel: HTMLElement = document.querySelector("#numberOfVoters");
+        let votersList: HTMLElement = document.querySelector("#votersList");
+        lengthLabel.innerText = (proposal.votersDetail || { length: 0 }).length;
+        votersList.innerHTML = "";
+        proposal.votersDetail.forEach(voter => {
+            let voterWrapper = document.createElement("DIV");
+            voterWrapper.innerHTML = `<li class="bg-eboxdark text-white p-3 rounded-alot mb-3">
+    <div class="text-end mb-2">${new Date(voter.time * 1e3).toLocaleDateString()}</div>
+    <div class="mb-2">
+        <div class="fs-5 fw-bold mb-1">Address</div>
+        <div class="text-truncate font-monospace">
+            <a href="https://etherscan.io/address/${voter.address}" target="_blank" class="text-reset">
+                ${voter.address}
+            </a>
+        </div>
+    </div>
+    <div class="mb-3">
+        <div class="fs-5 fw-bold mb-1">Signed message</div>
+        <div class="text-truncate font-monospace">
+            ${voter.signed_msg}
+        </div>
+    </div>
+    <div class="bg-white mx-auto p-3 rounded-alot text-center">
+        <div class="text-eboxprimary">
+        <div class="mb-2">
+            <div class="fs-5 fw-bold mb-1">Voted for</div>
+            <div class="display-6 fw-bold">${"abcdefghijklmnopqrstuvwxyz"[voter.vote - 1]}</div>
+        </div>
+        <div>
+            <div class="fs-5 fw-bold mb-1">Voting power</div>
+            <div class="display-6 fw-bold">
+                ${Number(voter.voting_power).toFixed(0)}
+            </div>
+        </div>
+        </div>
+    </div>
+</li>`;
+            votersList.appendChild(voterWrapper.firstElementChild);
+        });
+    }
+
 }

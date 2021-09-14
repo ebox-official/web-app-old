@@ -23,7 +23,6 @@ import { ToasterNotifierComponent } from './components/toaster-notifier/toaster-
 import { GovernanceComponent } from './components/governance/governance.component';
 import { GovernanceProposalComponent } from './components/governance/governance-proposal/governance-proposal.component';
 import { ToFixedPipe } from './pipes/to-fixed.pipe';
-import { VoterComponent } from './components/governance/voter/voter.component';
 import { GovernanceAreaComponent } from './components/governance/governance-area/governance-area.component';
 import { ViewConsoleComponent } from './components/view-console/view-console.component';
 
@@ -50,7 +49,6 @@ import { ViewConsoleComponent } from './components/view-console/view-console.com
     GovernanceComponent,
     GovernanceProposalComponent,
     ToFixedPipe,
-    VoterComponent,
     GovernanceAreaComponent,
     ViewConsoleComponent
   ],

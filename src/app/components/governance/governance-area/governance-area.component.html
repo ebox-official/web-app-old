@@ -41,30 +41,11 @@
 
           <!-- eligible users trigger -->
           <div class="text-center mt-3 mb-2">
-            <a href="#eligibleUsers_{{proposal._id}}" class="text-reset" data-bs-toggle="modal">
+            <a href="#eligibleUsersModal" class="text-reset" data-bs-toggle="modal" (click)="injectEligibleUsers(proposal)">
               Eligible voters
             </a>
           </div>
           <!-- end of eligible users trigger -->
-
-          <!-- eligible users -->
-          <div class="modal fade text-dark" [id]="'eligibleUsers_' + proposal._id" tabindex="-1">
-            <div class="modal-dialog modal-dialog-scrollable">
-              <div class="modal-content rounded-alot">
-                <div class="modal-header">
-                  <h5 class="modal-title">Eligible voters</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3 text-center">
-                    <small>There are {{ proposal.eligibleUsers?.length }} eligible voters.</small>
-                  </div>
-                  <app-voter *ngFor="let user of proposal.eligibleUsers" [voter]="user"></app-voter>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- end of eligible users -->
 
           <app-governance-proposal [proposal]="proposal"></app-governance-proposal>
 

@@ -48,7 +48,7 @@
   <div class="text-center">
 
     <div class="d-inline-flex flex-column align-items-center">
-      <a href="#votersDetail_{{proposal._id}}" class="text-reset mb-2" data-bs-toggle="modal">
+      <a href="#votersModal" class="text-reset mb-2" data-bs-toggle="modal" (click)="injectVoters(proposal)">
         Detailed voting results
       </a>
       <button
@@ -62,24 +62,5 @@
   
   </div>
   <!-- end of button -->
-
-  <!-- voters modal -->
-  <div class="modal fade text-start" [id]="'votersDetail_' + proposal._id" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content rounded-alot">
-        <div class="modal-header">
-          <h5 class="modal-title">Detailled voting results</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3 text-center">
-            <small>A total of {{ proposal.votersDetail?.length }} votes were cast.</small>
-          </div>
-          <app-voter *ngFor="let voter of proposal.votersDetail" [voter]="voter" [isDetailedView]="true"></app-voter>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- end of voters modal -->
 </div>
 

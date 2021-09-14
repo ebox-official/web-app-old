@@ -33,10 +33,52 @@ export class GovernanceComponent implements OnInit {
             this.community = this.enrichProposal(community, true);
             this.loadingIndicatorServ.off();
         });
+
+        // Append to the body the two modals for eligible users and voters
+        let eligibleUsersModalWrapper = document.createElement("DIV");
+        eligibleUsersModalWrapper.innerHTML = `<div class="modal fade text-dark" id="eligibleUsersModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content rounded-alot">
+            <div class="modal-header">
+                <h5 class="modal-title">Eligible voters</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 text-center">
+                    <small>There are <span id="numberOfEligibleUsers"></span> eligible voters.</small>
+                </div>
+                <ul class="p-0" id="eligibleUsersList"></ul>
+            </div>
+        </div>
+    </div>
+</div>`;
+        let votersModalWrapper = document.createElement("DIV");
+        votersModalWrapper.innerHTML = `<div class="modal fade text-start" id="votersModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content rounded-alot">
+            <div class="modal-header">
+                <h5 class="modal-title">Detailed voting results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 text-center">
+                <small>A total of <span id="numberOfVoters" votes were cast.</small>
+                </div>
+                <ul class="p-0" id="votersList"></ul>
+            </div>
+        </div>
+    </div>
+</div>`;
+        document.body.appendChild(eligibleUsersModalWrapper.firstElementChild);
+        document.body.appendChild(votersModalWrapper.firstElementChild);
     }
 
     ngOnDestroy() {
         clearInterval(this.clockTimer);
+
+        // Remove eligible users and voters modals from body
+        document.body.removeChild(document.querySelector("#eligibleUsersModal"));
+        document.body.removeChild(document.querySelector("#votersModal"));
     }
 
     private enrichProposal(proposals, isCommunity) {

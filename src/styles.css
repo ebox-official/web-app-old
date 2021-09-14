@@ -14,8 +14,8 @@
 ::-webkit-scrollbar-thumb
 {
   border-radius: 10px;
-  background-color: #f0cc;
-  box-shadow: inset 3px 0 0.3em #fff, inset -3px 0 0.3em #0009;
+  background-color: #f0cb;
+  box-shadow: inset 2px 0 0.3em #fff, inset -2px 0 0.3em #0009;
 }
 
 *:focus, *:active {

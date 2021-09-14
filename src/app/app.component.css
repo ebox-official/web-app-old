@@ -69,6 +69,7 @@ label[for="menu-trigger"]::before {
   display: grid;
   justify-content: space-around;
   align-items: center;
+  justify-items: start;
   padding: 1em;
   min-width: 50%;
   height: 100vh;
@@ -82,7 +83,6 @@ label[for="menu-trigger"]::before {
 }
 
 #main-slide-menu a {
-  padding: 1em 1.5em;
   font-size: 3em;
   font-weight: bold;
   letter-spacing: 4px;
