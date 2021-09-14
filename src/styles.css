@@ -1,21 +1,21 @@
 ::-webkit-scrollbar-track
 {
-	box-shadow: inset 0 0 0.5em #0008;
+  box-shadow: inset -1px 0 0.3em #fff, inset 1px 0 0.3em #0009;
   border-radius: 1em;
-  background-image: linear-gradient(#afd0ff 12%, #ff00c5);
+  background-color: #adf;
 }
 
 ::-webkit-scrollbar
 {
 	width: 12px;
-  background-color: #F5F5F5;
+  background-color: #fffff1;
 }
 
 ::-webkit-scrollbar-thumb
 {
   border-radius: 10px;
-  background-color: #fff8;
-  box-shadow: inset 0 0 0.5em #fff8;
+  background-color: #f0cc;
+  box-shadow: inset 3px 0 0.3em #fff, inset -3px 0 0.3em #0009;
 }
 
 *:focus, *:active {
