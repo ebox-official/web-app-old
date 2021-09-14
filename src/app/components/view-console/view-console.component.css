@@ -14,7 +14,7 @@
   top: calc(100vh - 215px);
   transform-origin: 1rem;
   transform: translateY(-50%) rotateZ(90deg);
-  background-color: #fff8;
+  background-color: #fffa;
   padding: 4px 15px;
   z-index: 100;
   border-top: 1px solid #aaa;
@@ -22,6 +22,6 @@
   cursor: pointer;
 }
 #view-console {
-  background-image: linear-gradient(90deg, #ffff, #fff8);
+  background-image: linear-gradient(90deg, #fffe, #fffa);
   height: 100%;
 }
