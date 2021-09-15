@@ -5,6 +5,7 @@ import { SmartInterval } from '../../../assets/js/custom-utils';
 import { PromptDialogService } from 'src/app/services/prompt-dialog.service';
 import { ToasterService } from 'src/app/services/toaster.service';
 import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
     selector: 'app-token-selector',
@@ -35,10 +36,10 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
         private contractServ: ContractService,
         private ngZone: NgZone,
         private promptDialogServ: PromptDialogService,
+        private _ActivatedRoute: ActivatedRoute,
         private toasterServ: ToasterService) { }
 
     ngOnInit() {
-
         // This loop calls getTokenBalance(), waits for the result and then repeats
         // This polling loop never starts if isBalanceEnabled is set to false by the host component
         this.balancePollingLoop = new SmartInterval(
@@ -60,7 +61,6 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.subscription = this.contractServ.tokens$
             .subscribe(tokens => {
-
                 this.tokens = tokens;
 
                 this.filteredTokens = null;
@@ -71,12 +71,13 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
                 this.selectedTokenBalance = null;
                 this.onTokenBalanceUpdated.emit(null);
 
+
+                // called when we have token in the list
                 if (tokens) {
-                    this.filteredTokens = tokens.slice(0, this.maxToShow);
+                    this.setTokenFromParameters(tokens);
                 }
             });
     }
-
     ngAfterViewInit() {
 
         // Moves the modal to the body (backdrop hackfix)
@@ -91,6 +92,21 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.subscription.unsubscribe();
         this.balancePollingLoop.stop();
+    }
+    // created this method to setting the symbols
+    setTokenFromParameters(tokens:any){
+        this._ActivatedRoute.queryParamMap.subscribe((response: any) => {
+            // only add value if url paramter has value
+            // check for symbol getting from URL 
+            if (response.params.symbol!==undefined){
+                let TempToken = this.tokens.filter(x=>x.symbol.toLowerCase() ===response.params.symbol.toLowerCase())[0];
+                this.filteredTokens = tokens.slice(0, this.maxToShow);
+                console.log(this.filteredTokens)
+                this.selectToken(TempToken);        
+            }else{
+              this.filteredTokens = tokens.slice(0, this.maxToShow);
+            }
+        });
     }
 
     async selectToken(token) {
