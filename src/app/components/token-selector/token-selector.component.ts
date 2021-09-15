@@ -71,37 +71,13 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
                 this.selectedTokenBalance = null;
                 this.onTokenBalanceUpdated.emit(null);
 
+
+                // called when we have token in the list
                 if (tokens) {
-                    
-                    this._ActivatedRoute.queryParamMap.subscribe((response: any) => {
-                        setTimeout(() => {
-                          // only add value if url paramter has value
-                          // check for symbol getting from URL 
-                          if (response.params.symbol!==undefined){
-                              let TempToken = this.tokens.filter(x=>x.symbol.toLowerCase() ===response.params.symbol.toLowerCase())[0];
-                              this.filteredTokens = tokens.slice(0, this.maxToShow);
-                              console.log(this.filteredTokens)
-                              this.selectToken(TempToken);        
-                          }else{
-                            this.filteredTokens = tokens.slice(0, this.maxToShow);
-                          }
-                        }, 1000);
-                      });
+                    this.setTokenFromParameters(tokens);
                 }
             });
-            this.getURLParameters();
     }
-    getURLParameters() {
-        this._ActivatedRoute.queryParamMap.subscribe((response: any) => {
-          setTimeout(() => {
-            // only add value if url paramter has value
-            if (response.params.symbol!==undefined){
-                this.selectedToken.symbol = response.params.symbol;
-
-            }
-          }, 1000);
-        });
-      }
     ngAfterViewInit() {
 
         // Moves the modal to the body (backdrop hackfix)
@@ -116,6 +92,21 @@ export class TokenSelectorComponent implements OnInit, AfterViewInit, OnDestroy 
 
         this.subscription.unsubscribe();
         this.balancePollingLoop.stop();
+    }
+    // created this method to setting the symbols
+    setTokenFromParameters(tokens:any){
+        this._ActivatedRoute.queryParamMap.subscribe((response: any) => {
+            // only add value if url paramter has value
+            // check for symbol getting from URL 
+            if (response.params.symbol!==undefined){
+                let TempToken = this.tokens.filter(x=>x.symbol.toLowerCase() ===response.params.symbol.toLowerCase())[0];
+                this.filteredTokens = tokens.slice(0, this.maxToShow);
+                console.log(this.filteredTokens)
+                this.selectToken(TempToken);        
+            }else{
+              this.filteredTokens = tokens.slice(0, this.maxToShow);
+            }
+        });
     }
 
     async selectToken(token) {

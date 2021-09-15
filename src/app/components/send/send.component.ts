@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
 import { ContractService } from '../../services/contract.service';
 import { ADDRESS_ZERO, ZERO } from '../../constants/various';
@@ -10,7 +10,7 @@ import { ActivatedRoute } from '@angular/router';
   templateUrl: './send.component.html',
   styleUrls: ['./send.component.css'],
 })
-export class SendComponent implements OnInit {
+export class SendComponent implements OnInit, AfterViewInit {
   @ViewChild('recipientInput') recipientInput;
   @ViewChild('passwordInput') passphraseInput;
   @ViewChild('sendValueInput') sendAmountInput;
@@ -62,6 +62,9 @@ export class SendComponent implements OnInit {
         obs.subscribe(() => this.syncButtonFunctionality())
       )
     );
+  }
+  //implement this component cycle method to fetch the value from url 
+  ngAfterViewInit() {
     // created this method which basically get the params from url
     this.getURLParameters();
   }
@@ -291,34 +294,29 @@ export class SendComponent implements OnInit {
       // NOP because the error is already shown to the user by the toaster
     }
   }
+  // remove settimeout 
   getURLParameters() {
     this._ActivatedRoute.queryParamMap.subscribe((response: any) => {
-      setTimeout(() => {
-        // only add value if url paramter has value
-        if (response.params.recipient!==undefined){
-            this.recipientInput.nativeElement.value = response.params.recipient;
-        }
-        if (response.params.passphrase!==undefined){
-            this.passphraseInput.nativeElement.value = response.params.passphrase;
-        }
-        if (response.params.amount!==undefined){
-            this.sendAmountInput.nativeElement.value = response.params.amount;
-        }
-        if (response.params.symbol!==undefined){
-            this.sendTokenSelected = response.params.symbol;
-        }
-        
-        if (response.params.privacy==="true") {
-            this.isPrivacyEnabled = true;
-        }else{
-            this.isPrivacyEnabled = false;
-        }
-        if (response.params.keep==="true") {
-            this.keepInputs = true;
-        }else{
-            this.keepInputs = false;
-        }
-      }, 1000);
+      // only add value if url paramter has value
+      if (response.params.recipient !== undefined) {
+        this.recipientInput.nativeElement.value = response.params.recipient;
+      }
+      if (response.params.passphrase !== undefined) {
+        this.passphraseInput.nativeElement.value = response.params.passphrase;
+      }
+      if (response.params.amount !== undefined) {
+        this.sendAmountInput.nativeElement.value = response.params.amount;
+      }
+      if (response.params.privacy === 'true') {
+        this.isPrivacyEnabled = true;
+      } else {
+        this.isPrivacyEnabled = false;
+      }
+      if (response.params.keep === 'true') {
+        this.keepInputs = true;
+      } else {
+        this.keepInputs = false;
+      }
     });
   }
 }
