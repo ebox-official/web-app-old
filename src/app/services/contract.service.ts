@@ -1288,50 +1288,57 @@ export class ContractService {
     claimReward() {
 
         this.loadingIndicatorServ.on();
-        this.stakingContract.methods
-            .claimReward()
-            .send({
-                from: this.selectedAccount$.getValue()
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
+        return new Promise((resolve, reject) => {
+            this.stakingContract.methods
+                .claimReward()
+                .send({
+                    from: this.selectedAccount$.getValue()
+                })
+                .on("transactionHash", hash =>
+                    this.ngZone.run(() => {
 
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+                        this.toasterServ.toastMessage$.next({
+                            type: "secondary",
+                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+                            duration: "short"
+                        });
 
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
+                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "Reward has been claimed!",
-                        duration: "long"
-                    });
+                    }))
+                .on("receipt", receipt =>
+                    this.ngZone.run(() => {
 
-                    this.viewConsoleServ.log(`Rewards claimed successfully (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+                        this.toasterServ.toastMessage$.next({
+                            type: "success",
+                            message: "Reward has been claimed!",
+                            duration: "long"
+                        });
 
-                    this.stakingInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
+                        this.viewConsoleServ.log(`Rewards claimed successfully (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Reward claiming aborted. Details in the console",
-                        duration: "long"
-                    });
+                        this.stakingInteraction$.next(true);
+                        this.loadingIndicatorServ.off();
 
-                    this.viewConsoleServ.error("Reward claiming aborted");
+                        resolve(receipt);
+                    }))
+                .on("error", error =>
+                    this.ngZone.run(() => {
 
-                    this.loadingIndicatorServ.off();
-                }));
+                        this.toasterServ.toastMessage$.next({
+                            type: "danger",
+                            message: "Reward claiming aborted. Details in the console",
+                            duration: "long"
+                        });
+
+                        this.viewConsoleServ.error("Reward claiming aborted");
+
+                        this.loadingIndicatorServ.off();
+
+                        reject(error);
+                    }));
+        });
     }
 
 }

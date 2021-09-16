@@ -32,5 +32,29 @@ export class StakingService {
         let { data: result } = await response.json();
         return result;
     }
+
+    async getPayoutReward(address) {
+        let endpoint = 'https://www.ethbox.org/api/payout.php';
+
+        let formData = new FormData();
+        formData.append('action', 'payout_get_unclaimed');
+        formData.append('address', address);
+
+        let response = await fetch(endpoint, { method: 'POST', body: formData });
+        let result = await response.json();
+        return result;
+    }
+
+    async setPayoutReward(address) {
+        let endpoint = 'https://www.ethbox.org/api/payout.php';
+
+        let formData = new FormData();
+        formData.append('action', 'payout_set_claimed');
+        formData.append('address', address);
+
+        let response = await fetch(endpoint, { method: 'POST', body: formData });
+        let result = await response.json();
+        return result;
+    }
     
 }

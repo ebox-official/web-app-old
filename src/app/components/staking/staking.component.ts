@@ -16,6 +16,7 @@ export class StakingComponent implements OnInit, OnDestroy {
     pageDate;
     userRewardObjAPI;
     userRewardContract;
+    userPayoutReward;
 
     chainId;
     isEthereumMainnet;
@@ -93,6 +94,8 @@ export class StakingComponent implements OnInit, OnDestroy {
                     this.pageDate = this.maxDate;
 
                     this.userRewardContract = await this.contractServ.getRewardAmount();
+
+                    this.updateUserPayoutReward();
 
                     await this.fetchRewards();
                     if (!this.userRewardObjAPI) {
@@ -236,6 +239,24 @@ export class StakingComponent implements OnInit, OnDestroy {
             .find(item => item.address.toLowerCase() == this.selectedAccount.toLowerCase());
 
         console.log(this.userRewardObjAPI);
+    }
+
+    async updateUserPayoutReward() {
+        let getPayoutRewardResponse = await this.stakingServ
+            .getPayoutReward(this.selectedAccount);
+        if (getPayoutRewardResponse.result) {
+            this.userPayoutReward = getPayoutRewardResponse.result;
+        }
+    }
+
+    async claimRewards() {
+        try {
+            await this.contractServ.claimReward();
+        } catch (e) {
+            return;
+        }
+        await this.stakingServ.setPayoutReward(this.selectedAccount);
+        await this.updateUserPayoutReward();
     }
 
 }
