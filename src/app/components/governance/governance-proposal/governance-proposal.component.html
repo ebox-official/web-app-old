@@ -31,7 +31,7 @@
       <label [for]="proposalId + '-input-' + i" class="form-check-label mb-1">
         {{ answer.answer }}
       </label>
-      <div *ngIf="proposal.votes" class="progress bg-light rounded-alot align-items-center">
+      <div *ngIf="proposal.votes?.votes" class="progress bg-light rounded-alot align-items-center">
         <div class="progress-bar bg-eboxprimary rounded-alot" style="width: {{ 100 * proposal.votes.votes[i].answer / proposal.votes.sum }}%; height: 1rem">
         </div>
         <span class="ms-2">

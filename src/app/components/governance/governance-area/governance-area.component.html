@@ -37,7 +37,7 @@
         </div>
         <!-- end of proposal header -->
 
-        <div class="collapse" [id]="'collapse_' + proposal._id">
+        <div class="collapse" [class.show]="!proposal.hasExpired" [id]="'collapse_' + proposal._id">
 
           <!-- eligible users trigger -->
           <div class="text-center mt-3 mb-2">

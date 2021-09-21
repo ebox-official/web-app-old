@@ -22,7 +22,10 @@ export class GovernanceComponent implements OnInit {
 
     async ngOnInit() {
 
-        this.clockTimer = setInterval(() => this.datetime = new Date().toUTCString().replace("GMT", "UTC"), 1000);
+        this.clockTimer = setInterval(() =>
+            this.datetime = (new Date()).toUTCString().replace("GMT", "UTC"),
+            1000
+        );
 
         this.loadingIndicatorServ.on();
         Promise.all([
@@ -100,11 +103,13 @@ export class GovernanceComponent implements OnInit {
                 isCommunity: isCommunity
             })
             .then(r => p.votes = r);
+
             this.governanceServ.getVoters({
                 votingNumber: p.n,
                 isCommunity: isCommunity
             })
             .then(r => p.eligibleUsers = r);
+
             this.governanceServ.getVotesDetails({
                 votingNumber: p.n,
                 isCommunity: isCommunity
@@ -112,7 +117,8 @@ export class GovernanceComponent implements OnInit {
             .then(r => p.votersDetail = r);
         }
 
-        return proposals;
+        // I'm reversing the proposals as they come in reverse cronological order
+        return proposals.reverse();
     }
  
 }

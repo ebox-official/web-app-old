@@ -87,7 +87,7 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
                     }
                     
                     // Setting and checking if user has already voted
-                    this.proposal.hasVoted = await this.governanceServ.isEligible({ 
+                    this.proposal.hasVoted = await this.governanceServ.hasVoted({ 
                         votingNumber: this.proposal.n,
                         area: this.proposal.area });
                     if (this.proposal.hasVoted) {
@@ -95,8 +95,14 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
                         this.isButtonDisabled = true;
                         return;
                     }
-                    
 
+                    // If the voting hasn't started disable the button along with a meaningful message
+                    if (this.proposal.time_start * 1e3 > Date.now()) {
+                        this.buttonMessage = "Voting hasn't started yet";
+                        this.isButtonDisabled = true;
+                        return;
+                    }
+                    
                     // All checks are passed
                     this.buttonMessage = 'Vote';
                     this.buttonFunction = () => this.governanceServ.vote(

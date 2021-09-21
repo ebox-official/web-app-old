@@ -396,8 +396,14 @@ class GovernanceService {
             if (options.isCommunity) {
                 formData.append('community', '1');
             }
+            // I can't standardize the response into a type unless we standardize our BE API, therefore I have to cheat with : "any" in order to access it's properties without TS complaining about it
             let response = yield fetch(this.endpoint, { method: 'POST', body: formData });
-            let { data: votes } = yield response.json();
+            let json = yield response.json();
+            // Be careful, those votings that haven't yet started have a the following payload: {"error":"Results not verified yet"}
+            if (json.error === "Results not verified yet") {
+                return { sum: null, votes: null };
+            }
+            let votes = json.data;
             return {
                 sum: votes.reduce((a, b) => a + b.answer, 0),
                 votes
@@ -43780,7 +43786,7 @@ function GovernanceProposalComponent_div_13_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtextInterpolate1"](" ", answer_r1.answer, " ");
     _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](1);
-    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx_r0.proposal.votes);
+    _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngIf", ctx_r0.proposal.votes == null ? null : ctx_r0.proposal.votes.votes);
 } }
 class GovernanceProposalComponent {
     constructor(contractServ, governanceServ) {
@@ -43838,12 +43844,18 @@ class GovernanceProposalComponent {
                 return;
             }
             // Setting and checking if user has already voted
-            this.proposal.hasVoted = yield this.governanceServ.isEligible({
+            this.proposal.hasVoted = yield this.governanceServ.hasVoted({
                 votingNumber: this.proposal.n,
                 area: this.proposal.area
             });
             if (this.proposal.hasVoted) {
                 this.buttonMessage = 'Already voted';
+                this.isButtonDisabled = true;
+                return;
+            }
+            // If the voting hasn't started disable the button along with a meaningful message
+            if (this.proposal.time_start * 1e3 > Date.now()) {
+                this.buttonMessage = "Voting hasn't started yet";
                 this.isButtonDisabled = true;
                 return;
             }
@@ -44032,6 +44044,7 @@ function GovernanceAreaComponent_div_8_Template(rf, ctx) { if (rf & 1) {
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](2);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtextInterpolate"](proposal_r1.question);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](1);
+    _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵclassProp"]("show", !proposal_r1.hasExpired);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("id", "collapse_" + proposal_r1._id);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵadvance"](4);
     _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵproperty"]("proposal", proposal_r1);
@@ -44086,7 +44099,7 @@ GovernanceAreaComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵ
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](7, "div", 4);
-        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](8, GovernanceAreaComponent_div_8_Template, 18, 11, "div", 5);
+        _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵtemplate"](8, GovernanceAreaComponent_div_8_Template, 18, 13, "div", 5);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementEnd"]();
     } if (rf & 2) {
@@ -44874,7 +44887,7 @@ class GovernanceComponent {
     }
     ngOnInit() {
         return Object(tslib__WEBPACK_IMPORTED_MODULE_0__["__awaiter"])(this, void 0, void 0, function* () {
-            this.clockTimer = setInterval(() => this.datetime = new Date().toUTCString().replace("GMT", "UTC"), 1000);
+            this.clockTimer = setInterval(() => this.datetime = (new Date()).toUTCString().replace("GMT", "UTC"), 1000);
             this.loadingIndicatorServ.on();
             Promise.all([
                 this.governanceServ.getVotings({ isCommunity: false }),
@@ -44956,7 +44969,8 @@ class GovernanceComponent {
             })
                 .then(r => p.votersDetail = r);
         }
-        return proposals;
+        // I'm reversing the proposals as they come in reverse cronological order
+        return proposals.reverse();
     }
 }
 GovernanceComponent.ɵfac = function GovernanceComponent_Factory(t) { return new (t || GovernanceComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](src_app_services_loading_indicator_service__WEBPACK_IMPORTED_MODULE_2__["LoadingIndicatorService"]), _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdirectiveInject"](src_app_services_governance_service__WEBPACK_IMPORTED_MODULE_3__["GovernanceService"])); };

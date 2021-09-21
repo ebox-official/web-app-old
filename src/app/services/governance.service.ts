@@ -70,9 +70,16 @@ export class GovernanceService {
             formData.append('community', '1');
         }
 
-        let response = await fetch(this.endpoint, { method: 'POST', body: formData });
-        let { data: votes } = await response.json();
+        // I can't standardize the response into a type unless we standardize our BE API, therefore I have to cheat with : "any" in order to access it's properties without TS complaining about it
+        let response: any = await fetch(this.endpoint, { method: 'POST', body: formData });
+        let json = await response.json();
 
+        // Be careful, those votings that haven't yet started have a the following payload: {"error":"Results not verified yet"}
+        if (json.error === "Results not verified yet") {
+            return { sum: null, votes: null };
+        }
+
+        let votes = json.data;
         return {
             sum: votes.reduce((a, b) => a + b.answer, 0),
             votes
