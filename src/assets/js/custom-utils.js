@@ -1,44 +1,44 @@
-export function SmartInterval(asyncFn, cycledDelay, startDelay) {
 
+// This function is just an arbitrary delay to be used with async/await pattern
+export function delay(ms) {
+    return new Promise(res =>
+        setTimeout(() =>
+        res(1)
+        , ms)
+        );
+    }
+    
+/**
+ * SmartInterval creates an interval that has the following features:
+ * - Can be paused/stopped
+ * - Can be forced to execute
+ * - Evaluates sequentially (no other call is made before the current call is evaluated)
+ */
+export function SmartInterval(asyncFn, delayMs) {
     this.asyncFn = asyncFn;
-    this.cycleDelay = cycledDelay;
-    this.startDelay = startDelay;
+    this.delayMs = delayMs;
 
-    this.runningState = { isRunning: false };
-    this.timers = [];
+    this.running = false;
 }
 
+SmartInterval.prototype.cycle = async function () {
+    await this.asyncFn();
+    await delay(this.delayMs);
+    if (this.isRunning) this.cycle();
+};
+
 SmartInterval.prototype.start = function () {
-
-    if (this.runningState.isRunning) {
-        console.log("SmartInterval is already running, please stop it first.");
-        return;
-    }
-
-    let runningState = this.runningState;
-    let loop = async () => {
-        await this.asyncFn();
-        if (runningState.isRunning) {
-            this.timers.push(setTimeout(loop.bind(this), this.cycleDelay));
-        }
-    };
-
-    this.timers.push(setTimeout(loop.bind(this), this.startDelay));
-    this.runningState.isRunning = true;
-    console.log('SmartInterval started.');
+    if (this.isRunning) return;
+    this.isRunning = true;
+    this.cycle();
 };
 
 SmartInterval.prototype.stop = function () {
+    if (this.isRunning) this.isRunning = false;
+};
 
-    if (!this.runningState.isRunning) {
-        console.log('SmartInterval is already stopped, please start it first.');
-        return;
-    }
-
-    this.runningState.isRunning = false;
-    this.timers.forEach(timer => clearTimeout(timer));
-    console.log('SmartInterval stopped.');
-    this.runningState = { isRunning: false };
+SmartInterval.prototype.forceExecution = function () {
+    this.cycle();
 };
 
 export function deviceType() {
@@ -55,3 +55,106 @@ export function isMetaMaskInstalled() {
     return window.ethereum
         && window.ethereum.isMetaMask;
 }
+
+/**
+ * The objective of the two following snippets is to
+ * handle async events with an imperative style of
+ * coding
+ * 
+ * I also want the API to be compatible with that of
+ * observables, so that I can drop-in replace them
+ * That means it should also work with "| async"
+ * in Angular
+ * 
+ * By convention use $ as suffix to mark the varname
+ * (so that you know it's a special var)
+ * 
+ * I want a AsyncVar to:
+ * - Sets some data
+ * - Remembers the data
+ * - Can be listened for changes
+ * - Can stop being listened
+ */
+export function AsyncVar(value = undefined) {
+    this.value = value;
+    this.consumers = {};
+}
+
+AsyncVar.prototype.set = function(value) {
+    this.value = value;
+    for (let key in this.consumers) {
+        this.consumers[key](value); // Should I use hasOwnProperty?
+    }
+};
+AsyncVar.prototype.next = AsyncVar.prototype.set;
+
+AsyncVar.prototype.get = function() {
+    return this.value;  
+};
+AsyncVar.prototype.getValue = AsyncVar.prototype.get;
+
+AsyncVar.prototype.sub = function(callback) {
+
+    // This is necessary for "| async" in Angular
+    if ("next" in callback) {
+        callback = callback.next;
+    }
+
+    // Run it with last value
+    callback(this.value);
+
+    // This is a kind of unique id
+    let namespace = Math.random().toString(36).slice(2);
+
+    this.consumers[namespace] = callback;
+
+    let usub = () => {
+        delete this.consumers[namespace];
+    };
+
+    return {
+      usub,
+      unsubscribe: usub  
+    };
+}
+AsyncVar.prototype.subscribe = AsyncVar.prototype.sub;
+
+/**
+ * I want an AsyncPulse that:
+ * - Sends some data (but doesn't remember it)
+ * - Can be listened for changes
+ * - Can stop being listened
+ */
+export function AsyncPulse() {
+    this.consumers = {};
+}
+
+AsyncPulse.prototype.set = function(value) {
+    for (let key in this.consumers) {
+        this.consumers[key](value); // Should I use hasOwnProperty?
+    }
+};
+AsyncPulse.prototype.next = AsyncPulse.prototype.set;
+
+AsyncPulse.prototype.sub = function(callback) {
+
+    // This is necessary for "| async" in Angular
+    if ("next" in callback) {
+        callback = callback.next;
+    }
+
+    // This is a kind of unique id
+    let namespace = Math.random().toString(36).slice(2);
+
+    this.consumers[namespace] = callback;
+
+    let usub = () => {
+        delete this.consumers[namespace];
+    };
+
+    return {
+      usub,
+      unsubscribe: usub  
+    };
+}
+AsyncPulse.prototype.subscribe = AsyncPulse.prototype.sub;
