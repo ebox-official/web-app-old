@@ -1,7 +1,8 @@
 #view-console-wrapper {
+  top: 64px;
   width: 432px;
   max-width: 75vw;
-  height: 100%;
+  height: calc(100% - 128px);
   transform: translateX(-100%);
   transition: transform .3s ease;
 }
@@ -10,24 +11,17 @@
   z-index: 10;
 }
 #view-console-handle {
-  top: calc(100vh - 128px);
-  right: 100%;
-  transform:
-    translate(28px, -50%)
-    rotateZ(-90deg);
+  top: calc(100vh - 215px);
+  transform-origin: 1rem;
+  transform: translateY(-50%) rotateZ(90deg);
   background-color: #fffa;
   padding: 4px 15px;
   z-index: 100;
   border-top: 1px solid #aaa;
-  -webkit-user-select: none;
   user-select: none;
   cursor: pointer;
 }
 #view-console {
-  background-image: linear-gradient(
-    90deg,
-    #fffa,
-    #fffe
-  );
+  background-image: linear-gradient(90deg, #fffe, #fffa);
   height: 100%;
 }

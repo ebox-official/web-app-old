@@ -93,7 +93,7 @@ export class StakingComponent implements OnInit, OnDestroy {
                     this.pageMonth = this.maxMonth;
                     this.pageDate = this.maxDate;
 
-                    this.userRewardContract = await this.contractServ.getReward();
+                    this.userRewardContract = await this.contractServ.getRewardAmount();
 
                     this.updateUserPayoutReward();
 
@@ -144,23 +144,23 @@ export class StakingComponent implements OnInit, OnDestroy {
         // Build a magic string as message
         let msg = `ethbox Staking - Set default chain:\r\n${newNetwork}`;
 
-        let signature;
+        let result;
         try {
             // Sign the message
-            signature = await this.contractServ.signMessage(msg);
+            result = (await <any>this.contractServ.signMessage(msg)).result;
         } catch (e) {
             // If sign is refused then revert the checkbox
             checkbox.checked = !checkbox.checked;
             return;
         }
 
-        console.log("Signed message is", signature);
+        console.log("Signed message is", result);
 
         // Send the signed message to the backend
         let formData = new FormData();
         formData.append("action", "set_chain");
         formData.append("address", selectedAccount);
-        formData.append("signed_msg", signature);
+        formData.append("signed_msg", result);
         formData.append("chain", chainIndex);
 
         let response = await fetch(endpoint, { method: 'POST', body: formData });
