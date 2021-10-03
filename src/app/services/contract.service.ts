@@ -1,19 +1,103 @@
 import { Injectable, NgZone } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
 import { ADDRESS_ZERO, ZERO, MAX_VALUE } from '../constants/various';
 import { STAKING, ETHBOX, TOKEN_DISPENSER, ERC20_ABI } from '../constants/abis';
 import { chainTokenDictionary } from '../constants/tokens';
 import { TokenData, TokenBalance, Box, BoxInputs } from '../interfaces';
 import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
-import BigNumber from 'bignumber.js';
 import { ConfirmDialogService } from './confirm-dialog.service';
-import { SmartInterval, deviceType, isMetaMaskInstalled } from '../../assets/js/custom-utils';
 import { ViewConsoleService } from './view-console.service';
 
 import { WalletLink } from 'walletlink';
+import { Provider, Signer } from "@reef-defi/evm-provider";
+import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
+import { WsProvider } from "@polkadot/api";
+import { ethers } from "ethers";
+import BigNumber from 'bignumber.js';
 
-// This is needed to get Web3 and Web3Modal into this service
+import { 
+    SmartInterval,
+    deviceType,
+    isMetaMaskInstalled,
+    AsyncVar,
+    AsyncPulse
+} from '../../assets/js/custom-utils';
+
+/**
+ * This service is the core component in the ethbox dapp. It contains all the methods to interact
+ * with the blockchain.
+ * 
+ * Below a short table indicating the variables/events available from this service:
+ * (Implementation flags)
+ * - chainId$
+ * - selectedAccount$
+ * 
+ * (Low-level flags)
+ * - isChainSupported$
+ * - isEthereumMainnet$
+ * - isBinanceMainnet$
+ * - isMaticMainnet$
+ * - isReefChain$
+ * - reefCustomProviderName
+ * 
+ * (High-level flags)
+ * - isAppReady$
+ * - isStakingReady$
+ * - isGovernanceReady$
+ * 
+ * (Interaction impulses)
+ * - approvalInteraction$
+ * - boxInteraction$
+ * - stakingInteraction$
+ * - tokenDispenserInteraction$
+ * 
+ * Following a table of methods that are available here:
+ * (Handshaking stuff)
+ * - connect
+ * - disconnect
+ * - init
+ * - fetchVariables
+ * - loadTokens
+ * - resetVariables
+ * 
+ * (Network predicates)
+ * - isEthereum
+ * - isBinance
+ * - isMatic
+ * - isEthereumMainnet
+ * - isBinanceMainnet
+ * - isMaticMainnet
+ * - isEthereumTestnet
+ * - isBinanceTestnet
+ * - isMaticTestnet
+ *
+ * (Utilities)
+ * - give100TestTokens
+ * - isValidAddress
+ * - doubleHash
+ * - isValidPassword
+ *
+ * (User balance/allowance stuff)
+ * - weiToDecimal
+ * - decimalToWei
+ * - getWeiAllowance
+ * - getTokenData
+ * - getTokenBalance
+ * - approveMax
+ *
+ * (Boxes stuff)
+ * - bcBox2appBox
+ * - getIncomingBoxes
+ * - getOutgoingBoxes
+ * - createBox/createBoxWithPrivacy
+ * - cancelBox/cancelBoxWithPrivacy
+ * - acceptBox/acceptBoxWithPrivacy
+ * - signMessage
+ * - getReward
+ * - claimReward
+ */
+
+// This is an hacky solution to get some scripts available here
 let win: any = window;
 
 @Injectable({
@@ -21,33 +105,37 @@ let win: any = window;
 })
 export class ContractService {
 
-    // Observables tied to various events, see these as top level variables in the app context
-    // Subject simply emits a value that can be listened only by those who are currently listening
-    // BehaviorSubject emits a value but also remembers it for future listeners, that value can also be read at anytime by using getValue()
-    tokens$ = new BehaviorSubject(null);
+    // AsyncVar emits a value but also remembers it for future listeners, that value can also be read at anytime by using getValue()
+    tokens$ = new AsyncVar(null);
 
     // These variables are just for the boxes loop, there is a SmartInterval objects that's used to fetch boxes over time so that a new request doesn't happen before the last has already resolved
-    incomingBoxes$ = new BehaviorSubject(null);
-    outgoingBoxes$ = new BehaviorSubject(null);
-    private boxesIntervalCycleDelay = 10e3;
-    private boxesIntervalStartDelay = 1e3;
+    incomingBoxes$ = new AsyncVar(null);
+    outgoingBoxes$ = new AsyncVar(null);
+    private boxesIntervalCycleDelay = 2e3;
     private boxesInterval;
+    private accountsChangedInterval;
 
-    chainId$ = new BehaviorSubject(null);
-    isChainSupported$ = new BehaviorSubject(false);
-    isEthereumMainnet$ = new BehaviorSubject(false);
-    isBinanceMainnet$ = new BehaviorSubject(false);
-    isMaticMainnet$ = new BehaviorSubject(false);
-    selectedAccount$ = new BehaviorSubject(null);
+    chainId$ = new AsyncVar(null);
+    selectedAccount$ = new AsyncVar(null);
+
+    isChainSupported$ = new AsyncVar(false);
+    isEthereumMainnet$ = new AsyncVar(false);
+    isBinanceMainnet$ = new AsyncVar(false);
+    isMaticMainnet$ = new AsyncVar(false);
+
+    // Separate way of handling the connection to Polkadot{.js} via Reef Defi
+    isReefChain$ = new AsyncVar(false);
+    reefCustomProviderName = null;
     
-    isAppReady$ = new BehaviorSubject(false);
-    isStakingReady$ = new BehaviorSubject(false);
-    isGovernanceReady$ = new BehaviorSubject(false);
+    isAppReady$ = new AsyncVar(false);
+    isStakingReady$ = new AsyncVar(false);
+    isGovernanceReady$ = new AsyncVar(false);
 
-    approvalInteraction$ = new Subject();
-    boxInteraction$ = new Subject();
-    stakingInteraction$ = new Subject();
-    tokenDispenserInteraction$ = new Subject();
+    // AsyncPulse simply emits a value that can be listened only by those who are currently listening
+    approvalInteraction$ = new AsyncPulse();
+    boxInteraction$ = new AsyncPulse();
+    stakingInteraction$ = new AsyncPulse();
+    tokenDispenserInteraction$ = new AsyncPulse();
 
     // Tokens map lets you query tokens by their addresses in O(1), useful to find logos and decimals in a blink of an eye
     tokensMap;
@@ -70,7 +158,7 @@ export class ContractService {
 
     private web3Modal;
     private provider;
-    private web3;
+    private signer;
 
     constructor(
         private loadingIndicatorServ: LoadingIndicatorService,
@@ -82,13 +170,82 @@ export class ContractService {
         this.init();
     }
 
+    // Connect the user to the dapp
+    // Run on user interaction
     async connect(): Promise<void> {
 
         try {
-            this.provider = await this.web3Modal.connect();
-            this.web3 = new win.Web3(this.provider);
+            let connection = await this.web3Modal.connect();
+
+            // When user has tapped on Reef, initialize things differently
+            if (connection.isCustom && /reef/.test(connection.isCustom)) {
+
+                this.isReefChain$.next(true);
+
+                // Either "reeftestnet" or "reefmainnet"
+                this.reefCustomProviderName = connection.isCustom;
+
+                this.loadingIndicatorServ.on();
+
+                let WS_URL = this.isReefTestnet() ?
+                    "wss://rpc-testnet.reefscan.com/ws" :
+                    "wss://rpc.reefscan.com/ws";
+                
+                // Return an array of all the injected sources
+                // (this needs to be called first)
+                const allInjected = await web3Enable('ethbox dapp');
+                console.log("All injected", allInjected);
+
+                let signer;
+                if (allInjected[0] && allInjected[0].signer) {
+                    signer = allInjected[0].signer;
+                }
+
+                // Return an array of { address, meta: { name, source } }
+                // (meta.source contains the name of the extension)
+                const allAccounts = await web3Accounts();
+                console.log("All accounts", allAccounts);
+
+                if (allAccounts[0] && allAccounts[0].address) {
+                    this.selectedAccount$.next(allAccounts[0].address);
+                }
+
+                if (!this.selectedAccount$.getValue()) {
+                    this.loadingIndicatorServ.off();
+                    return;
+                }
+
+                this.provider = new Provider({
+                    provider: new WsProvider(WS_URL)
+                });
+                console.log("Provider", this.provider);
+
+                await this.provider.api.isReady;
+
+                this.signer = new Signer(
+                    this.provider,
+                    this.selectedAccount$.getValue(),
+                    signer
+                );
+                console.log("Signer", this.signer);
+
+                this.loadingIndicatorServ.off();
+            }
+            else {
+                this.isReefChain$.next(false);
+
+                this.provider = new ethers.providers
+                    .Web3Provider(
+                        connection.provider,
+                        "any"
+                    );
+                console.log("Provider", this.provider);
+    
+                this.signer = this.provider.getSigner();
+                console.log("Signer", this.signer);
+            }
         }
-        catch (error) {
+        catch (err) {
             this.toasterServ.toastMessage$.next({
                 type: "danger",
                 message: "Wallet connection failed!",
@@ -98,23 +255,41 @@ export class ContractService {
             this.viewConsoleServ.error("Could not get a wallet connection");
             return;
         }
+        
+        if (!this.isReefChain$.getValue()) {
 
-        // Adds listeners to refresh variables on chain and accounts changes
-        this.provider.on("chainChanged", () =>
-            this.ngZone.run(() => this.fetchVariables()));
-        this.provider.on("accountsChanged", () =>
-            this.ngZone.run(() => this.fetchVariables()));
+            // Listeners to refresh contracts on network and account changes
+            this.provider.on("network", () =>
+                this.ngZone.run(() =>
+                    this.fetchVariables()
+                )
+            );
+
+            // ethers doesn't support "accountsChanged" event so I have to do it manually
+            // I chose 1000ms as it's not much different from the delay of the "network" event
+            this.accountsChangedInterval = setInterval(async () => {
+
+                let accounts = await this.provider.listAccounts();
+
+                if (this.selectedAccount$.getValue() !== accounts[0]) {
+                    this.ngZone.run(() => 
+                        this.fetchVariables()
+                    );
+                }
+            }, 1000);
+        }
 
         // Wallet initialized
         await this.fetchVariables();
     }
 
+    // Disconnect the user from the dapp
+    // Run on user interaction
     async disconnect(): Promise<void> {
 
-        this.web3 = null;
-        if ("removeAllListeners" in this.provider) {
-            this.provider.removeAllListeners('chainChanged');
-            this.provider.removeAllListeners('accountsChanged');
+        if (!this.isReefChain$.getValue() && "removeAllListeners" in this.provider) {
+            this.provider.removeAllListeners("network");
+            clearInterval(this.accountsChangedInterval);
         }
 
         if (this.provider.close) {
@@ -125,6 +300,7 @@ export class ContractService {
         await this.web3Modal.clearCachedProvider();
 
         this.provider = null;
+        this.signer = null;
 
         this.chainId$.next(null);
         this.isChainSupported$.next(false);
@@ -135,6 +311,7 @@ export class ContractService {
         this.loadingIndicatorServ.off();
     }
 
+    // Setup Web3Modal and launch the box interval
     private init(): void {
 
         let MetaMaskOpts = {
@@ -142,7 +319,7 @@ export class ContractService {
                 display: {
                   logo: "assets/img/metamask-logo.svg",
                   name: "MetaMask Wallet",
-                  description: "Connect to your MetaMask Wallet"
+                  description: "Connect to your MetaMask wallet"
                 },
                 package: true,
                 connector: async () => {
@@ -162,7 +339,7 @@ export class ContractService {
                     } else {
                         throw new Error("No MetaMask Wallet found");
                     }
-                    return provider;
+                    return { provider, isCustom: "metamask" };
                 }
             }
         };
@@ -181,7 +358,7 @@ export class ContractService {
                 display: {
                   logo: "assets/img/binance-logo.svg",
                   name: "Binance Chain Wallet",
-                  description: "Connect to your Binance Chain Wallet"
+                  description: "Connect to your Binance Wallet"
                 },
                 package: true,
                 connector: async () => {
@@ -196,7 +373,7 @@ export class ContractService {
                     } else {
                         throw new Error("No Binance Chain Wallet found");
                     }
-                    return provider;
+                    return { provider, isCustom: "binancechainwallet" };
                 }
             }
         };
@@ -206,7 +383,7 @@ export class ContractService {
                 display: {
                     logo: 'assets/img/coinbase-logo.svg', 
                     name: 'Coinbase',
-                    description: 'Scan with WalletLink to connect'
+                    description: 'Connect with Coinbase wallet'
                 },
                 options: {
                     appName: 'ethbox',
@@ -219,8 +396,32 @@ export class ContractService {
                     let walletLink = new WalletLink({ appName });
                     let provider = walletLink.makeWeb3Provider(networkUrl, chainId);
                     await provider.enable();
-                    return provider;
+                    return { provider, isCustom: "coinbase" };
                 }
+            }
+        };
+
+        let ReefTestnetOpts = {
+            "custom-reeftestnet": {
+                display: {
+                  logo: "assets/img/reef-testnet.png",
+                  name: "Polkadot Wallet",
+                  description: "Reef Finance Testnet"
+                },
+                package: true,
+                connector: async () => ({ isCustom: "reeftestnet" })
+            }
+        };
+
+        let ReefMainnetOpts = {
+            "custom-reefmainnet": {
+                display: {
+                  logo: "assets/img/reef.png",
+                  name: "Polkadot Wallet",
+                  description: "Reef Finance Mainnet"
+                },
+                package: true,
+                connector: async () => ({ isCustom: "reefmainnet" })
             }
         };
 
@@ -233,7 +434,12 @@ export class ContractService {
 
         // Put here providers that only works on desktop
         if (deviceType() === "desktop") {
-            Object.assign(providerOptions, BinanceChainWalletOpts);
+            Object.assign(
+                providerOptions,
+                BinanceChainWalletOpts,
+                ReefTestnetOpts,
+                ReefMainnetOpts
+            );
         }
 
         this.web3Modal = new this.Web3Modal({
@@ -247,49 +453,117 @@ export class ContractService {
                 this.incomingBoxes$.next(await this.getIncomingBoxes());
                 this.outgoingBoxes$.next(await this.getOutgoingBoxes());
             },
-            this.boxesIntervalCycleDelay,
-            this.boxesIntervalStartDelay
+            this.boxesIntervalCycleDelay
         );
 
-        // this.connect();
+        // I want the boxes to be fetched on boxInteraction$
+        this.boxInteraction$.subscribe(() =>
+            this.boxesInterval.forceExecution()
+        );
+
+        // Automatically connect if there's a cached provider
+        if (localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")) {
+            this.connect();
+        }
     }
 
+    /**
+     * - Get chain ID
+     * - Get selected account
+     * - Load supported tokens
+     * - Instantiate ethbox and staking contract
+     * - Log info in the console
+     * 
+     * TODO: Add links to network scanners
+     */
     private async fetchVariables(): Promise<void> {
 
-        this.resetVariables();
+        // this.resetVariables(); // Is this even necessary?
         this.loadingIndicatorServ.on();
 
         // Retrieving the chainId
-        let chainId = await this.web3.eth.getChainId();
+        let { chainId } = await this.provider.getNetwork();
+        console.log("Chain ID", chainId);
+
         this.chainId$.next(chainId);
 
-        // Retrieving the selectedAccount
-        let accounts = await this.web3.eth.getAccounts();
-        let selectedAccount = accounts[0];
-        this.selectedAccount$.next(selectedAccount);
+        if (!this.isReefChain$.getValue()) {
+
+            // Retrieving the selectedAccount
+            let accounts = await this.provider.listAccounts();
+            console.log("Accounts", accounts);
+
+            this.selectedAccount$.next(accounts[0]);
+        }
 
         // If there's no account selected stop here, there's no point in going further
-        if (!selectedAccount) {
+        if (!this.selectedAccount$.getValue()) {
             this.loadingIndicatorServ.off();
             return;
         }
 
         // Sets the addresses for the contracts depending on the current chain
         // If the user is on the wrong chain, then resets and return
-        if (chainId == 1) { // 1 = Ethereum Mainnet
+        if (this.isReefTestnet()) {
+
+            this.isChainSupported$.next(true);
+
+            this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
+
+            this.stakingContract = new ethers.Contract(
+                this.stakingAddress,
+                STAKING.ABI,
+                this.signer
+            );
+            console.log(
+                "Staking contract",
+                this.stakingAddress,
+                this.stakingContract
+            );
+
+            this.loadTokens();
+            this.boxesInterval.start();
+
+            this.isAppReady$.next(true);
+        }
+        else if (chainId == 1) { // 1 = Ethereum Mainnet
 
             this.isEthereumMainnet$.next(true);
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
             
-            // Instantiating the staking contract
             this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
-            this.stakingContract = new this.web3.eth
-                .Contract(STAKING.ABI, this.stakingAddress);
+            this.stakingContract = new ethers.Contract(
+                this.stakingAddress,
+                STAKING.ABI,
+                this.signer
+            );
+            console.log(
+                "Staking contract",
+                this.stakingAddress,
+                this.stakingContract
+            );
 
             this.loadTokens();
             this.boxesInterval.start();
@@ -303,13 +577,29 @@ export class ContractService {
 
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
+                    
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
-            this.tokenDispenserContract = new this.web3.eth
-                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            this.tokenDispenserContract = new ethers.Contract(
+                this.tokenDispenserAddress,
+                TOKEN_DISPENSER.ABI,
+                this.signer
+            );
+            console.log(
+                "Token dispenser contract",
+                this.tokenDispenserAddress,
+                this.tokenDispenserContract
+            );
             
             this.loadTokens();
             this.boxesInterval.start();
@@ -321,15 +611,29 @@ export class ContractService {
             this.isBinanceMainnet$.next(true);
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
-
-            // Instantiating the staking contract
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
+            
             this.stakingAddress = STAKING.ADDRESSES.BINANCE;
-            this.stakingContract = new this.web3.eth
-                .Contract(STAKING.ABI, this.stakingAddress);
+            this.stakingContract = new ethers.Contract(
+                this.stakingAddress,
+                STAKING.ABI,
+                this.signer
+            );
+            console.log(
+                "Staking contract",
+                this.stakingAddress,
+                this.stakingContract
+            );
 
             this.loadTokens();
             this.boxesInterval.start();
@@ -343,13 +647,29 @@ export class ContractService {
 
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
+
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
-            this.tokenDispenserContract = new this.web3.eth
-                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            this.tokenDispenserContract = new ethers.Contract(
+                this.tokenDispenserAddress,
+                TOKEN_DISPENSER.ABI,
+                this.signer
+            );
+            console.log(
+                "Token dispenser contract",
+                this.tokenDispenserAddress,
+                this.tokenDispenserContract
+            );
             
             this.loadTokens();
             this.boxesInterval.start();
@@ -361,10 +681,17 @@ export class ContractService {
             this.isMaticMainnet$.next(true);
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
 
             this.loadTokens();
             this.boxesInterval.start();
@@ -375,13 +702,29 @@ export class ContractService {
 
             this.isChainSupported$.next(true);
 
-            // Instantiates the contracts
             this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
+            this.ethboxContract = new ethers.Contract(
+                this.ethboxAddress,
+                ETHBOX.ABI,
+                this.signer
+            );
+            console.log(
+                "Ethbox contract",
+                this.ethboxAddress,
+                this.ethboxContract
+            );
+
             this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
-            this.ethboxContract = new this.web3.eth
-                .Contract(ETHBOX.ABI, this.ethboxAddress);
-            this.tokenDispenserContract = new this.web3.eth
-                .Contract(TOKEN_DISPENSER.ABI, this.tokenDispenserAddress);
+            this.tokenDispenserContract = new ethers.Contract(
+                this.tokenDispenserAddress,
+                TOKEN_DISPENSER.ABI,
+                this.signer
+            );
+            console.log(
+                "Token dispenser contract",
+                this.tokenDispenserAddress,
+                this.tokenDispenserContract
+            );
             
             this.loadTokens();
             this.boxesInterval.start();
@@ -394,10 +737,16 @@ export class ContractService {
 
         if (this.isAppReady$.getValue()) {
 
-            this.viewConsoleServ.log(`Connected user is ${selectedAccount}`);
+            this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
-            this.viewConsoleServ.log(`Selected chain is ${chainId}`);
-            this.viewConsoleServ.log("1 - Ethereum, 4 - Rinkeby, 56 - BSC, 97 - BSC Testnet, 137 Matic, 80001 - Matic Testnet");
+            this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
+
+            this.viewConsoleServ.log("1 - Ethereum");
+            this.viewConsoleServ.log("4 - Rinkeby");
+            this.viewConsoleServ.log("56 - BSC");
+            this.viewConsoleServ.log("97 - BSC Testnet");
+            this.viewConsoleServ.log("137 - Matic");
+            this.viewConsoleServ.log("80001 - Matic Testnet");
 
             this.viewConsoleServ.log(`Ethbox contract address is ${this.ethboxAddress}`);
 
@@ -409,6 +758,7 @@ export class ContractService {
         this.loadingIndicatorServ.off();
     }
 
+    // Get custom tokens from LS and merge them with curated ones
     loadTokens() {
 
         let LSKey = `customTokens${this.chainId$.getValue()}`;
@@ -449,55 +799,11 @@ export class ContractService {
 
         this.isChainSupported$.next(false);
         this.isEthereumMainnet$.next(false);
-    }
+        this.isBinanceMainnet$.next(false);
+        this.isMaticMainnet$.next(false);
 
-    give100TestToken(testTokenIndex: string): void {
-
-        this.tokenDispenserContract.methods
-            .giveToken(
-                testTokenIndex,
-                win.Web3.utils.toWei("100"))
-            .send({ from: this.selectedAccount$.getValue() })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
-
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
-
-                    this.loadingIndicatorServ.on();
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "You have received 100 test tokens!",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.log(`Received 100 test tokens (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-
-                    this.tokenDispenserInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Token dispending aborted by user.",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.error("Token dispensing aborted");
-
-                    this.loadingIndicatorServ.off();
-                }));
+        this.isReefChain$.next(false);
+        this.reefCustomProviderName = null;
     }
 
     isEthereum(): boolean {
@@ -512,6 +818,10 @@ export class ContractService {
         return [137, 80001].includes(this.chainId$.getValue());
     }
 
+    isReefChain(): boolean {
+        return this.isReefChain$.getValue();
+    }
+
     isEthereumMainnet(): boolean {
         return this.chainId$.getValue() == 1;
     }
@@ -522,6 +832,13 @@ export class ContractService {
 
     isMaticMainnet(): boolean {
         return this.chainId$.getValue() == 137;
+    }
+
+    isReefTestnet(): boolean {
+        if (this.isReefChain$.getValue()) {
+            return /testnet/.test(this.reefCustomProviderName);
+        }
+        return false;
     }
 
     isEthereumTestnet(): boolean {
@@ -536,41 +853,128 @@ export class ContractService {
         return this.chainId$.getValue() == 80001;
     }
 
-    isValidAddress(address: string): boolean {
-        return win.Web3.utils.isAddress(address);
+    isReefChainMainnet(): boolean {
+        if (this.isReefChain$.getValue()) {
+            return /testnet/.test(this.reefCustomProviderName);
+        }
+        return false;
     }
 
+    // Give the user 100 of the selected test token
+    // State changing operation
+    async give100TestToken(testTokenIndex: string) {
+
+        // Start loading
+        this.loadingIndicatorServ.on();
+
+        // I decided to refactor the code below and have just the code that can throw exception inside the try/catch block, and to use throw to stop the execution in catch
+
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.tokenDispenserContract.giveToken(
+                testTokenIndex,
+                ethers.utils.parseUnits("100", 18)
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Token dispending aborted by user.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Token dispensing aborted");
+
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
+
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
+        });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
+        
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "You have received 100 test tokens!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Received 100 test tokens (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.tokenDispenserInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
+    }
+
+    // Check if the given address is syntatically valid
+    isValidAddress(address: string): boolean {
+        return ethers.utils.isAddress(address);
+    }
+
+    private hash(string) {
+        return ethers.utils.id(string);
+    }
+
+    private doubleHash(string) {
+        return this.hash(this.hash(string));
+    }
+
+    // Check if the password provided fits the one that encrypted the box
+    isValidPassword(box: Box, password: string): boolean {
+        return box.passHashHash === this.doubleHash(password);
+    }
+
+    // What about using ethers.utils.formatEthers() instead?
     weiToDecimal(wei: string, decimals: string | number): string {
         let multiplier = '1' + ZERO.repeat(Number(decimals));
         let _wei = new BigNumber(wei);
         return _wei.dividedBy(multiplier).toFixed();
     }
 
+    // What about using ethers.utils.parseUnits() instead?
     decimalToWei(decimalValue: string, decimals: string | number): string {
         let multiplier = '1' + ZERO.repeat(Number(decimals));
         let _decimal = new BigNumber(decimalValue);
         return _decimal.multipliedBy(multiplier).toFixed();
     }
 
+    // Read only query
     private async getWeiAllowance(tokenAddress: string): Promise<string> {
 
-        let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
+        let tokenContract = new ethers.Contract(
+            tokenAddress,
+            ERC20_ABI,
+            this.provider
+        );
 
-        let allowance = await tokenContract.methods
-            .allowance(this.selectedAccount$.getValue(), this.ethboxAddress)
-            .call({ from: this.selectedAccount$.getValue() });
+        let allowance = await tokenContract.allowance(
+            this.selectedAccount$.getValue(),
+            this.ethboxAddress
+        );
 
-        return allowance;
+        return allowance.toString();
     }
 
+    // Read only query
     async getTokenData(tokenAddress: string): Promise<TokenData> {
 
-        let name,
-            symbol,
-            decimals;
+        let name, symbol, decimals;
         let thumb = "assets/img/unknown-icon.png";
 
-        // If the token resides in the curated list, then take it the data from there
+        // If the token resides in the curated list, then take the data from there
         if (this.tokensMap[tokenAddress]) {
             name = this.tokensMap[tokenAddress].name;
             symbol = this.tokensMap[tokenAddress].symbol;
@@ -579,30 +983,16 @@ export class ContractService {
         }
         // Otherwise take the data from the blockchain
         else {
-            let selectedAccount = this.selectedAccount$.getValue();
-            try {
-                let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
-                decimals = await tokenContract.methods
-                    .decimals()
-                    .call({ from: selectedAccount });
-                name = await tokenContract.methods
-                    .name()
-                    .call({ from: selectedAccount });
-                symbol = await tokenContract.methods
-                    .symbol()
-                    .call({ from: selectedAccount });
-            }
-            catch (err) {
-                this.toasterServ.toastMessage$.next({
-                    type: "danger",
-                    message: "Address interface is not that of a valid contract!",
-                    duration: "long"
-                });
 
-                this.viewConsoleServ.error("getTokenData() error: Address interface is not valid");
+            let tokenContract = new ethers.Contract(
+                tokenAddress,
+                ERC20_ABI,
+                this.provider
+            );
 
-                return;
-            }
+            decimals = await tokenContract.decimals();
+            name = await tokenContract.name();
+            symbol = await tokenContract.symbol();
         }
 
         return {
@@ -615,41 +1005,29 @@ export class ContractService {
             
     }
 
+    // Read only query
     async getTokenBalance(tokenAddress: string): Promise<TokenBalance> {
 
         let tokenData = await this.getTokenData(tokenAddress);
-
         let selectedAccount = this.selectedAccount$.getValue();
 
-        let wei,
-            weiAllowance;
+        let wei, weiAllowance;
 
         // If it's the base token, then mocks the allowance as unlimited (MAX_VALUE)
         if (tokenAddress == ADDRESS_ZERO) {
-            wei = await this.web3.eth
-                .getBalance(selectedAccount);
+            wei = (await this.provider.getBalance(selectedAccount)).toString();
             weiAllowance = MAX_VALUE;
         }
         else {
-            let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
 
-            try {
-                wei = await tokenContract.methods
-                    .balanceOf(selectedAccount)
-                    .call({ from: selectedAccount });
-                weiAllowance = await this.getWeiAllowance(tokenAddress);
-            }
-            catch (err) {
-                this.toasterServ.toastMessage$.next({
-                    type: "danger",
-                    message: "Address interface is not that of a valid contract!",
-                    duration: "long"
-                });
+            let tokenContract = new ethers.Contract(
+                tokenAddress,
+                ERC20_ABI,
+                this.provider
+            );
 
-                this.viewConsoleServ.error("getTokenBalance() error: Address interface is not valid");
-
-                return;
-            }
+            wei = (await tokenContract.balanceOf(selectedAccount)).toString();
+            weiAllowance = await this.getWeiAllowance(tokenAddress);
         }
 
         return {
@@ -661,462 +1039,503 @@ export class ContractService {
         };
     }
 
+    // Approve unlimited spending for the given address
+    // State changing operation
     async approveMax(tokenAddress: string): Promise<void> {
 
-        let tokenContract = new this.web3.eth.Contract(ERC20_ABI, tokenAddress);
-
-        this.loadingIndicatorServ.on();
-        try {
-            await tokenContract.methods
-                .approve(this.ethboxAddress, MAX_VALUE)
-                .send({ from: this.selectedAccount$.getValue() });
-
-            this.toasterServ.toastMessage$.next({
-                type: "success",
-                message: "Approval successful – You can now send / trade this token!",
-                duration: "long"
-            });
-
-            this.viewConsoleServ.log(`Successfully approved unlimited allowance of ${tokenAddress}`);
-
-            this.approvalInteraction$.next(true);
-            this.loadingIndicatorServ.off();
-        }
-        catch (error) {
-            this.toasterServ.toastMessage$.next({
-                type: "danger",
-                message: "Token approval failed!",
-                duration: "long"
-            });
-
-            this.viewConsoleServ.error(`Approval for unlimited allowance of ${tokenAddress} aborted`);
-
-            this.loadingIndicatorServ.off();
-        }
-    }
-
-    isValidPassword(box: Box, password: string): boolean {
-        let sha3 = win.Web3.utils.soliditySha3;
-        return box.passHashHash === sha3(sha3(password));
-    }
-
-    async getIncomingBoxes(): Promise<Box[]> {
-
-        let indices = await this.ethboxContract.methods
-            .getBoxesIncoming()
-            .call({ from: this.selectedAccount$.getValue() });
-
-        let boxes = [];
-        for (let index of indices) {
-            
-            let box = await this.ethboxContract.methods
-                .getBox(index)
-                .call({ from: this.selectedAccount$.getValue() });
-
-            if (this.selectedAccount$.getValue() == box.sender) {
-                continue;
-            }
-            
-            boxes.push({
-                hasPrivacy: false,
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: box.requestToken,
-                requestValue: box.requestValue,
-                recipientHash: null,
-                senderHash: null,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
-        }
-
-        // These are boxes with privacy
-        let indices2 = await this.ethboxContract.methods
-            .getBoxesIncomingWithPrivacy()
-            .call({ from: this.selectedAccount$.getValue() });
-        
-        for (let index of indices2) {
-            
-            let box = await this.ethboxContract.methods
-                .getBoxWithPrivacy(index)
-                .call({ from: this.selectedAccount$.getValue() });
-
-            if (win.Web3.utils.soliditySha3(this.selectedAccount$.getValue()) == box.senderHash) {
-                continue;
-            }
-            
-            boxes.push({
-                hasPrivacy: true,
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: null,
-                requestValue: null,
-                recipientHash: box.recipientHash,
-                senderHash: box.senderHash,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
-        }
-
-        // Sort boxes by date from newest to oldest
-        boxes.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-        });
-
-        // console.log("getIncomingBoxes()", boxes);
-
-        return boxes;
-    }
-
-    async getOutgoingBoxes(): Promise<Box[]> {
-     
-        let indices = await this.ethboxContract.methods
-            .getBoxesOutgoing()
-            .call({ from: this.selectedAccount$.getValue() });
-
-        let boxes = [];
-        for (let index of indices) {
-            
-            let box = await this.ethboxContract.methods
-                .getBox(index)
-                .call({ from: this.selectedAccount$.getValue() });
-            
-            boxes.push({
-                hasPrivacy: false,
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: box.requestToken,
-                requestValue: box.requestValue,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
-        }
-
-        // These are boxes with privacy
-        let indices2 = await this.ethboxContract.methods
-            .getBoxesOutgoingWithPrivacy()
-            .call({ from: this.selectedAccount$.getValue() });
-        
-        for (let index of indices2) {
-            
-            let box = await this.ethboxContract.methods
-                .getBoxWithPrivacy(index)
-                .call({ from: this.selectedAccount$.getValue() });
-            
-            boxes.push({
-                hasPrivacy: true,
-                passHashHash: box.passHashHash,
-                recipient: box.recipient,
-                requestToken: null,
-                requestValue: null,
-                sendToken: box.sendToken,
-                sendValue: box.sendValue,
-                sender: box.sender,
-                taken: box.taken,
-                timestamp: box.timestamp * 1e3,
-                index
-            });
-        }
-
-        // Sort boxes by date from newest to oldest
-        boxes.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-        });
-
-        // console.log("getOutgoingBoxes()", boxes);
-
-        return boxes;
-    }
-
-    async createBox(boxInputs: BoxInputs): Promise<void> {
-
-        let passHashHash = win.Web3.utils.soliditySha3(
-            win.Web3.utils.soliditySha3(boxInputs.password)
+        let tokenContract = new ethers.Contract(
+            tokenAddress,
+            ERC20_ABI,
+            this.signer
         );
 
+        // Start loading
+        this.loadingIndicatorServ.on();
+
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await tokenContract.approve(this.ethboxAddress, MAX_VALUE);
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Token approval aborted by user.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error(
+                `Approval for unlimited allowance of ${tokenAddress} aborted`
+            );
+
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
+
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
+        });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
+
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Approval successful – You can now send / trade this token!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Successfully approved unlimited allowance of ${tokenAddress} (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.approvalInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
+    }
+
+    // It takes the backend data and adapt it to the frontend needs
+    // bcBox stands for "blockchain box" while appBox stands for "application box"
+    private bcBox2appBox(bcBox) {
+
+        let appBox: any = {}; // I should make a type here
+        for (let key in bcBox) {
+            if (bcBox.hasOwnProperty(key)) {
+
+                // Filter out numeric keys (why those are there?)
+                if (!isNaN(Number(key))) {
+                    continue;
+                }
+
+                // Evaluate BigNumber(s) to numeric strings in base-10
+                // This is just to implement this feature faster as the code migrated from web3 to ethers, in future should be refactored to work with BigNumber at all times
+                if (bcBox[key]._isBigNumber) {
+                    appBox[key] = bcBox[key].toString();
+                    continue;
+                }
+                appBox[key] = bcBox[key];
+            }
+        }
+        return appBox;
+    }
+
+    // Fetch the outgoing boxes (both privacy and non)
+    // Read only query
+    async getIncomingBoxes(): Promise<Box[]> {
+
+        let boxes = [];
+        for (let index of (await this.ethboxContract.getBoxesIncoming())) {
+
+            let appBox = this.bcBox2appBox(await this.ethboxContract.getBox(index));
+
+            // Mapping/enriching the box
+            appBox.index = index.toString();
+            appBox.hasPrivacy = false;
+            appBox.recipientHash = null;
+            appBox.senderHash = null;
+            appBox.timestamp = appBox.timestamp * 1e3;
+
+            // console.log("Box with NO privacy", appBox);
+            
+            boxes.push(appBox);
+        }
+        
+        for (let index of (await this.ethboxContract.getBoxesIncomingWithPrivacy())) {
+
+            let appBox = this.bcBox2appBox(await this.ethboxContract.getBoxWithPrivacy(index));
+
+            // Mapping/enriching the box
+            appBox.index = index.toString();
+            appBox.hasPrivacy = true;
+            appBox.requestToken = null;
+            appBox.requestValue = null;
+            appBox.timestamp = appBox.timestamp * 1e3;
+
+            // console.log("Box with privacy", appBox);
+            
+            boxes.push(appBox);
+        }
+
+        // Sort boxes by date from newest to oldest
+        boxes.sort((a, b) => b.timestamp - a.timestamp);
+        // console.log("Incoming boxes", boxes);
+
+        return boxes;
+    }
+
+    // Fetch the outgoing boxes (both privacy and non)
+    // Read only query
+    async getOutgoingBoxes(): Promise<Box[]> {
+
+        let boxes = [];
+        for (let index of (await this.ethboxContract.getBoxesOutgoing())) {
+
+            let appBox = this.bcBox2appBox(await this.ethboxContract.getBox(index));
+
+            // Mapping/enriching the box
+            appBox.index = index.toString();
+            appBox.hasPrivacy = false;
+            appBox.recipientHash = null;
+            appBox.senderHash = null;
+            appBox.timestamp = appBox.timestamp * 1e3;
+
+            // console.log("Box with NO privacy", appBox);
+            
+            boxes.push(appBox);
+        }
+        
+        for (let index of (await this.ethboxContract.getBoxesOutgoingWithPrivacy())) {
+
+            let appBox = this.bcBox2appBox(await this.ethboxContract.getBoxWithPrivacy(index));
+
+            // Mapping/enriching the box
+            appBox.index = index.toString();
+            appBox.hasPrivacy = true;
+            appBox.requestToken = null;
+            appBox.requestValue = null;
+            appBox.timestamp = appBox.timestamp * 1e3;
+
+            // console.log("Box with privacy", appBox);
+            
+            boxes.push(appBox);
+        }
+
+        // Sort boxes by date from newest to oldest
+        boxes.sort((a, b) => b.timestamp - a.timestamp);
+        // console.log("Outgoing boxes", boxes);
+
+        return boxes;
+    }
+
+    // Make a box
+    // State changing operation
+    async createBox(boxInputs: BoxInputs): Promise<void> {
+
+        // Double hash the password
+        let passHashHash = this.doubleHash(boxInputs.password);
+
+        // Get send token details
         let sendTokenData = await this.getTokenData(boxInputs.sendTokenAddress);
         let sendWei = this.decimalToWei(
             boxInputs.sendDecimalValue,
-            sendTokenData.decimals);
+            sendTokenData.decimals
+        );
 
+        // Get request token details
         let requestTokenData = await this.getTokenData(boxInputs.requestTokenAddress);
         let requestWei = this.decimalToWei(
             boxInputs.requestDecimalValue,
-            requestTokenData.decimals);
+            requestTokenData.decimals
+        );
 
+        // If box is one-way, then baseTokenWei is defined
+        // Conversely if box is OTC, then baseTokenWei is ZERO
         let baseTokenWei = ZERO;
         if (boxInputs.sendTokenAddress == ADDRESS_ZERO) {
             baseTokenWei = sendWei;
         }
 
-        // Wrapping this into a promise so that I can have the result back by awaiting it
-        return new Promise((resolve, reject) => {
-            this.loadingIndicatorServ.on();
-            this.ethboxContract.methods
-                .createBox(
-                    boxInputs.recipient,
-                    boxInputs.sendTokenAddress,
-                    sendWei,
-                    boxInputs.requestTokenAddress,
-                    requestWei,
-                    passHashHash)
-                .send({
-                    from: this.selectedAccount$.getValue(),
-                    value: baseTokenWei
-                })
-                .on("transactionHash", hash =>
-                    this.ngZone.run(() => {
-    
-                        this.toasterServ.toastMessage$.next({
-                            type: "secondary",
-                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                            duration: "short"
-                        });
-    
-                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
-    
-                    }))
-                .on("receipt", receipt =>
-                    this.ngZone.run(() => {
-    
-                        this.toasterServ.toastMessage$.next({
-                            type: "success",
-                            message: "Your outgoing transaction has been confirmed!",
-                            duration: "long"
-                        });
-    
-                        this.viewConsoleServ.log(`Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-    
-                        this.boxInteraction$.next(true);
-                        this.loadingIndicatorServ.off();
-    
-                        resolve(receipt);
-                    }))
-                .on("error", error =>
-                    this.ngZone.run(() => {
-    
-                        this.toasterServ.toastMessage$.next({
-                            type: "danger",
-                            message: "Sending aborted.",
-                            duration: "long"
-                        });
-    
-                        this.viewConsoleServ.error("Box creation aborted");
-    
-                        this.loadingIndicatorServ.off();
-    
-                        reject(error);
-                    }));
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: baseTokenWei
+        };
+
+        // Start loading
+        this.loadingIndicatorServ.on();
+
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.createBox(
+                boxInputs.recipient,
+                boxInputs.sendTokenAddress,
+                sendWei,
+                boxInputs.requestTokenAddress,
+                requestWei,
+                passHashHash,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Sending aborted.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Box creation aborted");
+
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
+
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
         });
-    }
-
-    async createBoxWithPrivacy(boxInputs: BoxInputs): Promise<void> {
-
-        let recipientHash = win.Web3.utils.soliditySha3(boxInputs.recipient);
-
-        let passHashHash = win.Web3.utils.soliditySha3(
-            win.Web3.utils.soliditySha3(boxInputs.password)
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
         );
 
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Your outgoing transaction has been confirmed!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
+    }
+
+    // Make a privacy-preserving box
+    // State changing operation
+    async createBoxWithPrivacy(boxInputs: BoxInputs): Promise<void> {
+
+        // Hash the recipient for privacy
+        let recipientHash = this.hash(boxInputs.recipient);
+
+        // Double hash the password
+        let passHashHash = this.doubleHash(boxInputs.password);
+
+        // Get send token details
         let sendTokenData = await this.getTokenData(boxInputs.sendTokenAddress);
         let sendWei = this.decimalToWei(
             boxInputs.sendDecimalValue,
-            sendTokenData.decimals);
+            sendTokenData.decimals
+        );
 
+        // If box is one-way, then baseTokenWei is defined
+        // Conversely if box is OTC, then baseTokenWei is ZERO
         let baseTokenWei = ZERO;
         if (boxInputs.sendTokenAddress == ADDRESS_ZERO) {
             baseTokenWei = sendWei;
         }
 
-        // Wrapping this into a promise so that I can have the result back by awaiting it
-        return new Promise((resolve, reject) => {
-            this.loadingIndicatorServ.on();
-            this.ethboxContract.methods
-                .createBoxWithPrivacy(
-                    recipientHash,
-                    boxInputs.sendTokenAddress,
-                    sendWei,
-                    passHashHash)
-                .send({
-                    from: this.selectedAccount$.getValue(),
-                    value: baseTokenWei
-                })
-                .on("transactionHash", hash =>
-                    this.ngZone.run(() => {
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: baseTokenWei
+        };
 
-                        this.toasterServ.toastMessage$.next({
-                            type: "secondary",
-                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                            duration: "short"
-                        });
+        // Start loading
+        this.loadingIndicatorServ.on();
 
-                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.createBox(
+                recipientHash,
+                boxInputs.sendTokenAddress,
+                sendWei,
+                passHashHash,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Sending aborted.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Box creation aborted");
 
-                    }))
-                .on("receipt", receipt =>
-                    this.ngZone.run(() => {
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
 
-                        this.toasterServ.toastMessage$.next({
-                            type: "success",
-                            message: "Your outgoing transaction has been confirmed!",
-                            duration: "long"
-                        });
-
-                        this.viewConsoleServ.log(`Box with privacy creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-
-                        this.boxInteraction$.next(true);
-                        this.loadingIndicatorServ.off();
-
-                        resolve(receipt);
-                    }))
-                .on("error", error =>
-                    this.ngZone.run(() => {
-
-                        this.toasterServ.toastMessage$.next({
-                            type: "danger",
-                            message: "Sending aborted.",
-                            duration: "long"
-                        });
-
-                        this.viewConsoleServ.error("Box with privacy creation aborted");
-
-                        this.loadingIndicatorServ.off();
-
-                        reject(error);
-                    }));
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
         });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
+
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Your outgoing transaction has been confirmed!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Box creation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
     }
 
+    // Cancel a box
+    // State changing operation
     async cancelBox(boxIndex: number): Promise<void> {
 
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: ZERO // Do I really need this?
+        };
+
+        // Start loading
         this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .cancelBox(boxIndex)
-            .send({
-                from: this.selectedAccount$.getValue(),
-                value: ZERO
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.cancelBox(
+                boxIndex,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Sending aborted.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Box creation aborted");
 
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
 
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
+        });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "Cancelling transaction successful!",
-                        duration: "long"
-                    });
+        let receipt = await tx.wait();
 
-                    this.viewConsoleServ.log(`Box cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Cancelling transaction successful!",
+            duration: "long"
+        });
 
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
+        this.viewConsoleServ.log(
+            `Box cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Cancelling transaction aborted by user.",
-                        duration: "long"
-                    });
-                    
-                    this.viewConsoleServ.error("Box cancellation aborted");
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
 
-                    this.loadingIndicatorServ.off();
-                }));
+        // Return receipt to the consumer
+        return receipt;
     }
 
+    // Cancel a privacy-preserving box
+    // State changing operation
     async cancelBoxWithPrivacy(boxIndex: number): Promise<void> {
 
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: ZERO // Do I really need this?
+        };
+
+        // Start loading
         this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .cancelBoxWithPrivacy(boxIndex)
-            .send({
-                from: this.selectedAccount$.getValue(),
-                value: ZERO
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.cancelBoxWithPrivacy(
+                boxIndex,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Sending aborted.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Box creation aborted");
 
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
 
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
+        });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "Cancelling transaction successful!",
-                        duration: "long"
-                    });
+        let receipt = await tx.wait();
 
-                    this.viewConsoleServ.log(`Box with privacy cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Cancelling transaction successful!",
+            duration: "long"
+        });
 
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
+        this.viewConsoleServ.log(
+            `Box cancellation confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Cancelling transaction aborted by user.",
-                        duration: "long"
-                    });
-                    
-                    this.viewConsoleServ.error("Box with privacy cancellation aborted");
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
 
-                    this.loadingIndicatorServ.off();
-                }));
+        // Return receipt to the consumer
+        return receipt;
     }
 
+    // Accept a box
+    // State changing operation
+    // 
+    // TODO: How to deal with dialogs in a flexible way?
     async acceptBox(box: Box, password: string): Promise<void> {
 
-        let selectedAccount = this.selectedAccount$.getValue();
-        let passHash = win.Web3.utils.soliditySha3(password);
+        // Hash the password to check if the user has unlocked the box
+        let passHash = this.hash(password);
 
         // If the requestedToken is the base token, then there's no need to approve
-        let baseTokenAmount = ZERO;
+        let baseTokenWei = ZERO;
         if (box.requestToken == ADDRESS_ZERO) {
-            baseTokenAmount = box.requestValue;
-        }
-        else {
+            baseTokenWei = box.requestValue;
+        } else {
 
             // Getting the user balance of the requestedToken
             let tokenBalance = await this.getTokenBalance(box.requestToken);
 
-            // If the balance is not enough, then rejects the operation
+            // If the balance is not enough, then reject the operation
             if ((new BigNumber(box.requestValue)).gt(tokenBalance.wei)) {
-
                 this.toasterServ.toastMessage$.next({
                     type: "danger",
                     message: `Your have ${tokenBalance.decimalValue} ${box.requestTokenInfo.symbol}, not enough for the exchange.`,
@@ -1125,9 +1544,10 @@ export class ContractService {
                 return;
             }
 
-            // If the allowance is not enough, then asks for the approval
+            // If the allowance is not enough, then ask for the approval
             if ((new BigNumber(box.requestValue)).gt(tokenBalance.weiAllowance)) {
-            
+
+                // Spawn a dialog
                 let isConfirmed = await this.confirmDialogServ.spawn({
                     dialogName: "Do you want to approve?",
                     message: 'To accept the exchange you need to approve the requested token first. The approval is required only once per token.<br><span class="fw-bold">Do you want to approve?<span>',
@@ -1135,9 +1555,7 @@ export class ContractService {
                 });
 
                 // Confirm dialog dismissed
-                if (!isConfirmed) {
-                    return;
-                }
+                if (!isConfirmed) return;
 
                 await this.approveMax(box.requestToken);
                 // Stopping here, the user has to click again (clearer from UX perspective)
@@ -1145,200 +1563,212 @@ export class ContractService {
             }
         }
 
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: baseTokenWei
+        };
+
+        // Start loading
         this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .clearBox(box.index, passHash)
-            .send({
-                from: selectedAccount,
-                value: baseTokenAmount
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.clearBox(
+                box.index,
+                passHash,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Box approval aborted. Details in the console.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Box approval aborted");
 
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
 
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
+        });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "The box has been accepted!",
-                        duration: "long"
-                    });
+        let receipt = await tx.wait();
 
-                    this.viewConsoleServ.log(`Box approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "The box has been accepted!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Box approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
 
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Box approval aborted. Details in the console",
-                        duration: "long"
-                    });
-                    
-                    this.viewConsoleServ.error("Box approval aborted");
-
-                    this.loadingIndicatorServ.off();
-                }));
+        // Return receipt to the consumer
+        return receipt;
     }
 
+    // Accept a privacy-preserving box
+    // State changing operation
     async acceptBoxWithPrivacy(box: Box, password: string): Promise<void> {
 
-        let selectedAccount = this.selectedAccount$.getValue();
-        let passHash = win.Web3.utils.soliditySha3(password);
+        // Hash the password to check if the user has unlocked the box
+        let passHash = this.hash(password);
 
+        // Overrides in ethers are similar to .send({ value: ethValue }) in web3
+        let overrides = {
+            value: ZERO // Do I really need this?
+        };
+
+        // Start loading
         this.loadingIndicatorServ.on();
-        this.ethboxContract.methods
-            .clearBoxWithPrivacy(box.index, passHash)
-            .send({
-                from: selectedAccount,
-                value: ZERO
-            })
-            .on("transactionHash", hash =>
-                this.ngZone.run(() => {
 
-                    this.toasterServ.toastMessage$.next({
-                        type: "secondary",
-                        message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                        duration: "short"
-                    });
-
-                    this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
-
-                }))
-            .on("receipt", receipt =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "success",
-                        message: "The box has been accepted!",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.log(`Box with privacy approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-
-                    this.boxInteraction$.next(true);
-                    this.loadingIndicatorServ.off();
-                }))
-            .on("error", error =>
-                this.ngZone.run(() => {
-
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Box with privacy approval aborted. Details in the console",
-                        duration: "long"
-                    });
-                    
-                    this.viewConsoleServ.error("Box approval aborted");
-
-                    this.loadingIndicatorServ.off();
-                }));
-    }
-
-    signMessage(message) {
-
-        let selectedAccount = this.selectedAccount$.getValue();
-
-        return new Promise((resolve, reject) => {
-            this.provider.sendAsync({
-                method: "personal_sign",
-                params: [message, selectedAccount],
-                from: selectedAccount
-            }, (error, response) => {
-
-                if (error) {
-                    this.toasterServ.toastMessage$.next({
-                        type: "danger",
-                        message: "Sign of message aborted. Details in the console",
-                        duration: "long"
-                    });
-
-                    this.viewConsoleServ.error("Sign of message aborted");
-
-                    return reject(error);
-                }
-
-                this.viewConsoleServ.log(`A message was signed successfully (message: ${message}, sign: ${response.result})`);
-
-                resolve(response);
-
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.ethboxContract.clearBoxWithPrivacy(
+                box.index,
+                passHash,
+                overrides
+            );
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Box approval aborted. Details in the console.",
+                duration: "long"
             });
+            this.viewConsoleServ.error("Box approval aborted");
+
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
+
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
         });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
+
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "The box has been accepted!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Box approval confirmed (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.boxInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
     }
 
-    async getRewardAmount() {
+    async signMessage(message) {
 
-        let result = await this.stakingContract.methods
-            .getUnclaimedReward()
-            .call({ from: this.selectedAccount$.getValue() });
-        return win.Web3.utils.fromWei(result);
+        let signature;
+        try {
+            signature = await this.signer.signMessage(message);
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Sign of message aborted. Details in the console",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Sign of message aborted");
+        }
+
+        this.viewConsoleServ.log(
+            `A message was signed successfully (message: ${message}, sign: ${signature})`
+        );
+
+        // Return the signature to the consumer
+        return signature;
     }
 
-    claimReward() {
+    // Return the decimal value for the staking rewards the user can claim
+    // Read only query
+    async getReward() {
+        let bn = await this.stakingContract.getUnclaimedReward();
+        return this.weiToDecimal(bn.toString(), 18);
+    }
 
+    // State changing operation
+    async claimReward() {
+
+        // Start loading
         this.loadingIndicatorServ.on();
 
-        return new Promise((resolve, reject) => {
-            this.stakingContract.methods
-                .claimReward()
-                .send({
-                    from: this.selectedAccount$.getValue()
-                })
-                .on("transactionHash", hash =>
-                    this.ngZone.run(() => {
+        // Making of the transaction
+        let tx;
+        try {
+            tx = await this.stakingContract.claimReward();
+        }
+        catch (err) {
+            this.toasterServ.toastMessage$.next({
+                type: "danger",
+                message: "Reward claiming aborted. Details in the console.",
+                duration: "long"
+            });
+            this.viewConsoleServ.error("Reward claiming aborted");
 
-                        this.toasterServ.toastMessage$.next({
-                            type: "secondary",
-                            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
-                            duration: "short"
-                        });
+            this.loadingIndicatorServ.off();
+            throw err;
+        }
 
-                        this.viewConsoleServ.warning(`Waiting for transaction to confirm (tx hash: ${hash})`);
-
-                    }))
-                .on("receipt", receipt =>
-                    this.ngZone.run(() => {
-
-                        this.toasterServ.toastMessage$.next({
-                            type: "success",
-                            message: "Reward has been claimed!",
-                            duration: "long"
-                        });
-
-                        this.viewConsoleServ.log(`Rewards claimed successfully (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`);
-
-                        this.stakingInteraction$.next(true);
-                        this.loadingIndicatorServ.off();
-
-                        resolve(receipt);
-                    }))
-                .on("error", error =>
-                    this.ngZone.run(() => {
-
-                        this.toasterServ.toastMessage$.next({
-                            type: "danger",
-                            message: "Reward claiming aborted. Details in the console",
-                            duration: "long"
-                        });
-
-                        this.viewConsoleServ.error("Reward claiming aborted");
-
-                        this.loadingIndicatorServ.off();
-
-                        reject(error);
-                    }));
+        // Waiting for transaction confirmation
+        this.toasterServ.toastMessage$.next({
+            type: "secondary",
+            message: "Waiting for transaction to confirm (may take a while, depending on network load)...",
+            duration: "short"
         });
+        this.viewConsoleServ.warning(
+            `Waiting for transaction to confirm (tx hash: ${tx.hash})`
+        );
+
+        let receipt = await tx.wait();
+
+        // Transaction confirmed
+        this.toasterServ.toastMessage$.next({
+            type: "success",
+            message: "Reward has been claimed!",
+            duration: "long"
+        });
+        this.viewConsoleServ.log(
+            `Rewards claimed successfully (gas used: ${receipt.gasUsed}, tx hash: ${receipt.transactionHash})`
+        );
+
+        // Stop loading
+        this.stakingInteraction$.next(true);
+        this.loadingIndicatorServ.off();
+
+        // Return receipt to the consumer
+        return receipt;
     }
 
 }

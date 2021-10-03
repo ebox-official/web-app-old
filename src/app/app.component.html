@@ -1,3 +1,5 @@
+<app-loading-indicator></app-loading-indicator>
+
 <input hidden #triggerMenu id="menu-trigger" type="checkbox">
 <label for="menu-trigger"></label>
 
@@ -6,15 +8,12 @@
   <div id="main-content">
 
     <app-top-bar></app-top-bar>
-    <app-loading-indicator></app-loading-indicator>
     
     <router-outlet></router-outlet>
     
-    <app-view-console></app-view-console>
     <app-bottom-bar></app-bottom-bar>
     
   </div>
-  <app-toaster-notifier></app-toaster-notifier>
 </div>
 
 <div id="main-slide-menu">
@@ -124,3 +123,6 @@
   </div>
 
 </div>
+
+<app-view-console></app-view-console>
+<app-toaster-notifier></app-toaster-notifier>

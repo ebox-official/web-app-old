@@ -1,4 +1,4 @@
-import { Component, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ContractService } from '../../services/contract.service';
 import { AddressBookService } from 'src/app/services/address-book.service';
 
@@ -34,7 +34,6 @@ export class BoxesSentListComponent implements OnInit, OnDestroy {
     
     constructor(
         public contractServ: ContractService,
-        private ngZone: NgZone,
         private addressBookServ: AddressBookService) { }
 
     ngOnInit() {
