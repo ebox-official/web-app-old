@@ -408,8 +408,8 @@ export class ContractService {
                   name: "Polkadot Wallet",
                   description: "Reef Finance Testnet"
                 },
-                package: true,
-                connector: async () => ({ isCustom: "reeftestnet" })
+                package: false,
+                connector: () => ({ isCustom: "reeftestnet" })
             }
         };
 
@@ -420,8 +420,8 @@ export class ContractService {
                   name: "Polkadot Wallet",
                   description: "Reef Finance Mainnet"
                 },
-                package: true,
-                connector: async () => ({ isCustom: "reefmainnet" })
+                package: false,
+                connector: () => ({ isCustom: "reefmainnet" })
             }
         };
 
