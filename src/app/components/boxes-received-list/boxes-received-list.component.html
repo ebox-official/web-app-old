@@ -90,7 +90,7 @@
   <!-- boxes -->
   <div class="container-medium d-grid gap-2">
     <app-box-received
-      *ngFor="let box of paginatedBoxes; index as i; trackBy: identifier"
+      *ngFor="let box of paginatedBoxes; index as i; trackBy: boxId"
       [box]="box"
       class="box"
       style="--animation-order: {{ i }}"

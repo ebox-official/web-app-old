@@ -34,8 +34,7 @@ export class BoxSentComponent {
                         .getTokenBalance(this.box.requestTokenInfo.address);
                 }
                 
-                console.log('send token balance', this.sendTokenBalance);
-                console.log('request token balance', this.requestTokenBalance);
+                console.log("Opened box", this.box);
             }
         }
 

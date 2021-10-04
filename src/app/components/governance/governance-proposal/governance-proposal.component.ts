@@ -20,7 +20,6 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
     chainId;
     isEthereumMainnet;
     selectedAccount;
-    isGovernanceReady;
 
     buttonMessage;
     buttonFunction;
@@ -39,8 +38,7 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
         [
             this.contractServ.chainId$,
             this.contractServ.isEthereumMainnet$,
-            this.contractServ.selectedAccount$,
-            this.contractServ.isGovernanceReady$
+            this.contractServ.selectedAccount$
         ].forEach(
             obs => obs.subscribe(
                 async () => {
@@ -49,7 +47,6 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
                     this.chainId = this.contractServ.chainId$.getValue();
                     this.isEthereumMainnet = true; //this.contractServ.isEthereumMainnet$.getValue();
                     this.selectedAccount = this.contractServ.selectedAccount$.getValue();
-                    this.isGovernanceReady = true; //this.contractServ.isGovernanceReady$.getValue();
 
                     // Calculating a message for the user
                     if (!this.chainId || !this.selectedAccount) {
@@ -60,11 +57,6 @@ export class GovernanceProposalComponent implements OnInit, OnDestroy {
                     }
                     if (!this.isEthereumMainnet) {
                         this.buttonMessage = 'Wrong network – Please use the Ethereum Mainnet!';
-                        this.isButtonDisabled = true;
-                        return;
-                    }
-                    if (!this.isGovernanceReady) {
-                        this.buttonMessage = 'Initializing ethbox smart contract...';
                         this.isButtonDisabled = true;
                         return;
                     }

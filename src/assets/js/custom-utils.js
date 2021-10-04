@@ -24,21 +24,21 @@ export function SmartInterval(asyncFn, delayMs) {
 SmartInterval.prototype.cycle = async function () {
     await this.asyncFn();
     await delay(this.delayMs);
-    if (this.isRunning) this.cycle();
+    if (this.running) this.cycle();
 };
 
 SmartInterval.prototype.start = function () {
-    if (this.isRunning) return;
-    this.isRunning = true;
+    if (this.running) return;
+    this.running = true;
     this.cycle();
 };
 
 SmartInterval.prototype.stop = function () {
-    if (this.isRunning) this.isRunning = false;
+    if (this.running) this.running = false;
 };
 
 SmartInterval.prototype.forceExecution = function () {
-    this.cycle();
+    if (this.running) this.cycle();
 };
 
 export function deviceType() {

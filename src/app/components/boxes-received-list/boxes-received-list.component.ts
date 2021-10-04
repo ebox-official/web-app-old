@@ -92,7 +92,7 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
 
                     this.fetchedBoxes = boxes
                         .map(box => ({
-                            addressBookName: this.addressBookMap[box.recipient],
+                            addressBookName: this.addressBookMap[box.sender],
                             ...box
                         }));
                     
@@ -133,38 +133,9 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
         }
         this.paginationText = `${start + 1}-${end} / ${this.filteredBoxes.length}`;
         let boxesInView = this.filteredBoxes.slice(start, end);
-
-        // For performance is better to enrich boxes here (just those boxes in the view)
-        for (let box of boxesInView) {
-
-            box.readableTimestamp = new Date(box.timestamp)
-                .toLocaleDateString(
-                    undefined, // Fallbacks to the user's locale
-                    {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }
-                );
-
-            box.sendTokenInfo = await this.contractServ.getTokenData(box.sendToken);
-            box.sendDecimalValue = this.contractServ.weiToDecimal(
-                box.sendValue,
-                box.sendTokenInfo.decimals);
-            
-            if (box.requestToken) {
-                box.requestTokenInfo = await this.contractServ.getTokenData(box.requestToken);
-                box.requestDecimalValue = this.contractServ.weiToDecimal(
-                    box.requestValue,
-                    box.requestTokenInfo.decimals);
-            } else {
-                box.requestValue = '0';
-            }
-        }
-
-        this.message = null; // Remove "Loading..." message
+        
+        // Remove "Loading..." message
+        this.message = null;
 
         this.paginatedBoxes = boxesInView;
     }
@@ -175,11 +146,31 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
             return;
         }
 
+        // Should I move the predicates below into contract.service.ts?
         this.filteredBoxes = this.fetchedBoxes
-            .filter(box =>
-                !this.state || box.taken == (this.state == 'completed'))
-            .filter(box =>
-                !this.type || box.requestValue === '0' == (this.type == 'withdraw'));
+            .filter(box => {
+                let isTaken = box.taken && box.taken == true;
+                switch(this.state) {
+                    case "pending":
+                        return !isTaken;
+                    case "completed":
+                        return isTaken;
+                    default:
+                        return true;
+                }
+            })
+            .filter(box => {
+                let isExchange = box.requestValue && box.requestValue != "0";
+                let isWithdraw = !box.requestValue || box.requestValue == "0";
+                switch(this.type) {
+                    case "withdraw":
+                        return isWithdraw;
+                    case "exchange":
+                        return isExchange;
+                    default:
+                        return true;
+                }
+            });
 
         if (this.order) {
             this.filteredBoxes.sort((a, b) =>
@@ -190,8 +181,9 @@ export class BoxesReceivedListComponent implements OnInit, OnDestroy {
         this.updatePagination();
     }
 
-    // This piece of code tells Angular how to track boxes efficiently, when and where to touch the DOM
-    identifier(index, box) {
-        return `${box.sender}-${box.recipient}-${box.taken}-${box.timestamp}`;
+    // This piece of code tells Angular how to track boxes efficiently
+    // when and where to touch the DOM
+    boxId(index, box) {
+        return  `${box.sender}-${box.recipient}-${box.taken}-${box.timestamp}`;
     }
 }

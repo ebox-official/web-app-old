@@ -37,13 +37,12 @@ import {
  * - isEthereumMainnet$
  * - isBinanceMainnet$
  * - isMaticMainnet$
- * - isReefChain$
+ * - isReef$
  * - reefCustomProviderName
  * 
  * (High-level flags)
  * - isAppReady$
  * - isStakingReady$
- * - isGovernanceReady$
  * 
  * (Interaction impulses)
  * - approvalInteraction$
@@ -53,48 +52,51 @@ import {
  * 
  * Following a table of methods that are available here:
  * (Handshaking stuff)
- * - connect
- * - disconnect
- * - init
- * - fetchVariables
- * - loadTokens
- * - resetVariables
+ * + connect
+ * + disconnect
+ * + init
+ * + fetchVariables
+ * + loadTokens
+ * + hardReset
  * 
  * (Network predicates)
- * - isEthereum
- * - isBinance
- * - isMatic
- * - isEthereumMainnet
- * - isBinanceMainnet
- * - isMaticMainnet
- * - isEthereumTestnet
- * - isBinanceTestnet
- * - isMaticTestnet
+ * + isEthereum
+ * + isBinance
+ * + isMatic
+ * + isReef
+ * + isEthereumMainnet
+ * + isBinanceMainnet
+ * + isMaticMainnet
+ * + isReefMainnet
+ * + isEthereumTestnet
+ * + isBinanceTestnet
+ * + isMaticTestnet
+ * + isReefTestnet
  *
  * (Utilities)
- * - give100TestTokens
- * - isValidAddress
- * - doubleHash
- * - isValidPassword
+ * + give100TestTokens
+ * + isValidAddress
+ * + doubleHash
+ * + isValidPassword
  *
  * (User balance/allowance stuff)
- * - weiToDecimal
- * - decimalToWei
- * - getWeiAllowance
- * - getTokenData
- * - getTokenBalance
- * - approveMax
+ * + weiToDecimal
+ * + decimalToWei
+ * + getWeiAllowance
+ * + getTokenData
+ * + getTokenBalance
+ * + approveMax
  *
  * (Boxes stuff)
- * - bcBox2appBox
- * - getIncomingBoxes
- * - getOutgoingBoxes
- * - createBox/createBoxWithPrivacy
- * - cancelBox/cancelBoxWithPrivacy
- * - acceptBox/acceptBoxWithPrivacy
- * - signMessage
- * - getReward
- * - claimReward
+ * + bcBox2appBox
+ * + getIncomingBoxes
+ * + getOutgoingBoxes
+ * + createBox/createBoxWithPrivacy
+ * + cancelBox/cancelBoxWithPrivacy
+ * + acceptBox/acceptBoxWithPrivacy
+ * + signMessage
+ * + getReward
+ * + claimReward
  */
 
 // This is an hacky solution to get some scripts available here
@@ -111,7 +113,7 @@ export class ContractService {
     // These variables are just for the boxes loop, there is a SmartInterval objects that's used to fetch boxes over time so that a new request doesn't happen before the last has already resolved
     incomingBoxes$ = new AsyncVar(null);
     outgoingBoxes$ = new AsyncVar(null);
-    private boxesIntervalCycleDelay = 2e3;
+    private boxesIntervalCycleDelay = 3e3;
     private boxesInterval;
     private accountsChangedInterval;
 
@@ -124,12 +126,11 @@ export class ContractService {
     isMaticMainnet$ = new AsyncVar(false);
 
     // Separate way of handling the connection to Polkadot{.js} via Reef Defi
-    isReefChain$ = new AsyncVar(false);
+    isReef$ = new AsyncVar(false);
     reefCustomProviderName = null;
     
     isAppReady$ = new AsyncVar(false);
     isStakingReady$ = new AsyncVar(false);
-    isGovernanceReady$ = new AsyncVar(false);
 
     // AsyncPulse simply emits a value that can be listened only by those who are currently listening
     approvalInteraction$ = new AsyncPulse();
@@ -178,12 +179,12 @@ export class ContractService {
             let connection = await this.web3Modal.connect();
 
             // When user has tapped on Reef, initialize things differently
-            if (connection.isCustom && /reef/.test(connection.isCustom)) {
+            if (connection.custom && /reef/.test(connection.custom)) {
 
-                this.isReefChain$.next(true);
+                this.isReef$.next(true);
 
                 // Either "reeftestnet" or "reefmainnet"
-                this.reefCustomProviderName = connection.isCustom;
+                this.reefCustomProviderName = connection.custom;
 
                 this.loadingIndicatorServ.on();
 
@@ -232,7 +233,7 @@ export class ContractService {
                 this.loadingIndicatorServ.off();
             }
             else {
-                this.isReefChain$.next(false);
+                this.isReef$.next(false);
 
                 this.provider = new ethers.providers
                     .Web3Provider(
@@ -256,7 +257,7 @@ export class ContractService {
             return;
         }
         
-        if (!this.isReefChain$.getValue()) {
+        if (!this.isReef$.getValue()) {
 
             // Listeners to refresh contracts on network and account changes
             this.provider.on("network", () =>
@@ -287,7 +288,7 @@ export class ContractService {
     // Run on user interaction
     async disconnect(): Promise<void> {
 
-        if (!this.isReefChain$.getValue() && "removeAllListeners" in this.provider) {
+        if (!this.isReef$.getValue() && "removeAllListeners" in this.provider) {
             this.provider.removeAllListeners("network");
             clearInterval(this.accountsChangedInterval);
         }
@@ -302,12 +303,7 @@ export class ContractService {
         this.provider = null;
         this.signer = null;
 
-        this.chainId$.next(null);
-        this.isChainSupported$.next(false);
-        this.isEthereumMainnet$.next(false);
-        this.selectedAccount$.next(null);
-
-        this.resetVariables();
+        this.hardReset();
         this.loadingIndicatorServ.off();
     }
 
@@ -339,7 +335,7 @@ export class ContractService {
                     } else {
                         throw new Error("No MetaMask Wallet found");
                     }
-                    return { provider, isCustom: "metamask" };
+                    return { provider, custom: "metamask" };
                 }
             }
         };
@@ -373,7 +369,7 @@ export class ContractService {
                     } else {
                         throw new Error("No Binance Chain Wallet found");
                     }
-                    return { provider, isCustom: "binancechainwallet" };
+                    return { provider, custom: "binancechainwallet" };
                 }
             }
         };
@@ -396,7 +392,7 @@ export class ContractService {
                     let walletLink = new WalletLink({ appName });
                     let provider = walletLink.makeWeb3Provider(networkUrl, chainId);
                     await provider.enable();
-                    return { provider, isCustom: "coinbase" };
+                    return { provider, custom: "coinbase" };
                 }
             }
         };
@@ -408,8 +404,8 @@ export class ContractService {
                   name: "Polkadot Wallet",
                   description: "Reef Finance Testnet"
                 },
-                package: false,
-                connector: () => ({ isCustom: "reeftestnet" })
+                package: true,
+                connector: async () => ({ custom: "reeftestnet" })
             }
         };
 
@@ -420,8 +416,8 @@ export class ContractService {
                   name: "Polkadot Wallet",
                   description: "Reef Finance Mainnet"
                 },
-                package: false,
-                connector: () => ({ isCustom: "reefmainnet" })
+                package: true,
+                connector: async () => ({ custom: "reefmainnet" })
             }
         };
 
@@ -478,7 +474,8 @@ export class ContractService {
      */
     private async fetchVariables(): Promise<void> {
 
-        // this.resetVariables(); // Is this even necessary?
+        this.softReset();
+
         this.loadingIndicatorServ.on();
 
         // Retrieving the chainId
@@ -487,7 +484,7 @@ export class ContractService {
 
         this.chainId$.next(chainId);
 
-        if (!this.isReefChain$.getValue()) {
+        if (!this.isReef$.getValue()) {
 
             // Retrieving the selectedAccount
             let accounts = await this.provider.listAccounts();
@@ -502,258 +499,94 @@ export class ContractService {
             return;
         }
 
-        // Sets the addresses for the contracts depending on the current chain
-        // If the user is on the wrong chain, then resets and return
-        if (this.isReefTestnet()) {
+        this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
+        this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
-            this.isChainSupported$.next(true);
+        this.viewConsoleServ.log("1 - Ethereum");
+        this.viewConsoleServ.log("4 - Rinkeby");
+        this.viewConsoleServ.log("56 - BSC");
+        this.viewConsoleServ.log("97 - BSC Testnet");
+        this.viewConsoleServ.log("137 - Matic");
+        this.viewConsoleServ.log("80001 - Matic Testnet");
 
-            this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-
-            this.stakingContract = new ethers.Contract(
-                this.stakingAddress,
-                STAKING.ABI,
-                this.signer
-            );
-            console.log(
-                "Staking contract",
-                this.stakingAddress,
-                this.stakingContract
-            );
-
-            this.loadTokens();
-            this.boxesInterval.start();
-
-            this.isAppReady$.next(true);
+        // The following code sets contracts depending on the current chain
+        switch(chainId) {
+            case 13939: // Reef
+                if (this.isReefTestnet()) {
+                    this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
+                } else {
+                    this.hardReset();
+                    this.loadingIndicatorServ.off();
+                    return;
+                }
+                break;
+            case 1:     // Ethereum Mainnet
+                this.isEthereumMainnet$.next(true);
+                this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
+                this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
+                break;
+            case 4:     // Ethereum Testnet
+                this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET; 
+                this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
+                break;
+            case 56:    // Binance Mainnet
+                this.isBinanceMainnet$.next(true);
+                this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
+                this.stakingAddress = STAKING.ADDRESSES.BINANCE;
+                break;
+            case 97:    // Binance Testnet
+                this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
+                this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
+                break;
+            case 137:   // Matic Mainnet
+                this.isMaticMainnet$.next(true);
+                this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
+                break;
+            case 80001: // Matic Testnet
+                this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
+                this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
+                break;
+            default:
+                this.hardReset();
+                this.loadingIndicatorServ.off();
+                return;
         }
-        else if (chainId == 1) { // 1 = Ethereum Mainnet
 
-            this.isEthereumMainnet$.next(true);
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
+        if (this.ethboxAddress) {
             this.ethboxContract = new ethers.Contract(
                 this.ethboxAddress,
                 ETHBOX.ABI,
                 this.signer
             );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-            
-            this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
+        }
+
+        if (this.stakingAddress) {
             this.stakingContract = new ethers.Contract(
                 this.stakingAddress,
                 STAKING.ABI,
                 this.signer
             );
-            console.log(
-                "Staking contract",
-                this.stakingAddress,
-                this.stakingContract
-            );
-
-            this.loadTokens();
-            this.boxesInterval.start();
-
             this.isStakingReady$.next(true);
-            this.isGovernanceReady$.next(true);
-
-            this.isAppReady$.next(true);
         }
-        else if (chainId == 4) { // 4 = Ethereum Testnet
 
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-                    
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
+        if (this.tokenDispenserAddress) {
             this.tokenDispenserContract = new ethers.Contract(
                 this.tokenDispenserAddress,
                 TOKEN_DISPENSER.ABI,
                 this.signer
             );
-            console.log(
-                "Token dispenser contract",
-                this.tokenDispenserAddress,
-                this.tokenDispenserContract
-            );
-            
-            this.loadTokens();
-            this.boxesInterval.start();
-            
-            this.isAppReady$.next(true);
-        }
-        else if (chainId == 56) { // 56 = Binance Mainnet
-
-            this.isBinanceMainnet$.next(true);
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-            
-            this.stakingAddress = STAKING.ADDRESSES.BINANCE;
-            this.stakingContract = new ethers.Contract(
-                this.stakingAddress,
-                STAKING.ABI,
-                this.signer
-            );
-            console.log(
-                "Staking contract",
-                this.stakingAddress,
-                this.stakingContract
-            );
-
-            this.loadTokens();
-            this.boxesInterval.start();
-
-            this.isStakingReady$.next(true);
-            this.isGovernanceReady$.next(true);
-
-            this.isAppReady$.next(true);
-        }
-        else if (chainId == 97) { // 97 = Binance Testnet
-
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
-            this.tokenDispenserContract = new ethers.Contract(
-                this.tokenDispenserAddress,
-                TOKEN_DISPENSER.ABI,
-                this.signer
-            );
-            console.log(
-                "Token dispenser contract",
-                this.tokenDispenserAddress,
-                this.tokenDispenserContract
-            );
-            
-            this.loadTokens();
-            this.boxesInterval.start();
-            
-            this.isAppReady$.next(true);
-        }
-        else if (chainId == 137) { // 137 = Matic Mainnet
-
-            this.isMaticMainnet$.next(true);
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-
-            this.loadTokens();
-            this.boxesInterval.start();
-
-            this.isAppReady$.next(true);
-        }
-        else if (chainId == 80001) { // 80001 = Matic Testnet
-
-            this.isChainSupported$.next(true);
-
-            this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-            console.log(
-                "Ethbox contract",
-                this.ethboxAddress,
-                this.ethboxContract
-            );
-
-            this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
-            this.tokenDispenserContract = new ethers.Contract(
-                this.tokenDispenserAddress,
-                TOKEN_DISPENSER.ABI,
-                this.signer
-            );
-            console.log(
-                "Token dispenser contract",
-                this.tokenDispenserAddress,
-                this.tokenDispenserContract
-            );
-            
-            this.loadTokens();
-            this.boxesInterval.start();
-
-            this.isAppReady$.next(true);
-        }
-        else {
-            this.resetVariables();
         }
 
-        if (this.isAppReady$.getValue()) {
+        this.loadTokens();
+        this.boxesInterval.start();
+        this.isChainSupported$.next(true);
+        this.isAppReady$.next(true);
 
-            this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
-
-            this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
-
-            this.viewConsoleServ.log("1 - Ethereum");
-            this.viewConsoleServ.log("4 - Rinkeby");
-            this.viewConsoleServ.log("56 - BSC");
-            this.viewConsoleServ.log("97 - BSC Testnet");
-            this.viewConsoleServ.log("137 - Matic");
-            this.viewConsoleServ.log("80001 - Matic Testnet");
-
-            this.viewConsoleServ.log(`Ethbox contract address is ${this.ethboxAddress}`);
-
-            this.viewConsoleServ.log(`Staking contract address is ${this.stakingAddress}`);
-
-            this.viewConsoleServ.log(`Supported tokens are loaded (${this.tokens$.getValue()?.length})`);
-        }
+        this.viewConsoleServ.log(`Ethbox contract address is ${this.ethboxAddress}`);
+        this.viewConsoleServ.log(`Staking contract address is ${this.stakingAddress}`);
+        this.viewConsoleServ.log(
+            `Supported tokens are loaded (${this.tokens$.getValue()?.length})`
+        );
 
         this.loadingIndicatorServ.off();
     }
@@ -774,36 +607,45 @@ export class ContractService {
         }
 
         // Take tokens from curated lists for the current network
-        curatedTokens = chainTokenDictionary[this.chainId$.getValue()];
+        let currentChainTokens = chainTokenDictionary[this.chainId$.getValue()];
+        if (currentChainTokens) {
+            curatedTokens = currentChainTokens;
+        }
 
         let mergedResults = [...customTokens, ...curatedTokens];
         this.tokensMap = mergedResults.reduce((a, b) => (a[b.address] = b, a), {});;
         this.tokens$.next(mergedResults);
     }
 
-    private resetVariables() {
-
-        this.ethboxContract = null;
-        this.tokenDispenserContract = null;
-        this.stakingContract = null;
-
-        this.tokens$.next(null);
+    // Changing network/user
+    private softReset() {
+        this.isAppReady$.next(false);
+        this.isChainSupported$.next(false);
 
         this.boxesInterval.stop();
         this.incomingBoxes$.next(null);
         this.outgoingBoxes$.next(null);
+        this.tokens$.next(null);
 
-        this.isAppReady$.next(false);
+        this.tokenDispenserContract = null;
         this.isStakingReady$.next(false);
-        this.isGovernanceReady$.next(false);
+        this.stakingContract = null;
+        this.ethboxContract = null;
 
-        this.isChainSupported$.next(false);
-        this.isEthereumMainnet$.next(false);
-        this.isBinanceMainnet$.next(false);
         this.isMaticMainnet$.next(false);
+        this.isBinanceMainnet$.next(false);
+        this.isEthereumMainnet$.next(false);
+    }
 
-        this.isReefChain$.next(false);
+    // Disconnecting
+    private hardReset() {
+        this.softReset();
+
         this.reefCustomProviderName = null;
+        this.isReef$.next(false);
+
+        this.selectedAccount$.next(null);
+        this.chainId$.next(null);
     }
 
     isEthereum(): boolean {
@@ -818,8 +660,8 @@ export class ContractService {
         return [137, 80001].includes(this.chainId$.getValue());
     }
 
-    isReefChain(): boolean {
-        return this.isReefChain$.getValue();
+    isReef(): boolean {
+        return this.isReef$.getValue();
     }
 
     isEthereumMainnet(): boolean {
@@ -835,7 +677,7 @@ export class ContractService {
     }
 
     isReefTestnet(): boolean {
-        if (this.isReefChain$.getValue()) {
+        if (this.isReef$.getValue()) {
             return /testnet/.test(this.reefCustomProviderName);
         }
         return false;
@@ -853,8 +695,8 @@ export class ContractService {
         return this.chainId$.getValue() == 80001;
     }
 
-    isReefChainMainnet(): boolean {
-        if (this.isReefChain$.getValue()) {
+    isReefMainnet(): boolean {
+        if (this.isReef$.getValue()) {
             return /testnet/.test(this.reefCustomProviderName);
         }
         return false;
@@ -1103,7 +945,7 @@ export class ContractService {
 
     // It takes the backend data and adapt it to the frontend needs
     // bcBox stands for "blockchain box" while appBox stands for "application box"
-    private bcBox2appBox(bcBox) {
+    private async bcBox2appBox(bcBox, override) {
 
         let appBox: any = {}; // I should make a type here
         for (let key in bcBox) {
@@ -1123,6 +965,37 @@ export class ContractService {
                 appBox[key] = bcBox[key];
             }
         }
+
+        Object.assign(appBox, override);
+
+        appBox.readableTimestamp = new Date(appBox.timestamp * 1e3)
+            .toLocaleDateString(
+                undefined, // Fallbacks to the user's locale
+                {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }
+            );
+
+        appBox.sendTokenInfo = await this.getTokenData(appBox.sendToken);
+        appBox.sendDecimalValue = this.weiToDecimal(
+            appBox.sendValue,
+            appBox.sendTokenInfo.decimals
+        );
+        
+        if (appBox.requestToken) {
+            appBox.requestTokenInfo = await this.getTokenData(appBox.requestToken);
+            appBox.requestDecimalValue = this.weiToDecimal(
+                appBox.requestValue,
+                appBox.requestTokenInfo.decimals
+            );
+        } else {
+            appBox.requestValue = "0";
+        }
+
         return appBox;
     }
 
@@ -1131,40 +1004,50 @@ export class ContractService {
     async getIncomingBoxes(): Promise<Box[]> {
 
         let boxes = [];
-        for (let index of (await this.ethboxContract.getBoxesIncoming())) {
 
-            let appBox = this.bcBox2appBox(await this.ethboxContract.getBox(index));
+        let normalBoxes = await this.ethboxContract.getBoxesIncoming();
+        for (let index of normalBoxes) {
 
-            // Mapping/enriching the box
-            appBox.index = index.toString();
-            appBox.hasPrivacy = false;
-            appBox.recipientHash = null;
-            appBox.senderHash = null;
-            appBox.timestamp = appBox.timestamp * 1e3;
+            let appBox = await this.bcBox2appBox(
+                await this.ethboxContract.getBox(index),
+                {
+                    index: index.toString(),
+                    hasPrivacy: false,
+                    recipientHash: null,
+                    senderHash: null
+                }
+            );
 
-            // console.log("Box with NO privacy", appBox);
+            if (appBox.sender === this.selectedAccount$.getValue()) {
+                continue;
+            }
             
             boxes.push(appBox);
         }
         
-        for (let index of (await this.ethboxContract.getBoxesIncomingWithPrivacy())) {
+        let privacyBoxes = await this.ethboxContract.getBoxesIncomingWithPrivacy();
+        for (let index of privacyBoxes) {
 
-            let appBox = this.bcBox2appBox(await this.ethboxContract.getBoxWithPrivacy(index));
+            let appBox = await this.bcBox2appBox(
+                await this.ethboxContract.getBoxWithPrivacy(index),
+                {
+                    index: index.toString(),
+                    hasPrivacy: true,
+                    requestToken: null,
+                    requestValue: null
+                }
+            );
 
-            // Mapping/enriching the box
-            appBox.index = index.toString();
-            appBox.hasPrivacy = true;
-            appBox.requestToken = null;
-            appBox.requestValue = null;
-            appBox.timestamp = appBox.timestamp * 1e3;
+            if (appBox.sender === this.selectedAccount$.getValue()) {
+                continue;
+            }
 
-            // console.log("Box with privacy", appBox);
-            
             boxes.push(appBox);
         }
 
         // Sort boxes by date from newest to oldest
         boxes.sort((a, b) => b.timestamp - a.timestamp);
+        win._incBox = boxes;
         // console.log("Incoming boxes", boxes);
 
         return boxes;
@@ -1175,40 +1058,40 @@ export class ContractService {
     async getOutgoingBoxes(): Promise<Box[]> {
 
         let boxes = [];
-        for (let index of (await this.ethboxContract.getBoxesOutgoing())) {
 
-            let appBox = this.bcBox2appBox(await this.ethboxContract.getBox(index));
+        let normalBoxes = await this.ethboxContract.getBoxesOutgoing();
+        for (let index of normalBoxes) {
 
-            // Mapping/enriching the box
-            appBox.index = index.toString();
-            appBox.hasPrivacy = false;
-            appBox.recipientHash = null;
-            appBox.senderHash = null;
-            appBox.timestamp = appBox.timestamp * 1e3;
-
-            // console.log("Box with NO privacy", appBox);
-            
+            let appBox = await this.bcBox2appBox(
+                await this.ethboxContract.getBox(index),
+                {
+                    index: index.toString(),
+                    isPrivacy: false,
+                    recipientHash: null,
+                    senderHash: null
+                }
+            );
             boxes.push(appBox);
         }
         
-        for (let index of (await this.ethboxContract.getBoxesOutgoingWithPrivacy())) {
+        let privacyBoxes = await this.ethboxContract.getBoxesOutgoingWithPrivacy();
+        for (let index of privacyBoxes) {
 
-            let appBox = this.bcBox2appBox(await this.ethboxContract.getBoxWithPrivacy(index));
-
-            // Mapping/enriching the box
-            appBox.index = index.toString();
-            appBox.hasPrivacy = true;
-            appBox.requestToken = null;
-            appBox.requestValue = null;
-            appBox.timestamp = appBox.timestamp * 1e3;
-
-            // console.log("Box with privacy", appBox);
-            
+            let appBox = await this.bcBox2appBox(
+                await this.ethboxContract.getBoxWithPrivacy(index),
+                {
+                    index: index.toString(),
+                    hasPrivacy: true,
+                    requestToken: null,
+                    requestValue: null
+                }
+            );
             boxes.push(appBox);
         }
 
         // Sort boxes by date from newest to oldest
         boxes.sort((a, b) => b.timestamp - a.timestamp);
+        win._outBox = boxes;
         // console.log("Outgoing boxes", boxes);
 
         return boxes;
