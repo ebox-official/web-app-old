@@ -197,9 +197,9 @@ export class ContractService {
                 const allInjected = await web3Enable('ethbox dapp');
                 console.log("All injected", allInjected);
 
-                let signer;
+                let injected;
                 if (allInjected[0] && allInjected[0].signer) {
-                    signer = allInjected[0].signer;
+                    injected = allInjected[0].signer;
                 }
 
                 // Return an array of { address, meta: { name, source } }
@@ -207,11 +207,13 @@ export class ContractService {
                 const allAccounts = await web3Accounts();
                 console.log("All accounts", allAccounts);
 
+                let account;
                 if (allAccounts[0] && allAccounts[0].address) {
-                    this.selectedAccount$.next(allAccounts[0].address);
+                    account = allAccounts[0].address;
                 }
 
-                if (!this.selectedAccount$.getValue()) {
+                // Should I say something to the user?
+                if (!account) {
                     this.loadingIndicatorServ.off();
                     return;
                 }
@@ -225,10 +227,28 @@ export class ContractService {
 
                 this.signer = new Signer(
                     this.provider,
-                    this.selectedAccount$.getValue(),
-                    signer
+                    account,
+                    injected
                 );
                 console.log("Signer", this.signer);
+
+                if (!(await this.signer.isClaimed())) {
+                    console.log(
+                        "No claimed EVM account found -> claimed default EVM account: ",
+                        await this.signer.getAddress()
+                    );
+
+                    try {
+                        await this.signer.claimDefaultAccount();
+                    }
+                    catch (err) {
+                        this.loadingIndicatorServ.off();
+
+                        // Clear the provider to avoid getting stuck in this routine forever
+                        await this.web3Modal.clearCachedProvider();
+                        throw err;
+                    }
+                }
 
                 this.loadingIndicatorServ.off();
             }
@@ -400,7 +420,7 @@ export class ContractService {
         let ReefTestnetOpts = {
             "custom-reeftestnet": {
                 display: {
-                  logo: "assets/img/reef-testnet.png",
+                  logo: "assets/img/polkadot-reef-testnet.png",
                   name: "Polkadot Wallet",
                   description: "Reef Finance Testnet"
                 },
@@ -412,7 +432,7 @@ export class ContractService {
         let ReefMainnetOpts = {
             "custom-reefmainnet": {
                 display: {
-                  logo: "assets/img/reef.png",
+                  logo: "assets/img/polkadot-reef-mainnet.png",
                   name: "Polkadot Wallet",
                   description: "Reef Finance Mainnet"
                 },
@@ -458,7 +478,7 @@ export class ContractService {
         );
 
         // Automatically connect if there's a cached provider
-        if (localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")) {
+        if (win.Web3Modal.getLocal(win.Web3Modal.CACHED_PROVIDER_KEY)) {
             this.connect();
         }
     }
@@ -482,16 +502,25 @@ export class ContractService {
         let { chainId } = await this.provider.getNetwork();
         console.log("Chain ID", chainId);
 
+        // Marking the chainId distinctively for Reef (because Mainnet and Testnet have the same chainId)
+        if (chainId === 13939) {
+            if (this.isReefTestnet()) {
+                chainId = "13939testnet"
+            }
+        }
+
         this.chainId$.next(chainId);
 
+        // Retrieving the selectedAccount, two different ways between Reef and others
+        let selectedAccount;
         if (!this.isReef$.getValue()) {
-
-            // Retrieving the selectedAccount
             let accounts = await this.provider.listAccounts();
             console.log("Accounts", accounts);
-
-            this.selectedAccount$.next(accounts[0]);
+            selectedAccount = accounts[0];
+        } else {
+            selectedAccount = await this.signer.queryEvmAddress();
         }
+        this.selectedAccount$.next(selectedAccount);
 
         // If there's no account selected stop here, there's no point in going further
         if (!this.selectedAccount$.getValue()) {
@@ -502,23 +531,15 @@ export class ContractService {
         this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
         this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
-        this.viewConsoleServ.log("1 - Ethereum");
-        this.viewConsoleServ.log("4 - Rinkeby");
-        this.viewConsoleServ.log("56 - BSC");
-        this.viewConsoleServ.log("97 - BSC Testnet");
-        this.viewConsoleServ.log("137 - Matic");
-        this.viewConsoleServ.log("80001 - Matic Testnet");
+        this.viewConsoleServ.log(
+            `1 - Ethereum, 4 - Rinkeby, 56 - BSC, 97 - BSC Testnet, 137 - Matic, 80001 - Matic Testnet, 13939 - Reef Testnet/Mainnet`
+        );
 
         // The following code sets contracts depending on the current chain
         switch(chainId) {
-            case 13939: // Reef
-                if (this.isReefTestnet()) {
-                    this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
-                } else {
-                    this.hardReset();
-                    this.loadingIndicatorServ.off();
-                    return;
-                }
+            case "13939testnet": // Reef Testnet
+                this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
+                this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.REEF_TESTNET;
                 break;
             case 1:     // Ethereum Mainnet
                 this.isEthereumMainnet$.next(true);
@@ -697,7 +718,7 @@ export class ContractService {
 
     isReefMainnet(): boolean {
         if (this.isReef$.getValue()) {
-            return /testnet/.test(this.reefCustomProviderName);
+            return /mainnet/.test(this.reefCustomProviderName);
         }
         return false;
     }
@@ -771,7 +792,7 @@ export class ContractService {
     }
 
     private doubleHash(string) {
-        return this.hash(this.hash(string));
+        return ethers.utils.keccak256(this.hash(string));
     }
 
     // Check if the password provided fits the one that encrypted the box

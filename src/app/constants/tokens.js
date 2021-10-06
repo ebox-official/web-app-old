@@ -39273,5 +39273,36 @@ export let chainTokenDictionary = {
       address: "0x7190Bb56c586Bf9Dd8013C450af8C51af5EaE156",
       decimals: 18,
     }
+  ],
+  // Reef testnet
+  "13939testnet": [
+    {
+      name: "Reef",
+      symbol: "REEF",
+      thumb: "https://assets.coingecko.com/coins/images/13504/small/Group_10572.png?1610534130",
+      address: "0x0000000000000000000000000000000000000000",
+      decimals: 18,
+    },
+    {
+      name: "Test Token",
+      symbol: "AAA",
+      thumb: "assets/img/crash-test.png",
+      address: "0xba2a851a1aB24Ae57318a1457f8B3B175254eb9c",
+      decimals: 18,
+    },
+    {
+      name: "Test Token",
+      symbol: "BBB",
+      thumb: "assets/img/crash-test.png",
+      address: "0x85BEDe9E8B476D4F4042C417Cb4F01142bcE1b5E",
+      decimals: 18,
+    },
+    {
+      name: "Test Token",
+      symbol: "CCC",
+      thumb: "assets/img/crash-test.png",
+      address: "0xBA9E7a7A3559A01ED85F05DC7c9E1Fdb2440007d",
+      decimals: 18,
+    }
   ]
 };

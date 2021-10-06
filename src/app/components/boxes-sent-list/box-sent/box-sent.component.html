@@ -107,16 +107,20 @@
                 *ngIf="!box.hasPrivacy"
                 [href]="
                   contractServ.isEthereumMainnet()
-                    ? 'https://etherscan.io/address/' + box.recipient
-                    : contractServ.isEthereumTestnet()
-                      ? 'https://rinkeby.etherscan.io/address/' + box.recipient
-                      : contractServ.isBinanceMainnet()
-                        ? 'https://bscscan.com/address/' + box.recipient
-                        : contractServ.isBinanceTestnet()
-                          ? 'https://testnet.bscscan.com/address/' + box.recipient
-                          : contractServ.isMaticMainnet()
-                            ? 'https://polygonscan.com/address/' + box.recipient
-                            : 'https://mumbai.polygonscan.com/address/' + box.recipient
+                  ? 'https://etherscan.io/address/' + box.recipient
+                  : contractServ.isEthereumTestnet()
+                    ? 'https://rinkeby.etherscan.io/address/' + box.recipient
+                    : contractServ.isBinanceMainnet()
+                      ? 'https://bscscan.com/address/' + box.recipient
+                      : contractServ.isBinanceTestnet()
+                        ? 'https://testnet.bscscan.com/address/' + box.recipient
+                        : contractServ.isMaticMainnet()
+                          ? 'https://polygonscan.com/address/' + box.recipient
+                          : contractServ.isMaticTestnet()
+                            ? 'https://mumbai.polygonscan.com/address/' + box.recipient
+                            : contractServ.isReefMainnet()
+                              ? 'https://reefscan.com/account/' + box.recipient
+                              : 'https://testnet.reefscan.com/account/' + box.recipient
                 "
                 target="_blank"
                 class="text-reset"
@@ -164,16 +168,20 @@
                 <a
                   [href]="
                     contractServ.isEthereumMainnet()
-                      ? 'https://etherscan.io/address/' + box.sendTokenInfo.address
-                      : contractServ.isEthereumTestnet()
-                        ? 'https://rinkeby.etherscan.io/address/' + box.sendTokenInfo.address
-                        : contractServ.isBinanceMainnet()
-                          ? 'https://bscscan.com/address/' + box.sendTokenInfo.address
-                          : contractServ.isBinanceTestnet()
-                          ? 'https://testnet.bscscan.com/address/' + box.sendTokenInfo.address
-                          : contractServ.isMaticMainnet()
-                            ? 'https://polygonscan.com/address/' + box.sendTokenInfo.address
-                            : 'https://mumbai.polygonscan.com/address/' + box.sendTokenInfo.address
+                    ? 'https://etherscan.io/address/' + box.sendTokenInfo.address
+                    : contractServ.isEthereumTestnet()
+                      ? 'https://rinkeby.etherscan.io/address/' + box.sendTokenInfo.address
+                      : contractServ.isBinanceMainnet()
+                        ? 'https://bscscan.com/address/' + box.sendTokenInfo.address
+                        : contractServ.isBinanceTestnet()
+                        ? 'https://testnet.bscscan.com/address/' + box.sendTokenInfo.address
+                        : contractServ.isMaticMainnet()
+                          ? 'https://polygonscan.com/address/' + box.sendTokenInfo.address
+                          : contractServ.isMaticTestnet()
+                            ? 'https://mumbai.polygonscan.com/address/' + box.sendTokenInfo.address
+                            : contractServ.isReefMainnet()
+                              ? 'https://reefscan.com/contract/' + box.sendTokenInfo.address
+                              : 'https://testnet.reefscan.com/contract/' + box.sendTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"
@@ -215,16 +223,20 @@
                 <a
                   [href]="
                     contractServ.isEthereumMainnet()
-                      ? 'https://etherscan.io/address/' + box.requestTokenInfo.address
-                      : contractServ.isEthereumTestnet
-                        ? 'https://rinkeby.etherscan.io/address/' + box.requestTokenInfo.address
-                        : contractServ.isBinanceMainnet()
-                          ? 'https://bscscan.com/address/' + box.requestTokenInfo.address
-                          : contractServ.isBinanceTestnet()
-                          ? 'https://testnet.bscscan.com/address/' + box.requestTokenInfo.address
-                          : contractServ.isMaticMainnet()
-                            ? 'https://polygonscan.com/address/' + box.requestTokenInfo.address
-                            : 'https://mumbai.polygonscan.com/address/' + box.requestTokenInfo.address
+                    ? 'https://etherscan.io/address/' + box.requestTokenInfo.address
+                    : contractServ.isEthereumTestnet
+                      ? 'https://rinkeby.etherscan.io/address/' + box.requestTokenInfo.address
+                      : contractServ.isBinanceMainnet()
+                        ? 'https://bscscan.com/address/' + box.requestTokenInfo.address
+                        : contractServ.isBinanceTestnet()
+                        ? 'https://testnet.bscscan.com/address/' + box.requestTokenInfo.address
+                        : contractServ.isMaticMainnet()
+                          ? 'https://polygonscan.com/address/' + box.requestTokenInfo.address
+                          : contractServ.isMaticTestnet()
+                            ? 'https://mumbai.polygonscan.com/address/' + box.requestTokenInfo.address
+                            : contractServ.isReefMainnet()
+                              ? 'https://reefscan.com/contract/' + box.requestTokenInfo.address
+                              : 'https://testnet.reefscan.com/contract/' + box.requestTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"

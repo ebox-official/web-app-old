@@ -91,7 +91,7 @@
     Governance
   </a>
 
-  <div *ngIf="(contractServ.isAppReady$ | async) && (contractServ.isEthereumTestnet() || contractServ.isBinanceTestnet() || contractServ.isMaticTestnet())" class="p-3">
+  <div *ngIf="(contractServ.isAppReady$ | async) && (contractServ.isEthereumTestnet() || contractServ.isBinanceTestnet() || contractServ.isMaticTestnet() || contractServ.isReefTestnet())" class="p-3">
     <div class="text-uppercase my-3 fst-italic">
       <div class="spinner-grow spinner-grow-sm text-danger me-1"></div>
       Get test tokens

@@ -114,7 +114,11 @@
                           ? 'https://testnet.bscscan.com/address/' + box.sender
                           : contractServ.isMaticMainnet()
                             ? 'https://polygonscan.com/address/' + box.sender
-                            : 'https://mumbai.polygonscan.com/address/' + box.sender
+                            : contractServ.isMaticTestnet()
+                              ? 'https://mumbai.polygonscan.com/address/' + box.sender
+                              : contractServ.isReefMainnet()
+                                ? 'https://reefscan.com/account/' + box.sender
+                                : 'https://testnet.reefscan.com/account/' + box.sender
                 "
                 target="_blank"
                 class="text-reset"
@@ -170,7 +174,11 @@
                           ? 'https://testnet.bscscan.com/address/' + box.sendTokenInfo.address
                           : contractServ.isMaticMainnet()
                             ? 'https://polygonscan.com/address/' + box.sendTokenInfo.address
-                            : 'https://mumbai.polygonscan.com/address/' + box.sendTokenInfo.address
+                            : contractServ.isMaticTestnet()
+                              ? 'https://mumbai.polygonscan.com/address/' + box.sendTokenInfo.address
+                              : contractServ.isReefMainnet()
+                                ? 'https://reefscan.com/contract/' + box.sendTokenInfo.address
+                                : 'https://testnet.reefscan.com/contract/' + box.sendTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"
@@ -220,7 +228,11 @@
                           ? 'https://testnet.bscscan.com/address/' + box.requestTokenInfo.address
                           : contractServ.isMaticMainnet()
                             ? 'https://polygonscan.com/address/' + box.requestTokenInfo.address
-                            : 'https://mumbai.polygonscan.com/address/' + box.requestTokenInfo.address
+                            : contractServ.isMaticTestnet()
+                              ? 'https://mumbai.polygonscan.com/address/' + box.requestTokenInfo.address
+                              : contractServ.isReefMainnet()
+                                ? 'https://reefscan.com/contract/' + box.requestTokenInfo.address
+                                : 'https://testnet.reefscan.com/contract/' + box.requestTokenInfo.address
                   "
                   target="_blank"
                   class="text-reset text-break"
