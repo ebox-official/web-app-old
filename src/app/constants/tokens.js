@@ -39275,7 +39275,7 @@ export let chainTokenDictionary = {
     }
   ],
   // Reef testnet
-  "13939testnet": [
+  "reeftestnet": [
     {
       name: "Reef",
       symbol: "REEF",

@@ -20,7 +20,8 @@ import {
     deviceType,
     isMetaMaskInstalled,
     AsyncVar,
-    AsyncPulse
+    AsyncPulse,
+    SmartPrompt
 } from '../../assets/js/custom-utils';
 
 /**
@@ -38,7 +39,7 @@ import {
  * - isBinanceMainnet$
  * - isMaticMainnet$
  * - isReef$
- * - reefCustomProviderName
+ * - customProviderName
  * 
  * (High-level flags)
  * - isAppReady$
@@ -127,7 +128,7 @@ export class ContractService {
 
     // Separate way of handling the connection to Polkadot{.js} via Reef Defi
     isReef$ = new AsyncVar(false);
-    reefCustomProviderName = null;
+    customProviderName = null;
     
     isAppReady$ = new AsyncVar(false);
     isStakingReady$ = new AsyncVar(false);
@@ -153,9 +154,11 @@ export class ContractService {
     // Unpkg imports
     private Web3Modal = win.Web3Modal.default;
     private WalletConnectProvider = win.WalletConnectProvider.default;
+    private Fortmatic = win.Fortmatic;
 
     // API keys for various providers
     private INFURA_ID = 'b5b51030cf3e451bb523a3f2ca10e3ff';
+    private FORTMATIC_APIKEY = 'pk_test_ADCE42E053643A95';
 
     private web3Modal;
     private provider;
@@ -179,18 +182,9 @@ export class ContractService {
             let connection = await this.web3Modal.connect();
 
             // When user has tapped on Reef, initialize things differently
-            if (connection.custom && /reef/.test(connection.custom)) {
-
-                this.isReef$.next(true);
-
-                // Either "reeftestnet" or "reefmainnet"
-                this.reefCustomProviderName = connection.custom;
+            if (connection.custom === "reef") {
 
                 this.loadingIndicatorServ.on();
-
-                let WS_URL = this.isReefTestnet() ?
-                    "wss://rpc-testnet.reefscan.com/ws" :
-                    "wss://rpc.reefscan.com/ws";
                 
                 // Return an array of all the injected sources
                 // (this needs to be called first)
@@ -206,20 +200,51 @@ export class ContractService {
                 // (meta.source contains the name of the extension)
                 const allAccounts = await web3Accounts();
                 console.log("All accounts", allAccounts);
+                let accountOpts = allAccounts
+                    .map(acc => `<option value="${acc.address}">${acc.address}</option>`)
+                    .join("");
 
-                let account;
-                if (allAccounts[0] && allAccounts[0].address) {
-                    account = allAccounts[0].address;
+                // Spawn a modal and ask the user to which account to connect
+                let prompt;
+                try {
+                    prompt = await new SmartPrompt(
+                        {
+                          figureColor: "#DC5BDE",
+                          groundColor: "#fafae9",
+                          textColor: "#111",
+                          title: "Choose account and network",
+                          template: `<div style="display: grid; grid-gap: 1rem;">
+    <div>
+        <p>
+            <label>Account</label>
+        </p>
+        <select name="account" required="true">
+            ${accountOpts}
+        </select>
+    </div>
+    <div>
+        <p>
+            <label>Network</label>
+        </p>
+        <select name="network" required="true">
+            <option value="wss://rpc-testnet.reefscan.com/ws">Reef Testnet</option>
+            <!-- <option value="wss://rpc.reefscan.com/ws">Reef Mainnet</option> -->
+        </select>
+    </div>
+</div>`
+                        }
+                    );
                 }
-
-                // Should I say something to the user?
-                if (!account) {
+                catch (err) {
                     this.loadingIndicatorServ.off();
-                    return;
+                    await this.web3Modal.clearCachedProvider();
+                    throw err;
                 }
+
+                let { account, network } = prompt;
 
                 this.provider = new Provider({
-                    provider: new WsProvider(WS_URL)
+                    provider: new WsProvider(network)
                 });
                 console.log("Provider", this.provider);
 
@@ -243,18 +268,21 @@ export class ContractService {
                     }
                     catch (err) {
                         this.loadingIndicatorServ.off();
-
-                        // Clear the provider to avoid getting stuck in this routine forever
                         await this.web3Modal.clearCachedProvider();
                         throw err;
                     }
                 }
 
+                this.isReef$.next(true);
+                this.customProviderName = (network === "wss://rpc-testnet.reefscan.com/ws")
+                    ? "reeftestnet"
+                    : "reefmainnet";
+
                 this.loadingIndicatorServ.off();
             }
             else {
-                this.isReef$.next(false);
 
+                // This is the standard way of using ethers in Ethereum
                 this.provider = new ethers.providers
                     .Web3Provider(
                         connection.provider,
@@ -264,6 +292,8 @@ export class ContractService {
     
                 this.signer = this.provider.getSigner();
                 console.log("Signer", this.signer);
+
+                this.customProviderName = connection.custom;
             }
         }
         catch (err) {
@@ -277,7 +307,7 @@ export class ContractService {
             return;
         }
         
-        if (!this.isReef$.getValue()) {
+        if (!/(reef|fortmatic)/.test(this.customProviderName)) {
 
             // Listeners to refresh contracts on network and account changes
             this.provider.on("network", () =>
@@ -308,7 +338,7 @@ export class ContractService {
     // Run on user interaction
     async disconnect(): Promise<void> {
 
-        if (!this.isReef$.getValue() && "removeAllListeners" in this.provider) {
+        if (!/(reef|fortmatic)/.test(this.customProviderName) && this.provider.removeAllListeners) {
             this.provider.removeAllListeners("network");
             clearInterval(this.accountsChangedInterval);
         }
@@ -333,9 +363,9 @@ export class ContractService {
         let MetaMaskOpts = {
             "custom-metamask": {
                 display: {
-                  logo: "assets/img/metamask-logo.svg",
-                  name: "MetaMask Wallet",
-                  description: "Connect to your MetaMask wallet"
+                    logo: "assets/img/metamask-logo.svg",
+                    name: "MetaMask Wallet",
+                    description: "Connect to your MetaMask wallet"
                 },
                 package: true,
                 connector: async () => {
@@ -417,27 +447,70 @@ export class ContractService {
             }
         };
 
-        let ReefTestnetOpts = {
-            "custom-reeftestnet": {
+        let ReefOpts = {
+            "custom-reef": {
                 display: {
-                  logo: "assets/img/polkadot-reef-testnet.png",
-                  name: "Polkadot Wallet",
-                  description: "Reef Finance Testnet"
+                    logo: "assets/img/polkadot-reef.png",
+                    name: "Polkadot Wallet",
+                    description: "Reef Finance"
                 },
                 package: true,
-                connector: async () => ({ custom: "reeftestnet" })
+                connector: async () => ({ custom: "reef" })
             }
         };
 
-        let ReefMainnetOpts = {
-            "custom-reefmainnet": {
-                display: {
-                  logo: "assets/img/polkadot-reef-mainnet.png",
-                  name: "Polkadot Wallet",
-                  description: "Reef Finance Mainnet"
-                },
+        let FortmaticOpts = {
+            "custom-fortmatic": {
                 package: true,
-                connector: async () => ({ custom: "reefmainnet" })
+                display: {
+                    logo: "assets/img/fortmatic.png",
+                    name: "Fortmatic Wallet",
+                    description: "Connect to your Fortmatic Wallet"
+                },
+                connector: async () => {
+
+                    // Spawn a modal and ask the user to which network to connect
+                    let prompt;
+                    try {
+                        prompt = await new SmartPrompt(
+                            {
+                            figureColor: "#DC5BDE",
+                            groundColor: "#fafae9",
+                            textColor: "#111",
+                            title: "Choose a network",
+                            template: `<div style="display: grid; grid-gap: 1rem;">
+    <div>
+        <p>
+            <label>Network</label>
+        </p>
+        <select name="networkString" required="true">
+            <option value="https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161;1">Ethereum Mainnet</option>
+            <option value="https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161;4">Ethereum Rinkeby</option>
+            <option value="https://bsc-dataseed.binance.org/;56">Binance Mainnet</option>
+            <option value="https://bsc-dataseed.binance.org/;97">Binance Testnet</option>
+            <option value="https://rpc-mainnet.maticvigil.com/;187">Polygon Mainnet</option>
+            <option value="https://rpc-mumbai.matic.today;80001">Polygon Mumbai</option>
+        </select>
+    </div>
+</div>`
+                            }
+                        );
+                    }
+                    catch (err) {
+                        this.loadingIndicatorServ.off();
+                        await this.web3Modal.clearCachedProvider();
+                        throw err;
+                    }
+
+                    let [ rpcUrl, chainId ] = prompt.networkString.split(";");
+
+                    let fm = new this.Fortmatic(
+                        this.FORTMATIC_APIKEY,
+                        { rpcUrl, chainId }
+                    );
+                    
+                    return { provider: fm.getProvider(), custom: "fortmatic" };
+                }
             }
         };
 
@@ -445,7 +518,8 @@ export class ContractService {
         let providerOptions = {
             ...MetaMaskOpts,
             ...WalletConnectOpts,
-            ...CoinbaseWalletOpts
+            ...CoinbaseWalletOpts,
+            ...FortmaticOpts
         };
 
         // Put here providers that only works on desktop
@@ -453,8 +527,7 @@ export class ContractService {
             Object.assign(
                 providerOptions,
                 BinanceChainWalletOpts,
-                ReefTestnetOpts,
-                ReefMainnetOpts
+                ReefOpts
             );
         }
 
@@ -503,10 +576,8 @@ export class ContractService {
         console.log("Chain ID", chainId);
 
         // Marking the chainId distinctively for Reef (because Mainnet and Testnet have the same chainId)
-        if (chainId === 13939) {
-            if (this.isReefTestnet()) {
-                chainId = "13939testnet"
-            }
+        if (this.isReef$.getValue()) {
+            chainId = this.customProviderName;
         }
 
         this.chainId$.next(chainId);
@@ -514,30 +585,36 @@ export class ContractService {
         // Retrieving the selectedAccount, two different ways between Reef and others
         let selectedAccount;
         if (!this.isReef$.getValue()) {
-            let accounts = await this.provider.listAccounts();
+            let accounts;
+            try {
+                accounts = await this.provider.listAccounts();
+            }
+            catch (err) {
+                this.loadingIndicatorServ.off();
+                await this.web3Modal.clearCachedProvider();
+                throw err;
+            }
+
             console.log("Accounts", accounts);
             selectedAccount = accounts[0];
         } else {
-            selectedAccount = await this.signer.queryEvmAddress();
+            try {
+                selectedAccount = await this.signer.queryEvmAddress();
+            }
+            catch (err) {
+                this.loadingIndicatorServ.off();
+                await this.web3Modal.clearCachedProvider();
+                throw err;
+            }
         }
         this.selectedAccount$.next(selectedAccount);
-
-        // If there's no account selected stop here, there's no point in going further
-        if (!this.selectedAccount$.getValue()) {
-            this.loadingIndicatorServ.off();
-            return;
-        }
 
         this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
         this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
-        this.viewConsoleServ.log(
-            `1 - Ethereum, 4 - Rinkeby, 56 - BSC, 97 - BSC Testnet, 137 - Matic, 80001 - Matic Testnet, 13939 - Reef Testnet/Mainnet`
-        );
-
         // The following code sets contracts depending on the current chain
         switch(chainId) {
-            case "13939testnet": // Reef Testnet
+            case "reeftestnet": // Reef Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.REEF_TESTNET;
                 break;
@@ -662,7 +739,7 @@ export class ContractService {
     private hardReset() {
         this.softReset();
 
-        this.reefCustomProviderName = null;
+        this.customProviderName = null;
         this.isReef$.next(false);
 
         this.selectedAccount$.next(null);
@@ -698,8 +775,8 @@ export class ContractService {
     }
 
     isReefTestnet(): boolean {
-        if (this.isReef$.getValue()) {
-            return /testnet/.test(this.reefCustomProviderName);
+        if (this.isReef()) {
+            return this.customProviderName === "reeftestnet";
         }
         return false;
     }
@@ -717,8 +794,8 @@ export class ContractService {
     }
 
     isReefMainnet(): boolean {
-        if (this.isReef$.getValue()) {
-            return /mainnet/.test(this.reefCustomProviderName);
+        if (this.isReef()) {
+            return this.customProviderName === "reefmainnet";
         }
         return false;
     }
@@ -1039,7 +1116,7 @@ export class ContractService {
                 }
             );
 
-            if (appBox.sender === this.selectedAccount$.getValue()) {
+            if (appBox.sender == this.selectedAccount$.getValue()) {
                 continue;
             }
             
@@ -1059,7 +1136,7 @@ export class ContractService {
                 }
             );
 
-            if (appBox.sender === this.selectedAccount$.getValue()) {
+            if (appBox.senderHash == this.hash(this.selectedAccount$.getValue())) {
                 continue;
             }
 
