@@ -10,14 +10,14 @@ export class ViewConsoleService {
 	constructor() { }
 
 	log(message) {
-		this.messages.push({ type: "info", timestamp: Date.now(), message });
+		this.messages.unshift({ type: "info", timestamp: Date.now(), message });
 	}
 
 	warning(message) {
-		this.messages.push({ type: "warn", timestamp: Date.now(), message });
+		this.messages.unshift({ type: "warn", timestamp: Date.now(), message });
 	}
 
 	error(message) {
-		this.messages.push({ type: "err", timestamp: Date.now(), message });
+		this.messages.unshift({ type: "err", timestamp: Date.now(), message });
 	}
 }
