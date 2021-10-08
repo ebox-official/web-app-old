@@ -39287,21 +39287,21 @@ export let chainTokenDictionary = {
       name: "Test Token",
       symbol: "AAA",
       thumb: "assets/img/crash-test.png",
-      address: "0xba2a851a1aB24Ae57318a1457f8B3B175254eb9c",
+      address: "0xd8ee8B891B2800ea03D4AbBa2033b0AC80d85f79",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "BBB",
       thumb: "assets/img/crash-test.png",
-      address: "0x85BEDe9E8B476D4F4042C417Cb4F01142bcE1b5E",
+      address: "0xe14b1a577110d94fDe19CFd01659E8041da71d83",
       decimals: 18,
     },
     {
       name: "Test Token",
       symbol: "CCC",
       thumb: "assets/img/crash-test.png",
-      address: "0xBA9E7a7A3559A01ED85F05DC7c9E1Fdb2440007d",
+      address: "0xCcCb0F09A72bbf7f8593D5e74d0aD7f3D687aD98",
       decimals: 18,
     }
   ]

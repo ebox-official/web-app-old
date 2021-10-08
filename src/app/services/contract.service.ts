@@ -15,14 +15,13 @@ import { WsProvider } from "@polkadot/api";
 import { ethers } from "ethers";
 import BigNumber from 'bignumber.js';
 
-import { 
-    SmartInterval,
+import {
     deviceType,
-    isMetaMaskInstalled,
-    AsyncVar,
-    AsyncPulse,
-    SmartPrompt
+    isMetaMaskInstalled
 } from '../../assets/js/custom-utils';
+import SmartInterval from '../../assets/js/smart-interval';
+import { AsyncVar, AsyncPulse } from '../../assets/js/async-utils';
+import SmartPrompt from '../../assets/js/smart-prompt';
 
 /**
  * This service is the core component in the ethbox dapp. It contains all the methods to interact
@@ -129,7 +128,7 @@ export class ContractService {
     // Separate way of handling the connection to Polkadot{.js} via Reef Defi
     isReef$ = new AsyncVar(false);
     customProviderName = null;
-    
+
     isAppReady$ = new AsyncVar(false);
     isStakingReady$ = new AsyncVar(false);
 
@@ -185,7 +184,7 @@ export class ContractService {
             if (connection.custom === "reef") {
 
                 this.loadingIndicatorServ.on();
-                
+
                 // Return an array of all the injected sources
                 // (this needs to be called first)
                 const allInjected = await web3Enable('ethbox dapp');
@@ -209,11 +208,11 @@ export class ContractService {
                 try {
                     prompt = await new SmartPrompt(
                         {
-                          figureColor: "#DC5BDE",
-                          groundColor: "#fafae9",
-                          textColor: "#111",
-                          title: "Choose account and network",
-                          template: `<div style="display: grid; grid-gap: 1rem;">
+                            figureColor: "#2d2f31",
+                            groundColor: "#fafafa",
+                            textColor: "#111",
+                            title: "Choose account and network",
+                            template: `<div style="display: grid; grid-gap: 1rem;">
     <div>
         <p>
             <label>Account</label>
@@ -289,7 +288,7 @@ export class ContractService {
                         "any"
                     );
                 console.log("Provider", this.provider);
-    
+
                 this.signer = this.provider.getSigner();
                 console.log("Signer", this.signer);
 
@@ -306,7 +305,7 @@ export class ContractService {
             this.viewConsoleServ.error("Could not get a wallet connection");
             return;
         }
-        
+
         if (!/(reef|fortmatic)/.test(this.customProviderName)) {
 
             // Listeners to refresh contracts on network and account changes
@@ -323,7 +322,7 @@ export class ContractService {
                 let accounts = await this.provider.listAccounts();
 
                 if (this.selectedAccount$.getValue() !== accounts[0]) {
-                    this.ngZone.run(() => 
+                    this.ngZone.run(() =>
                         this.fetchVariables()
                     );
                 }
@@ -402,9 +401,9 @@ export class ContractService {
         let BinanceChainWalletOpts = {
             "custom-binancechainwallet": {
                 display: {
-                  logo: "assets/img/binance-logo.svg",
-                  name: "Binance Chain Wallet",
-                  description: "Connect to your Binance Wallet"
+                    logo: "assets/img/binance-logo.svg",
+                    name: "Binance Chain Wallet",
+                    description: "Connect to your Binance Wallet"
                 },
                 package: true,
                 connector: async () => {
@@ -427,7 +426,7 @@ export class ContractService {
         let CoinbaseWalletOpts = {
             "custom-coinbase": {
                 display: {
-                    logo: 'assets/img/coinbase-logo.svg', 
+                    logo: 'assets/img/coinbase-logo.svg',
                     name: 'Coinbase',
                     description: 'Connect with Coinbase wallet'
                 },
@@ -474,11 +473,11 @@ export class ContractService {
                     try {
                         prompt = await new SmartPrompt(
                             {
-                            figureColor: "#DC5BDE",
-                            groundColor: "#fafae9",
-                            textColor: "#111",
-                            title: "Choose a network",
-                            template: `<div style="display: grid; grid-gap: 1rem;">
+                                figureColor: "#2d2f31",
+                                groundColor: "#fafafa",
+                                textColor: "#111",
+                                title: "Choose a network",
+                                template: `<div style="display: grid; grid-gap: 1rem;">
     <div>
         <p>
             <label>Network</label>
@@ -502,13 +501,13 @@ export class ContractService {
                         throw err;
                     }
 
-                    let [ rpcUrl, chainId ] = prompt.networkString.split(";");
+                    let [rpcUrl, chainId] = prompt.networkString.split(";");
 
                     let fm = new this.Fortmatic(
                         this.FORTMATIC_APIKEY,
                         { rpcUrl, chainId }
                     );
-                    
+
                     return { provider: fm.getProvider(), custom: "fortmatic" };
                 }
             }
@@ -613,7 +612,7 @@ export class ContractService {
         this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
         // The following code sets contracts depending on the current chain
-        switch(chainId) {
+        switch (chainId) {
             case "reeftestnet": // Reef Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.REEF_TESTNET;
@@ -624,7 +623,7 @@ export class ContractService {
                 this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
                 break;
             case 4:     // Ethereum Testnet
-                this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET; 
+                this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
                 break;
             case 56:    // Binance Mainnet
@@ -838,7 +837,7 @@ export class ContractService {
         this.viewConsoleServ.warning(
             `Waiting for transaction to confirm (tx hash: ${tx.hash})`
         );
-        
+
         let receipt = await tx.wait();
 
         // Transaction confirmed
@@ -942,7 +941,7 @@ export class ContractService {
             decimals,
             thumb
         };
-            
+
     }
 
     // Read only query
@@ -1083,7 +1082,7 @@ export class ContractService {
             appBox.sendValue,
             appBox.sendTokenInfo.decimals
         );
-        
+
         if (appBox.requestToken) {
             appBox.requestTokenInfo = await this.getTokenData(appBox.requestToken);
             appBox.requestDecimalValue = this.weiToDecimal(
@@ -1119,10 +1118,10 @@ export class ContractService {
             if (appBox.sender == this.selectedAccount$.getValue()) {
                 continue;
             }
-            
+
             boxes.push(appBox);
         }
-        
+
         let privacyBoxes = await this.ethboxContract.getBoxesIncomingWithPrivacy();
         for (let index of privacyBoxes) {
 
@@ -1171,7 +1170,7 @@ export class ContractService {
             );
             boxes.push(appBox);
         }
-        
+
         let privacyBoxes = await this.ethboxContract.getBoxesOutgoingWithPrivacy();
         for (let index of privacyBoxes) {
 
