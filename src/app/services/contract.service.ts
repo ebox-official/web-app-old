@@ -15,13 +15,11 @@ import { WsProvider } from "@polkadot/api";
 import { ethers } from "ethers";
 import BigNumber from 'bignumber.js';
 
-import {
-    deviceType,
-    isMetaMaskInstalled
-} from '../../assets/js/custom-utils';
-import SmartInterval from '../../assets/js/smart-interval';
-import { AsyncVar, AsyncPulse } from '../../assets/js/async-utils';
-import SmartPrompt from '../../assets/js/smart-prompt';
+import { deviceType, isMetaMaskInstalled } from '../../assets/js/custom-utils';
+
+let { AsyncVar, AsyncPulse } = require("bada55asyncutils");
+let SmartPrompt = require("smartprompt");
+let SmartInterval = require("smartinterval");
 
 /**
  * This service is the core component in the ethbox dapp. It contains all the methods to interact

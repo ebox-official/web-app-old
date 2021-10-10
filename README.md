@@ -3,6 +3,11 @@
 
 This project was generated with Angular CLI version 12.2.0.
 
+## Package manager and installation
+
+This project uses yarn (NOT npm), so install it with `yarn` command.
+Don't mix the two while installing dependencies or you will end up losing certain packages.
+
 ## Launch locally
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.

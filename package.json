@@ -1,8 +1,12 @@
 {
   "name": "ethbox-dapp",
   "version": "0.0.0",
-  "browser": { "crypto": false },
-  "resolutions": { "webpack": "^5.0.0" },
+  "browser": {
+    "crypto": false
+  },
+  "resolutions": {
+    "webpack": "^5.0.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,15 +25,18 @@
     "@angular/platform-browser": "~12.2.0",
     "@angular/platform-browser-dynamic": "~12.2.0",
     "@angular/router": "~12.2.0",
-    "rxjs": "~6.6.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.11.4",
     "@polkadot/api": "^4.17.1",
     "@polkadot/extension-dapp": "^0.40.3",
     "@reef-defi/evm-provider": "^0.1.10",
+    "bada55asyncutils": "^1.0.0",
     "bignumber.js": "^9.0.1",
     "ethers": "^5.4.7",
-    "walletlink": "^2.1.8"
+    "rxjs": "~6.6.0",
+    "smartinterval": "^1.0.0",
+    "smartprompt": "^1.0.0",
+    "tslib": "^2.3.0",
+    "walletlink": "^2.1.8",
+    "zone.js": "~0.11.4"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~12.2.8",

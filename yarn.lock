@@ -4039,6 +4039,11 @@ babel-preset-jest@^26.6.2:
     babel-plugin-jest-hoist "^26.6.2"
     babel-preset-current-node-syntax "^1.0.0"
 
+bada55asyncutils@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/bada55asyncutils/-/bada55asyncutils-1.0.0.tgz#8f750c33b8dca7a286c5c3d73c58bbeddc2b3f94"
+  integrity sha512-G30eoHGYFAlqDRRrrkHTkOVMe6PW3ijNnE0pEWxOL/aMfVYVG7wCzMf5c/qEyViNZt9TtIZPt/BzigepGFfarQ==
+
 balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
@@ -12453,6 +12458,16 @@ smart-buffer@^4.1.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
+
+smartinterval@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/smartinterval/-/smartinterval-1.0.0.tgz#776eb8a65bf8fe42c90187d127fb1d636dd16e6a"
+  integrity sha512-7jjBqjFzA3LfelYHpo+cYvw7qbr1AQWKfiL3qmYfuAiwVfYY96Xf/q3AF4Srx5qhIhx2K0E0ZcBARD+6aQ9SeQ==
+
+smartprompt@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/smartprompt/-/smartprompt-1.0.0.tgz#6674c822ea2f5da61474a2a492afec7c03b22406"
+  integrity sha512-Pqp/UP7npyCRMz573Bj+3PqS41RojUzHxf1DGQO/qvOfeO8qBZxK6qfx8QttJ5rzDwce35GEFtaelROEsOxLJQ==
 
 snapdragon-node@^2.0.1:
   version "2.1.1"

@@ -1,10 +1,11 @@
 import { EventEmitter, NgZone } from '@angular/core';
 import { AfterViewInit, Component, OnDestroy, OnInit, Output, Input } from '@angular/core';
 import { ContractService } from '../../services/contract.service';
-import SmartInterval from '../../../assets/js/smart-interval';
 import { PromptDialogService } from 'src/app/services/prompt-dialog.service';
 import { ToasterService } from 'src/app/services/toaster.service';
 import { LoadingIndicatorService } from 'src/app/services/loading-indicator.service';
+
+let SmartInterval = require("smartinterval");
 
 @Component({
     selector: 'app-token-selector',
