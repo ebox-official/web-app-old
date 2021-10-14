@@ -178,8 +178,6 @@ export class ContractService {
     // Disconnect the user from the dapp
     // Run on user interaction
     async disconnect(): Promise<void> {
-
-        // TODO: what else should I do?
         this.em.disconnect();
         this.reset();
     }
@@ -275,7 +273,6 @@ export class ContractService {
     }
 
     // Load supported tokens, instantiate contracts and start boxes fetching
-    // TODO: add links to network scanners
     private async setVariables(): Promise<void> {
 
         if (!this.connection.isConnected$.getValue()) {
@@ -319,7 +316,7 @@ export class ContractService {
                 break;
             default:
                 this.reset();
-                throw new Error("Network not recognized."); // TODO: toaster notification
+                throw new Error("Network not recognized.");
         }
 
         this.ethboxContract = new this.connection.ethers.Contract(
@@ -1217,8 +1214,6 @@ export class ContractService {
 
     // Accept a box
     // State changing operation
-    // 
-    // TODO: How to deal with dialogs in a flexible way?
     async acceptBox(box: Box, password: string): Promise<void> {
 
         // Hash the password to check if the user has unlocked the box
