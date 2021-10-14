@@ -85,32 +85,35 @@
     class="btn btn-eboxprimary rounded-alot"
   >
     <img
-      *ngIf="contractServ.isEthereum()"
-      src="assets/img/ethereum.png"
-      style="height: 21px"
-    />
-    <img
-      *ngIf="contractServ.isBinance()"
-      src="assets/img/binance.png"
-      style="height: 21px"
-    />
-    <img
-      *ngIf="contractServ.isMatic()"
-      src="assets/img/matic.png"
-      style="height: 21px"
-    />
-    <img
-      *ngIf="contractServ.isReefTestnet()"
-      src="assets/img/reef-testnet.png"
-      style="height: 21px"
-    />
-    <img
-      *ngIf="contractServ.isReefMainnet()"
-      src="assets/img/reef-mainnet.png"
+      [src]="
+        contractServ.networkInfo(
+          (contractServ.connection.chainId$ | async)
+        ).baseTokenThumb
+      "
       style="height: 21px"
     />
     {{ contractServ.selectedAccount$ | async | slice: 0:6 }}...
     <i class="bi bi-x-circle"></i>
   </button>
   <!-- end of connect toggle -->
+
+  <div class="connection-status" *ngIf="contractServ.connection.isConnected$ | async">
+    <span class="connection-status-heading">Network:</span>
+    <span>{{ 
+      contractServ.networkInfo(
+        (contractServ.connection.chainId$ | async)
+      ).name
+    }}</span>
+    <span class="connection-status-heading">Account:</span>
+    <span>{{ contractServ.connection.selectedAccount$ | async }}</span>
+    <span class="connection-status-heading">Balance:</span>
+    <span class="d-flex align-items-center">
+      {{ contractServ.connection.baseTokenBalance$ | async | toFixed:2 }}
+      <img style="height: 1rem; margin-left: .5rem;" [src]="
+        contractServ.networkInfo(
+          (contractServ.connection.chainId$ | async)
+        ).baseTokenThumb
+      " alt="Base token thumb">
+    </span>
+  </div>
 </div>

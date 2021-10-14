@@ -39247,8 +39247,7 @@ export let chainTokenDictionary = {
     {
       name: "Polygon",
       symbol: "MATIC",
-      thumb:
-        "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
+      thumb: "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
       address: "0x0000000000000000000000000000000000000000",
       decimals: "18",
     },
@@ -39275,7 +39274,7 @@ export let chainTokenDictionary = {
     }
   ],
   // Reef testnet
-  "reeftestnet": [
+  "reef-testnet": [
     {
       name: "Reef",
       symbol: "REEF",

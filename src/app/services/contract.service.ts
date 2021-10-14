@@ -7,19 +7,25 @@ import { LoadingIndicatorService } from './loading-indicator.service';
 import { ToasterService } from './toaster.service';
 import { ConfirmDialogService } from './confirm-dialog.service';
 import { ViewConsoleService } from './view-console.service';
-
-import { WalletLink } from 'walletlink';
-import { Provider, Signer } from "@reef-defi/evm-provider";
-import { web3Accounts, web3Enable } from "@polkadot/extension-dapp";
-import { WsProvider } from "@polkadot/api";
-import { ethers } from "ethers";
 import BigNumber from 'bignumber.js';
 
-import { deviceType, isMetaMaskInstalled } from '../../assets/js/custom-utils';
-
-let { AsyncVar, AsyncPulse } = require("bada55asyncutils");
-let SmartPrompt = require("smartprompt");
+let { ObsEmitter, ObsCacher } = require("bada55asyncutils");
 let SmartInterval = require("smartinterval");
+let EthersModal = require("ethersmodal");
+
+// For Coinbase Wallet
+import WalletLink from "walletlink";
+
+// For Fortmatic
+import Fortmatic from "fortmatic";
+
+// For WalletConnect
+import WalletConnectProvider from "@walletconnect/web3-provider";
+
+// For Polkadot Wallet
+import * as PolkadotExtensionDapp from "@polkadot/extension-dapp";
+import * as ReefDefiEvmProvider from "@reef-defi/evm-provider";
+import * as PolkadotApi from "@polkadot/api";
 
 /**
  * This service is the core component in the ethbox dapp. It contains all the methods to interact
@@ -53,7 +59,7 @@ let SmartInterval = require("smartinterval");
  * + connect
  * + disconnect
  * + init
- * + fetchVariables
+ * + setVariables
  * + loadTokens
  * + hardReset
  * 
@@ -97,73 +103,57 @@ let SmartInterval = require("smartinterval");
  * + claimReward
  */
 
-// This is an hacky solution to get some scripts available here
-let win: any = window;
-
 @Injectable({
     providedIn: 'root'
 })
 export class ContractService {
 
-    // AsyncVar emits a value but also remembers it for future listeners, that value can also be read at anytime by using getValue()
-    tokens$ = new AsyncVar(null);
+    APP_NAME = "ethbox";
+    INFURA_API_KEY = "b5b51030cf3e451bb523a3f2ca10e3ff";
+    FORTMATIC_API_KEY = "pk_test_ADCE42E053643A95";
 
-    // These variables are just for the boxes loop, there is a SmartInterval objects that's used to fetch boxes over time so that a new request doesn't happen before the last has already resolved
-    incomingBoxes$ = new AsyncVar(null);
-    outgoingBoxes$ = new AsyncVar(null);
-    private boxesIntervalCycleDelay = 3e3;
-    private boxesInterval;
-    private accountsChangedInterval;
-
-    chainId$ = new AsyncVar(null);
-    selectedAccount$ = new AsyncVar(null);
-
-    isChainSupported$ = new AsyncVar(false);
-    isEthereumMainnet$ = new AsyncVar(false);
-    isBinanceMainnet$ = new AsyncVar(false);
-    isMaticMainnet$ = new AsyncVar(false);
-
-    // Separate way of handling the connection to Polkadot{.js} via Reef Defi
-    isReef$ = new AsyncVar(false);
-    customProviderName = null;
-
-    isAppReady$ = new AsyncVar(false);
-    isStakingReady$ = new AsyncVar(false);
-
-    // AsyncPulse simply emits a value that can be listened only by those who are currently listening
-    approvalInteraction$ = new AsyncPulse();
-    boxInteraction$ = new AsyncPulse();
-    stakingInteraction$ = new AsyncPulse();
-    tokenDispenserInteraction$ = new AsyncPulse();
-
-    // Tokens map lets you query tokens by their addresses in O(1), useful to find logos and decimals in a blink of an eye
+    // To know more about ObsEmitter, ObsCacher and ObsReplayer see https://github.com/4skinSkywalker/AsyncUtils
+    tokens$ = new ObsCacher(null);
     tokensMap;
 
-    // These fields are changing values when chain is changed (look fetchVariables())
+    // Connection will hold a connection object by EthersModal, see more https://github.com/4skinSkywalker/EthersModal
+    connection;
+    chainId$ = new ObsCacher(null);; // This is a relayer for connection.chainId$
+    selectedAccount$ = new ObsCacher(null);; // This is a relayer for connection.selectedAccount$
+
+    incomingBoxes$ = new ObsCacher(null);
+    outgoingBoxes$ = new ObsCacher(null);
+
+    isChainSupported$ = new ObsCacher(false);
+    isEthereumMainnet$ = new ObsCacher(false);
+    isBinanceMainnet$ = new ObsCacher(false);
+    isMaticMainnet$ = new ObsCacher(false);
+
+    isAppReady$ = new ObsCacher(false);
+    isStakingReady$ = new ObsCacher(false);
+
+    approvalInteraction$ = new ObsEmitter();
+    boxInteraction$ = new ObsEmitter();
+    stakingInteraction$ = new ObsEmitter();
+    tokenDispenserInteraction$ = new ObsEmitter();
+
+    // These variables are just for the boxes loop, it uses SmartInterval under the hood, to know more see https://github.com/4skinSkywalker/SmartInterval
+    private boxesIntervalCycleDelay = 5e3;
+    private boxesInterval;
+
+    // These fields are variables initialized by setVariables
     private ethboxAddress;
     private ethboxContract;
+    private stakingAddress;
+    private stakingContract;
     private tokenDispenserAddress;
     private tokenDispenserContract;
 
-    private stakingAddress;
-    private stakingContract;
-
-    // Unpkg imports
-    private Web3Modal = win.Web3Modal.default;
-    private WalletConnectProvider = win.WalletConnectProvider.default;
-    private Fortmatic = win.Fortmatic;
-
-    // API keys for various providers
-    private INFURA_ID = 'b5b51030cf3e451bb523a3f2ca10e3ff';
-    private FORTMATIC_APIKEY = 'pk_test_ADCE42E053643A95';
-
-    private web3Modal;
-    private provider;
-    private signer;
+    private em; // This variable holds the instance of EthersModal
 
     constructor(
-        private loadingIndicatorServ: LoadingIndicatorService,
         private ngZone: NgZone,
+        private loadingIndicatorServ: LoadingIndicatorService,
         private toasterServ: ToasterService,
         private confirmDialogServ: ConfirmDialogService,
         private viewConsoleServ: ViewConsoleService
@@ -174,522 +164,203 @@ export class ContractService {
     // Connect the user to the dapp
     // Run on user interaction
     async connect(): Promise<void> {
-
+        this.loadingIndicatorServ.on();
         try {
-            let connection = await this.web3Modal.connect();
-
-            // When user has tapped on Reef, initialize things differently
-            if (connection.custom === "reef") {
-
-                this.loadingIndicatorServ.on();
-
-                // Return an array of all the injected sources
-                // (this needs to be called first)
-                const allInjected = await web3Enable('ethbox dapp');
-                console.log("All injected", allInjected);
-
-                let injected;
-                if (allInjected[0] && allInjected[0].signer) {
-                    injected = allInjected[0].signer;
-                }
-
-                // Return an array of { address, meta: { name, source } }
-                // (meta.source contains the name of the extension)
-                const allAccounts = await web3Accounts();
-                console.log("All accounts", allAccounts);
-                let accountOpts = allAccounts
-                    .map(acc => `<option value="${acc.address}">${acc.address}</option>`)
-                    .join("");
-
-                // Spawn a modal and ask the user to which account to connect
-                let prompt;
-                try {
-                    prompt = await new SmartPrompt(
-                        {
-                            figureColor: "#2d2f31",
-                            groundColor: "#fafafa",
-                            textColor: "#111",
-                            title: "Choose account and network",
-                            template: `<div style="display: grid; grid-gap: 1rem;">
-    <div>
-        <p>
-            <label>Account</label>
-        </p>
-        <select name="account" required="true">
-            ${accountOpts}
-        </select>
-    </div>
-    <div>
-        <p>
-            <label>Network</label>
-        </p>
-        <select name="network" required="true">
-            <option value="wss://rpc-testnet.reefscan.com/ws">Reef Testnet</option>
-            <!-- <option value="wss://rpc.reefscan.com/ws">Reef Mainnet</option> -->
-        </select>
-    </div>
-</div>`
-                        }
-                    );
-                }
-                catch (err) {
-                    this.loadingIndicatorServ.off();
-                    await this.web3Modal.clearCachedProvider();
-                    throw err;
-                }
-
-                let { account, network } = prompt;
-
-                this.provider = new Provider({
-                    provider: new WsProvider(network)
-                });
-                console.log("Provider", this.provider);
-
-                await this.provider.api.isReady;
-
-                this.signer = new Signer(
-                    this.provider,
-                    account,
-                    injected
-                );
-                console.log("Signer", this.signer);
-
-                if (!(await this.signer.isClaimed())) {
-                    console.log(
-                        "No claimed EVM account found -> claimed default EVM account: ",
-                        await this.signer.getAddress()
-                    );
-
-                    try {
-                        await this.signer.claimDefaultAccount();
-                    }
-                    catch (err) {
-                        this.loadingIndicatorServ.off();
-                        await this.web3Modal.clearCachedProvider();
-                        throw err;
-                    }
-                }
-
-                this.isReef$.next(true);
-                this.customProviderName = (network === "wss://rpc-testnet.reefscan.com/ws")
-                    ? "reeftestnet"
-                    : "reefmainnet";
-
-                this.loadingIndicatorServ.off();
-            }
-            else {
-
-                // This is the standard way of using ethers in Ethereum
-                this.provider = new ethers.providers
-                    .Web3Provider(
-                        connection.provider,
-                        "any"
-                    );
-                console.log("Provider", this.provider);
-
-                this.signer = this.provider.getSigner();
-                console.log("Signer", this.signer);
-
-                this.customProviderName = connection.custom;
-            }
+            await this.em.connect();
         }
         catch (err) {
-            this.toasterServ.toastMessage$.next({
-                type: "danger",
-                message: "Wallet connection failed!",
-                duration: "long"
-            });
-
-            this.viewConsoleServ.error("Could not get a wallet connection");
-            return;
+            this.loadingIndicatorServ.off();
+            throw err;
         }
-
-        if (!/(reef|fortmatic)/.test(this.customProviderName)) {
-
-            // Listeners to refresh contracts on network and account changes
-            this.provider.on("network", () =>
-                this.ngZone.run(() =>
-                    this.fetchVariables()
-                )
-            );
-
-            // ethers doesn't support "accountsChanged" event so I have to do it manually
-            // I chose 1000ms as it's not much different from the delay of the "network" event
-            this.accountsChangedInterval = setInterval(async () => {
-
-                let accounts = await this.provider.listAccounts();
-
-                if (this.selectedAccount$.getValue() !== accounts[0]) {
-                    this.ngZone.run(() =>
-                        this.fetchVariables()
-                    );
-                }
-            }, 1000);
-        }
-
-        // Wallet initialized
-        await this.fetchVariables();
+        this.loadingIndicatorServ.off();
     }
 
     // Disconnect the user from the dapp
     // Run on user interaction
     async disconnect(): Promise<void> {
 
-        if (!/(reef|fortmatic)/.test(this.customProviderName) && this.provider.removeAllListeners) {
-            this.provider.removeAllListeners("network");
-            clearInterval(this.accountsChangedInterval);
-        }
-
-        if (this.provider.close) {
-            await this.provider.close();
-        }
-
-        // If the cached provider is not cleared, WalletConnect will default to the existing session and does not allow to re-scan the QR code with a new wallet
-        await this.web3Modal.clearCachedProvider();
-
-        this.provider = null;
-        this.signer = null;
-
-        this.hardReset();
-        this.loadingIndicatorServ.off();
+        // TODO: what else should I do?
+        this.em.disconnect();
+        this.reset();
     }
 
-    // Setup Web3Modal and launch the box interval
+    // Setup EthersModal and launch the box interval
     private init(): void {
 
-        let MetaMaskOpts = {
-            "custom-metamask": {
-                display: {
-                    logo: "assets/img/metamask-logo.svg",
-                    name: "MetaMask Wallet",
-                    description: "Connect to your MetaMask wallet"
-                },
-                package: true,
-                connector: async () => {
-                    if (!isMetaMaskInstalled()) {
-                        win.location = "https://metamask.app.link/dapp/www.ethbox.org/app/";
-                        return;
-                    }
+        let myWallets = EthersModal.providers.array;
 
-                    let provider = null;
-                    if (typeof win.ethereum !== 'undefined') {
-                        provider = win.ethereum;
-                        try {
-                            await provider.request({ method: 'eth_requestAccounts' });
-                        } catch (error) {
-                            throw new Error("User Rejected");
-                        }
-                    } else {
-                        throw new Error("No MetaMask Wallet found");
-                    }
-                    return { provider, custom: "metamask" };
-                }
-            }
-        };
+        // Setup of Coinbase configurations
+        let coinbaseCfg = EthersModal.providers.dictionary.CoinbaseCfg;
+        coinbaseCfg.options.appName = this.APP_NAME;
+        coinbaseCfg.options.infuraApiKey = this.INFURA_API_KEY;
+        coinbaseCfg.package = WalletLink;
+        myWallets.push(coinbaseCfg);
 
-        let WalletConnectOpts = {
-            walletconnect: {
-                package: this.WalletConnectProvider,
-                options: {
-                    infuraId: this.INFURA_ID
-                }
-            }
-        };
+        // Setup of Fortmatic configurations
+        let fortmaticCfg = EthersModal.providers.dictionary.FortmaticCfg;
+        fortmaticCfg.options.fortmaticApiKey = this.FORTMATIC_API_KEY;
+        fortmaticCfg.options.infuraApiKey = this.INFURA_API_KEY;
+        fortmaticCfg.package = Fortmatic;
+        myWallets.push(fortmaticCfg);
 
-        let BinanceChainWalletOpts = {
-            "custom-binancechainwallet": {
-                display: {
-                    logo: "assets/img/binance-logo.svg",
-                    name: "Binance Chain Wallet",
-                    description: "Connect to your Binance Wallet"
-                },
-                package: true,
-                connector: async () => {
-                    let provider = null;
-                    if (typeof win.BinanceChain !== 'undefined') {
-                        provider = win.BinanceChain;
-                        try {
-                            await provider.request({ method: 'eth_requestAccounts' });
-                        } catch (error) {
-                            throw new Error("User Rejected");
-                        }
-                    } else {
-                        throw new Error("No Binance Chain Wallet found");
-                    }
-                    return { provider, custom: "binancechainwallet" };
-                }
-            }
-        };
+        // Setup of WalletConnect configurations
+        let walletConnectCfg = EthersModal.providers.dictionary.WalletConnectCfg;
+        walletConnectCfg.options.infuraApiKey = this.INFURA_API_KEY;
+        walletConnectCfg.package = WalletConnectProvider;
+        myWallets.push(walletConnectCfg);
 
-        let CoinbaseWalletOpts = {
-            "custom-coinbase": {
-                display: {
-                    logo: 'assets/img/coinbase-logo.svg',
-                    name: 'Coinbase',
-                    description: 'Connect with Coinbase wallet'
-                },
-                options: {
-                    appName: 'ethbox',
-                    networkUrl: `https://mainnet.infura.io/v3/${this.INFURA_ID}`,
-                    chainId: 1
-                },
-                package: WalletLink,
-                connector: async (_, options) => {
-                    let { appName, networkUrl, chainId } = options
-                    let walletLink = new WalletLink({ appName });
-                    let provider = walletLink.makeWeb3Provider(networkUrl, chainId);
-                    await provider.enable();
-                    return { provider, custom: "coinbase" };
-                }
-            }
-        };
+        // Setup of Polkadot configurations
+        let polkadotCfg = EthersModal.providers.dictionary.PolkadotCfg;
+        polkadotCfg.options.appName = this.APP_NAME;
+        polkadotCfg.package = [
+            PolkadotExtensionDapp,
+            ReefDefiEvmProvider,
+            PolkadotApi
+        ];
+        myWallets.push(polkadotCfg);
 
-        let ReefOpts = {
-            "custom-reef": {
-                display: {
-                    logo: "assets/img/polkadot-reef.png",
-                    name: "Polkadot Wallet",
-                    description: "Reef Finance"
-                },
-                package: true,
-                connector: async () => ({ custom: "reef" })
-            }
-        };
-
-        let FortmaticOpts = {
-            "custom-fortmatic": {
-                package: true,
-                display: {
-                    logo: "assets/img/fortmatic.png",
-                    name: "Fortmatic Wallet",
-                    description: "Connect to your Fortmatic Wallet"
-                },
-                connector: async () => {
-
-                    // Spawn a modal and ask the user to which network to connect
-                    let prompt;
-                    try {
-                        prompt = await new SmartPrompt(
-                            {
-                                figureColor: "#2d2f31",
-                                groundColor: "#fafafa",
-                                textColor: "#111",
-                                title: "Choose a network",
-                                template: `<div style="display: grid; grid-gap: 1rem;">
-    <div>
-        <p>
-            <label>Network</label>
-        </p>
-        <select name="networkString" required="true">
-            <option value="https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161;1">Ethereum Mainnet</option>
-            <option value="https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161;4">Ethereum Rinkeby</option>
-            <option value="https://bsc-dataseed.binance.org/;56">Binance Mainnet</option>
-            <option value="https://bsc-dataseed.binance.org/;97">Binance Testnet</option>
-            <option value="https://rpc-mainnet.maticvigil.com/;187">Polygon Mainnet</option>
-            <option value="https://rpc-mumbai.matic.today;80001">Polygon Mumbai</option>
-        </select>
-    </div>
-</div>`
-                            }
-                        );
-                    }
-                    catch (err) {
-                        this.loadingIndicatorServ.off();
-                        await this.web3Modal.clearCachedProvider();
-                        throw err;
-                    }
-
-                    let [rpcUrl, chainId] = prompt.networkString.split(";");
-
-                    let fm = new this.Fortmatic(
-                        this.FORTMATIC_APIKEY,
-                        { rpcUrl, chainId }
-                    );
-
-                    return { provider: fm.getProvider(), custom: "fortmatic" };
-                }
-            }
-        };
-
-        // Put here providers that work on every device
-        let providerOptions = {
-            ...MetaMaskOpts,
-            ...WalletConnectOpts,
-            ...CoinbaseWalletOpts,
-            ...FortmaticOpts
-        };
-
-        // Put here providers that only works on desktop
-        if (deviceType() === "desktop") {
-            Object.assign(
-                providerOptions,
-                BinanceChainWalletOpts,
-                ReefOpts
-            );
-        }
-
-        this.web3Modal = new this.Web3Modal({
-            cacheProvider: deviceType() === "desktop", // Clear cache only on desktop to avoid getting stuck when using deep link
-            providerOptions,
-            disableInjectedProvider: true
+        // Instantiate EthersModal and get the connection
+        this.em = new EthersModal({
+            providerOpts: myWallets,
+            cacheProvider: true
         });
+        this.connection = this.em.connection;
 
+        // The following code is to setup relayers for retro-compatibility
+        this.connection.chainId$
+            .subscribe(newChainId => this.chainId$.next(newChainId));
+        this.connection.selectedAccount$
+            .subscribe(newSelectedAccount => this.selectedAccount$.next(newSelectedAccount));
+
+        // Instantiate SmartInterval for fetching boxes at regular intervals
         this.boxesInterval = new SmartInterval(
             async () => {
-                this.incomingBoxes$.next(await this.getIncomingBoxes());
-                this.outgoingBoxes$.next(await this.getOutgoingBoxes());
+
+                await new Promise((resolve) => {
+                    this.ngZone.run(async () => {
+
+                        // "try" is used here because it's expected to see boxes getters to fail from time to time due to network changes
+                        try {
+                            this.incomingBoxes$.next(await this.getIncomingBoxes());
+                            this.outgoingBoxes$.next(await this.getOutgoingBoxes());
+                        } catch (err) {
+                            console.warn("Box getters failed.");
+                        }
+                        resolve(1);
+                    });
+                });
             },
             this.boxesIntervalCycleDelay
         );
 
-        // I want the boxes to be fetched on boxInteraction$
+        // Force boxes to be fetched on boxInteraction$
         this.boxInteraction$.subscribe(() =>
             this.boxesInterval.forceExecution()
         );
 
+        // Setup automatic fetching of boxes and setting of variables
+        this.connection.isConnected$
+            .subscribe(() => {
+                this.boxesInterval.forceExecution();
+                this.setVariables();
+            });
+
         // Automatically connect if there's a cached provider
-        if (win.Web3Modal.getLocal(win.Web3Modal.CACHED_PROVIDER_KEY)) {
-            this.connect();
-        }
+        // Must defer this because it could run before the provider is injected into the page
+        setTimeout(() => {
+            if (localStorage.getItem("ETHERS_MODAL_CACHED_PROVIDER")) {
+                this.connect();
+            }
+        }, 2000);
     }
 
-    /**
-     * - Get chain ID
-     * - Get selected account
-     * - Load supported tokens
-     * - Instantiate ethbox and staking contract
-     * - Log info in the console
-     * 
-     * TODO: Add links to network scanners
-     */
-    private async fetchVariables(): Promise<void> {
+    // Load supported tokens, instantiate contracts and start boxes fetching
+    // TODO: add links to network scanners
+    private async setVariables(): Promise<void> {
 
-        this.softReset();
-
-        this.loadingIndicatorServ.on();
-
-        // Retrieving the chainId
-        let { chainId } = await this.provider.getNetwork();
-        console.log("Chain ID", chainId);
-
-        // Marking the chainId distinctively for Reef (because Mainnet and Testnet have the same chainId)
-        if (this.isReef$.getValue()) {
-            chainId = this.customProviderName;
+        if (!this.connection.isConnected$.getValue()) {
+            this.reset();
+            return;
         }
-
-        this.chainId$.next(chainId);
-
-        // Retrieving the selectedAccount, two different ways between Reef and others
-        let selectedAccount;
-        if (!this.isReef$.getValue()) {
-            let accounts;
-            try {
-                accounts = await this.provider.listAccounts();
-            }
-            catch (err) {
-                this.loadingIndicatorServ.off();
-                await this.web3Modal.clearCachedProvider();
-                throw err;
-            }
-
-            console.log("Accounts", accounts);
-            selectedAccount = accounts[0];
-        } else {
-            try {
-                selectedAccount = await this.signer.queryEvmAddress();
-            }
-            catch (err) {
-                this.loadingIndicatorServ.off();
-                await this.web3Modal.clearCachedProvider();
-                throw err;
-            }
-        }
-        this.selectedAccount$.next(selectedAccount);
-
-        this.viewConsoleServ.log(`Selected chain is ${this.chainId$.getValue()}`);
-        this.viewConsoleServ.log(`Connected user is ${this.selectedAccount$.getValue()}`);
 
         // The following code sets contracts depending on the current chain
-        switch (chainId) {
-            case "reeftestnet": // Reef Testnet
+        // TODO: add reef-mainnet
+        let chainId = this.connection.chainId$.getValue();
+        switch ((chainId || {}).toString()) {
+            case "reef-testnet": // Reef Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.REEF_TESTNET;
                 break;
-            case 1:     // Ethereum Mainnet
+            case "1":     // Ethereum Mainnet
                 this.isEthereumMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
                 this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
                 break;
-            case 4:     // Ethereum Testnet
+            case "4":     // Ethereum Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
                 break;
-            case 56:    // Binance Mainnet
+            case "56":    // Binance Mainnet
                 this.isBinanceMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
                 this.stakingAddress = STAKING.ADDRESSES.BINANCE;
                 break;
-            case 97:    // Binance Testnet
+            case "97":    // Binance Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
                 break;
-            case 137:   // Matic Mainnet
+            case "137":   // Matic Mainnet
                 this.isMaticMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
                 break;
-            case 80001: // Matic Testnet
+            case "80001": // Matic Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
                 break;
             default:
-                this.hardReset();
-                this.loadingIndicatorServ.off();
-                return;
+                this.reset();
+                throw new Error("Network not recognized."); // TODO: toaster notification
         }
 
-        if (this.ethboxAddress) {
-            this.ethboxContract = new ethers.Contract(
-                this.ethboxAddress,
-                ETHBOX.ABI,
-                this.signer
-            );
-        }
+        this.ethboxContract = new this.connection.ethers.Contract(
+            this.ethboxAddress,
+            ETHBOX.ABI,
+            this.connection.signer$.getValue()
+        );
 
         if (this.stakingAddress) {
-            this.stakingContract = new ethers.Contract(
+            this.stakingContract = new this.connection.ethers.Contract(
                 this.stakingAddress,
                 STAKING.ABI,
-                this.signer
+                this.connection.signer$.getValue()
             );
             this.isStakingReady$.next(true);
         }
 
         if (this.tokenDispenserAddress) {
-            this.tokenDispenserContract = new ethers.Contract(
+            this.tokenDispenserContract = new this.connection.ethers.Contract(
                 this.tokenDispenserAddress,
                 TOKEN_DISPENSER.ABI,
-                this.signer
+                this.connection.signer$.getValue()
             );
         }
 
-        this.loadTokens();
-        this.boxesInterval.start();
         this.isChainSupported$.next(true);
         this.isAppReady$.next(true);
 
-        this.viewConsoleServ.log(`Ethbox contract address is ${this.ethboxAddress}`);
-        this.viewConsoleServ.log(`Staking contract address is ${this.stakingAddress}`);
-        this.viewConsoleServ.log(
-            `Supported tokens are loaded (${this.tokens$.getValue()?.length})`
-        );
+        this.viewConsoleServ.log(`Ethbox contract: ${this.ethboxAddress}`);
+        this.viewConsoleServ.log(`Staking contract: ${this.stakingAddress}`);
 
-        this.loadingIndicatorServ.off();
+        this.loadTokens();
+
+        // Start the newly created SmartInterval instance
+        this.boxesInterval.start();
     }
 
     // Get custom tokens from LS and merge them with curated ones
     loadTokens() {
 
-        let LSKey = `customTokens${this.chainId$.getValue()}`;
+        let LSKey = `customTokens${this.connection.chainId$.getValue()}`;
 
         let customTokens = [],
             curatedTokens = [];
@@ -702,7 +373,7 @@ export class ContractService {
         }
 
         // Take tokens from curated lists for the current network
-        let currentChainTokens = chainTokenDictionary[this.chainId$.getValue()];
+        let currentChainTokens = chainTokenDictionary[this.connection.chainId$.getValue()];
         if (currentChainTokens) {
             curatedTokens = currentChainTokens;
         }
@@ -712,8 +383,7 @@ export class ContractService {
         this.tokens$.next(mergedResults);
     }
 
-    // Changing network/user
-    private softReset() {
+    private reset() {
         this.isAppReady$.next(false);
         this.isChainSupported$.next(false);
 
@@ -732,69 +402,120 @@ export class ContractService {
         this.isEthereumMainnet$.next(false);
     }
 
-    // Disconnecting
-    private hardReset() {
-        this.softReset();
-
-        this.customProviderName = null;
-        this.isReef$.next(false);
-
-        this.selectedAccount$.next(null);
-        this.chainId$.next(null);
+    networkInfo(chainId) {
+        switch ((chainId || {}).toString()) {
+            case "reef-mainnet":
+                return {
+                    name: "Reef Testnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/13504/small/Group_10572.png?1610534130",
+                    accountScannerUrl: (address) => `https://reefscan.com/account/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "reef-testnet":
+                return {
+                    name: "Reef Testnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/13504/small/Group_10572.png?1610534130",
+                    accountScannerUrl: (address) => `https://testnet.reefscan.com/account/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "1":
+                return {
+                    name: "Ethereum Mainnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/279/thumb/ethereum.png",
+                    accountScannerUrl: (address) => `https://etherscan.io/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "4":
+                return {
+                    name: "Ethereum Testnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/279/thumb/ethereum.png",
+                    accountScannerUrl: (address) => `https://rinkeby.etherscan.io/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "56":
+                return {
+                    name: "Binance Mainnet",
+                    baseTokenThumb: "https://v1exchange.pancakeswap.finance/images/coins/bnb.png",
+                    accountScannerUrl: (address) => `https://bscscan.com/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "97":
+                return {
+                    name: "Binance Testnet",
+                    baseTokenThumb: "https://v1exchange.pancakeswap.finance/images/coins/bnb.png",
+                    accountScannerUrl: (address) => `https://testnet.bscscan.com/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "137":
+                return {
+                    name: "Matic Mainnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
+                    accountScannerUrl: (address) => `https://polygonscan.com/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            case "80001":
+                return {
+                    name: "Matic Testnet",
+                    baseTokenThumb: "https://assets.coingecko.com/coins/images/4713/thumb/matic___polygon.jpg",
+                    accountScannerUrl: (address) => `https://mumbai.polygonscan.com/address/${address}`,
+                    transactionScannerUrl: (hash) => ``
+                };
+            default:
+                return {
+                    name: "Not supported",
+                    baseTokenThumb: null,
+                    accountScannerUrl: () => ``,
+                    transactionScannerUrl: () => ``
+                };
+        }
     }
 
     isEthereum(): boolean {
-        return [1, 4].includes(this.chainId$.getValue());
+        return [1, 4].includes(this.connection.chainId$.getValue());
     }
 
     isBinance(): boolean {
-        return [56, 97].includes(this.chainId$.getValue());
+        return [56, 97].includes(this.connection.chainId$.getValue());
     }
 
     isMatic(): boolean {
-        return [137, 80001].includes(this.chainId$.getValue());
+        return [137, 80001].includes(this.connection.chainId$.getValue());
     }
 
     isReef(): boolean {
-        return this.isReef$.getValue();
+        return ["reef-testnet", "reef-mainnet"].includes(this.connection.chainId$.getValue());
     }
 
     isEthereumMainnet(): boolean {
-        return this.chainId$.getValue() == 1;
+        return this.connection.chainId$.getValue() == 1;
     }
 
     isBinanceMainnet(): boolean {
-        return this.chainId$.getValue() == 56;
+        return this.connection.chainId$.getValue() == 56;
     }
 
     isMaticMainnet(): boolean {
-        return this.chainId$.getValue() == 137;
+        return this.connection.chainId$.getValue() == 137;
     }
 
     isReefTestnet(): boolean {
-        if (this.isReef()) {
-            return this.customProviderName === "reeftestnet";
-        }
-        return false;
+        return this.connection.chainId$.getValue() === "reef-testnet";
     }
 
     isEthereumTestnet(): boolean {
-        return this.chainId$.getValue() == 4;
+        return this.connection.chainId$.getValue() == 4;
     }
 
     isBinanceTestnet(): boolean {
-        return this.chainId$.getValue() == 97;
+        return this.connection.chainId$.getValue() == 97;
     }
 
     isMaticTestnet(): boolean {
-        return this.chainId$.getValue() == 80001;
+        return this.connection.chainId$.getValue() == 80001;
     }
 
     isReefMainnet(): boolean {
-        if (this.isReef()) {
-            return this.customProviderName === "reefmainnet";
-        }
-        return false;
+        return this.connection.chainId$.getValue() === "reef-mainnet";
     }
 
     // Give the user 100 of the selected test token
@@ -811,7 +532,7 @@ export class ContractService {
         try {
             tx = await this.tokenDispenserContract.giveToken(
                 testTokenIndex,
-                ethers.utils.parseUnits("100", 18)
+                this.connection.ethers.utils.parseUnits("100", 18)
             );
         }
         catch (err) {
@@ -858,15 +579,15 @@ export class ContractService {
 
     // Check if the given address is syntatically valid
     isValidAddress(address: string): boolean {
-        return ethers.utils.isAddress(address);
+        return this.connection.ethers.utils.isAddress(address);
     }
 
     private hash(string) {
-        return ethers.utils.id(string);
+        return this.connection.ethers.utils.id(string);
     }
 
     private doubleHash(string) {
-        return ethers.utils.keccak256(this.hash(string));
+        return this.connection.ethers.utils.keccak256(this.hash(string));
     }
 
     // Check if the password provided fits the one that encrypted the box
@@ -876,14 +597,14 @@ export class ContractService {
 
     // What about using ethers.utils.formatEthers() instead?
     weiToDecimal(wei: string, decimals: string | number): string {
-        let multiplier = '1' + ZERO.repeat(Number(decimals));
+        let multiplier = "1" + ZERO.repeat(Number(decimals));
         let _wei = new BigNumber(wei);
         return _wei.dividedBy(multiplier).toFixed();
     }
 
     // What about using ethers.utils.parseUnits() instead?
     decimalToWei(decimalValue: string, decimals: string | number): string {
-        let multiplier = '1' + ZERO.repeat(Number(decimals));
+        let multiplier = "1" + ZERO.repeat(Number(decimals));
         let _decimal = new BigNumber(decimalValue);
         return _decimal.multipliedBy(multiplier).toFixed();
     }
@@ -891,14 +612,14 @@ export class ContractService {
     // Read only query
     private async getWeiAllowance(tokenAddress: string): Promise<string> {
 
-        let tokenContract = new ethers.Contract(
+        let tokenContract = new this.connection.ethers.Contract(
             tokenAddress,
             ERC20_ABI,
-            this.provider
+            this.connection.provider$.getValue()
         );
 
         let allowance = await tokenContract.allowance(
-            this.selectedAccount$.getValue(),
+            this.connection.selectedAccount$.getValue(),
             this.ethboxAddress
         );
 
@@ -921,10 +642,10 @@ export class ContractService {
         // Otherwise take the data from the blockchain
         else {
 
-            let tokenContract = new ethers.Contract(
+            let tokenContract = new this.connection.ethers.Contract(
                 tokenAddress,
                 ERC20_ABI,
-                this.provider
+                this.connection.provider$.getValue()
             );
 
             decimals = await tokenContract.decimals();
@@ -946,21 +667,21 @@ export class ContractService {
     async getTokenBalance(tokenAddress: string): Promise<TokenBalance> {
 
         let tokenData = await this.getTokenData(tokenAddress);
-        let selectedAccount = this.selectedAccount$.getValue();
+        let selectedAccount = this.connection.selectedAccount$.getValue();
 
         let wei, weiAllowance;
 
         // If it's the base token, then mocks the allowance as unlimited (MAX_VALUE)
         if (tokenAddress == ADDRESS_ZERO) {
-            wei = (await this.provider.getBalance(selectedAccount)).toString();
+            wei = (await this.connection.provider$.getValue().getBalance(selectedAccount)).toString();
             weiAllowance = MAX_VALUE;
         }
         else {
 
-            let tokenContract = new ethers.Contract(
+            let tokenContract = new this.connection.ethers.Contract(
                 tokenAddress,
                 ERC20_ABI,
-                this.provider
+                this.connection.provider$.getValue()
             );
 
             wei = (await tokenContract.balanceOf(selectedAccount)).toString();
@@ -980,10 +701,10 @@ export class ContractService {
     // State changing operation
     async approveMax(tokenAddress: string): Promise<void> {
 
-        let tokenContract = new ethers.Contract(
+        let tokenContract = new this.connection.ethers.Contract(
             tokenAddress,
             ERC20_ABI,
-            this.signer
+            this.connection.signer$.getValue()
         );
 
         // Start loading
@@ -1052,7 +773,7 @@ export class ContractService {
                 }
 
                 // Evaluate BigNumber(s) to numeric strings in base-10
-                // This is just to implement this feature faster as the code migrated from web3 to ethers, in future should be refactored to work with BigNumber at all times
+                // This is just to implement this feature faster as the code migrated from web3 to this.connection.ethers, in future should be refactored to work with BigNumber at all times
                 if (bcBox[key]._isBigNumber) {
                     appBox[key] = bcBox[key].toString();
                     continue;
@@ -1113,7 +834,7 @@ export class ContractService {
                 }
             );
 
-            if (appBox.sender == this.selectedAccount$.getValue()) {
+            if (appBox.sender == this.connection.selectedAccount$.getValue()) {
                 continue;
             }
 
@@ -1133,7 +854,7 @@ export class ContractService {
                 }
             );
 
-            if (appBox.senderHash == this.hash(this.selectedAccount$.getValue())) {
+            if (appBox.senderHash == this.hash(this.connection.selectedAccount$.getValue())) {
                 continue;
             }
 
@@ -1142,7 +863,7 @@ export class ContractService {
 
         // Sort boxes by date from newest to oldest
         boxes.sort((a, b) => b.timestamp - a.timestamp);
-        win._incBox = boxes;
+        window["_incBox"] = boxes;
         // console.log("Incoming boxes", boxes);
 
         return boxes;
@@ -1186,7 +907,7 @@ export class ContractService {
 
         // Sort boxes by date from newest to oldest
         boxes.sort((a, b) => b.timestamp - a.timestamp);
-        win._outBox = boxes;
+        window["_outBox"] = boxes;
         // console.log("Outgoing boxes", boxes);
 
         return boxes;
@@ -1670,7 +1391,7 @@ export class ContractService {
 
         let signature;
         try {
-            signature = await this.signer.signMessage(message);
+            signature = await this.connection.signer$.getValue().signMessage(message);
         }
         catch (err) {
             this.toasterServ.toastMessage$.next({
