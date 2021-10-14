@@ -20,6 +20,8 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build --output-path app --base-href /app/`. The build artifacts will be stored in the `app/`. Use the `--prod` flag for a production build.
 
+If you want to compile for GH pages run `ng build --output-path docs --base-href https://ethbox-official.github.io/web-app/`.
+
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
