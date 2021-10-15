@@ -121,7 +121,7 @@ label[for], input[type="checkbox"] {
 .btn-eboxprimary {
   color: white;
   background-image: linear-gradient(to bottom right, #afd0ff 12%, #ff00c5);
-  border-color: #afd0ff;
+  border: 0;
   background-size: 133% 133%;
   transition: all .5s;
 }
