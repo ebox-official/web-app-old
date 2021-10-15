@@ -3,11 +3,14 @@
   max-width: 75vw;
   height: 100%;
   transform: translateX(-100%);
-  transition: transform .3s ease;
+  box-shadow: -10px 0 20px #0004;
+  transition: transform .3s ease,
+              box-shadow .6s ease .3s;
 }
 #console-opening-trigger:not(:checked) + #view-console-wrapper {
   transform: translateX(0);
   z-index: 10;
+  box-shadow: -5px 0 10px #0002;
 }
 #view-console-handle {
   top: calc(100vh - 128px);
@@ -15,19 +18,15 @@
   transform:
     translate(28px, -50%)
     rotateZ(-90deg);
-  background-color: #fffa;
+  background-color: #fff;
   padding: 4px 15px;
   z-index: 100;
-  border-top: 1px solid #aaa;
+  border-top: 1px solid #bbb;
   -webkit-user-select: none;
   user-select: none;
   cursor: pointer;
 }
 #view-console {
-  background-image: linear-gradient(
-    90deg,
-    #fffa,
-    #fffe
-  );
+  background-color: #fff;
   height: 100%;
 }
