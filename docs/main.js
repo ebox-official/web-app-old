@@ -44509,6 +44509,11 @@ class ContractService {
             }
             catch (err) {
                 this.loadingIndicatorServ.off();
+                this.toasterServ.toastMessage$.next({
+                    type: "danger",
+                    message: err,
+                    duration: "long"
+                });
                 throw err;
             }
             this.loadingIndicatorServ.off();
