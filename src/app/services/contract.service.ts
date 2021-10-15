@@ -193,7 +193,7 @@ export class ContractService {
             if (localStorage.getItem("ETHERS_MODAL_CACHED_PROVIDER")) {
                 this.connect();
             }
-        }, 2000);
+        }, 3000);
     }
 
     // Load supported tokens, instantiate contracts and start boxes fetching
