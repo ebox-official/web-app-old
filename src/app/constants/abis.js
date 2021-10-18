@@ -1,7 +1,7 @@
 export let STAKING = {
     ADDRESSES: {
         ETHEREUM: "0x37c82a143a9fafc2df10e774f1e4b8b96fd41559",
-        BINANCE: "0xbD1E729074A14348c78E39b56992f54f0b5d37Ec"
+        BINANCE: "0x668Db61f9069F252EBe978dB75e9a1B103eBC23c"
     },
     ABI: [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"stateMutability":"payable","type":"fallback"},{"inputs":[],"name":"claimReward","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getUnclaimedReward","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"other","type":"address"}],"name":"getUnclaimedRewardFor","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverRewards","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"pause","type":"bool"}],"name":"setContractPaused","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"components":[{"internalType":"address","name":"staker","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"}],"internalType":"struct ethboxStaking.staking_reward[]","name":"_rewards","type":"tuple[]"}],"name":"setRewards","outputs":[],"stateMutability":"nonpayable","type":"function"}]
 };
