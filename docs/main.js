@@ -44464,6 +44464,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// Web3Utils is used exclusively for soliditySha3 function
+let Web3Utils = __webpack_require__(/*! web3-utils */ 5447);
 let { ObsEmitter, ObsCacher } = __webpack_require__(/*! bada55asyncutils */ 42376);
 let SmartInterval = __webpack_require__(/*! smartinterval */ 2270);
 let EthersModal = __webpack_require__(/*! ethersmodal */ 9268);
@@ -44848,10 +44850,10 @@ class ContractService {
         return this.connection.ethers.utils.isAddress(address);
     }
     hash(string) {
-        return this.connection.ethers.utils.id(string);
+        return Web3Utils.soliditySha3(string);
     }
     doubleHash(string) {
-        return this.connection.ethers.utils.keccak256(this.hash(string));
+        return this.hash(this.hash(string));
     }
     // Check if the password provided fits the one that encrypted the box
     isValidPassword(box, password) {
@@ -46087,6 +46089,36 @@ _angular_platform_browser__WEBPACK_IMPORTED_MODULE_3__.platformBrowser().bootstr
 /***/ }),
 
 /***/ 42602:
+/*!************************!*\
+  !*** buffer (ignored) ***!
+  \************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 89455:
+/*!************************!*\
+  !*** assert (ignored) ***!
+  \************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 33557:
+/*!************************!*\
+  !*** buffer (ignored) ***!
+  \************************/
+/***/ (() => {
+
+/* (ignored) */
+
+/***/ }),
+
+/***/ 8370:
 /*!************************!*\
   !*** buffer (ignored) ***!
   \************************/
