@@ -9,6 +9,9 @@ import { ConfirmDialogService } from './confirm-dialog.service';
 import { ViewConsoleService } from './view-console.service';
 import BigNumber from 'bignumber.js';
 
+// Web3Utils is used exclusively for soliditySha3 function
+let Web3Utils = require('web3-utils');
+
 let { ObsEmitter, ObsCacher } = require("bada55asyncutils");
 let SmartInterval = require("smartinterval");
 let EthersModal = require("ethersmodal");
@@ -509,11 +512,11 @@ export class ContractService {
     }
 
     private hash(string) {
-        return this.connection.ethers.utils.id(string);
+        return Web3Utils.soliditySha3(string);
     }
 
     private doubleHash(string) {
-        return this.connection.ethers.utils.keccak256(this.hash(string));
+        return this.hash(this.hash(string));
     }
 
     // Check if the password provided fits the one that encrypted the box
