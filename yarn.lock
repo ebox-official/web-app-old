@@ -2375,6 +2375,11 @@
     merge-source-map "^1.1.0"
     schema-utils "^2.7.0"
 
+"@metamask/detect-provider@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/detect-provider/-/detect-provider-1.2.0.tgz#3667a7531f2a682e3c3a43eaf3a1958bdb42a696"
+  integrity sha512-ocA76vt+8D0thgXZ7LxFPyqw3H7988qblgzddTDA6B8a/yU0uKV42QR/DhA+Jh11rJjxW0jKvwb5htA6krNZDQ==
+
 "@metamask/safe-event-emitter@2.0.0", "@metamask/safe-event-emitter@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/safe-event-emitter/-/safe-event-emitter-2.0.0.tgz#af577b477c683fad17c619a78208cede06f9605c"
@@ -7004,11 +7009,12 @@ ethers@^5.4.7:
     "@ethersproject/web" "5.4.0"
     "@ethersproject/wordlists" "5.4.0"
 
-ethersmodal@^1.19.19:
-  version "1.19.19"
-  resolved "https://registry.yarnpkg.com/ethersmodal/-/ethersmodal-1.19.19.tgz#144123fd766e3b25a658750a4063a2545d86f518"
-  integrity sha512-P/HiOGcaSHQUoJQOO5XYxaBT9xOMJNJ4qQwe9+Kpu8wzN6KUmT6k0/+JFyP0EO4QSgCp1I1wHsUPBLslZaPmcw==
+ethersmodal@^1.20.19:
+  version "1.20.19"
+  resolved "https://registry.yarnpkg.com/ethersmodal/-/ethersmodal-1.20.19.tgz#124949a8fc7c07db0950e5c9cc2c8da19d7cbac8"
+  integrity sha512-DYSLViRMb5poGnDc2/A2eH+4B5acPICll+LQxS+9td64soX1Fy7B5p95xrAz1DgCdwBcYkiVrVmQRFHKmu57bg==
   dependencies:
+    "@metamask/detect-provider" "^1.2.0"
     bada55asyncutils "^2.0.3"
     ethers "^5.4.7"
     smartinterval "^1.0.1"
