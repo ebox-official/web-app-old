@@ -39413,6 +39413,37 @@ let MAX_VALUE = '115792089237316195423570985008687907853269984665640564039457584
 
 /***/ }),
 
+/***/ 64250:
+/*!***************************************!*\
+  !*** ./src/assets/js/custom-utils.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "deviceType": () => (/* binding */ deviceType),
+/* harmony export */   "isMetaMaskInstalled": () => (/* binding */ isMetaMaskInstalled)
+/* harmony export */ });
+
+function deviceType() {
+    let ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+        return "tablet";
+    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+        return "mobile";
+    }
+    return "desktop";
+}
+
+function isMetaMaskInstalled() {
+    return window.ethereum
+        && window.ethereum.isMetaMask;
+}
+
+
+/***/ }),
+
 /***/ 90158:
 /*!***************************************!*\
   !*** ./src/app/app-routing.module.ts ***!
@@ -44466,6 +44497,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // Web3Utils is used exclusively for soliditySha3 function
 let Web3Utils = __webpack_require__(/*! web3-utils */ 5447);
+let { deviceType } = __webpack_require__(/*! ../../assets/js/custom-utils */ 64250);
 let { ObsEmitter, ObsCacher } = __webpack_require__(/*! bada55asyncutils */ 42376);
 let SmartInterval = __webpack_require__(/*! smartinterval */ 2270);
 let EthersModal = __webpack_require__(/*! ethersmodal */ 9268);
@@ -44561,7 +44593,7 @@ class ContractService {
         // Instantiate EthersModal and get the connection
         this.em = new EthersModal({
             providerOpts: myWallets,
-            cacheProvider: true
+            cacheProvider: true // deviceType() !== "mobile"
         });
         this.connection = this.em.connection;
         // The following code is to setup relayers for retro-compatibility
@@ -44599,7 +44631,7 @@ class ContractService {
             if (localStorage.getItem("ETHERS_MODAL_CACHED_PROVIDER")) {
                 this.connect();
             }
-        }, 1500);
+        }, 1000);
     }
     // Load supported tokens, instantiate contracts and start boxes fetching
     setVariables() {
@@ -44656,6 +44688,24 @@ class ContractService {
             }
             this.isChainSupported$.next(true);
             this.isAppReady$.next(true);
+            // Force reload of the dapp on network change for mobiles
+            if (deviceType() === "mobile") {
+                let changes = {
+                    "chainId": 0,
+                    "selectedAccount": 0
+                };
+                let reloadOnChangeOf = (what) => {
+                    return () => {
+                        if (changes[what] > 0)
+                            location.reload();
+                        changes[what]++;
+                    };
+                };
+                this.connection.chainId$
+                    .subscribe(reloadOnChangeOf("chainId"));
+                this.connection.selectedAccount$
+                    .subscribe(reloadOnChangeOf("selectedAccount"));
+            }
             this.viewConsoleServ.log(`Ethbox contract: ${this.ethboxAddress}`);
             this.viewConsoleServ.log(`Staking contract: ${this.stakingAddress}`);
             this.loadTokens();
