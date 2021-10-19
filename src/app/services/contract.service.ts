@@ -285,7 +285,7 @@ export class ContractService {
             };
             let reloadOnChangeOf = (what) => {
                 return () => {
-                    if (changes[what] > 0) location.reload();
+                    if (changes[what] > 0) location.replace("/");
                     changes[what]++;
                 }
             };
