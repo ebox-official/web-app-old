@@ -1,11 +1,13 @@
 #view-console-wrapper {
+  position: fixed;
+  top: 0;
+  left: 100%;
   width: 432px;
   max-width: 75vw;
   height: 100%;
   transform: translateX(-100%);
   box-shadow: -10px 0 20px #0004;
-  transition: transform .3s ease,
-              box-shadow .6s ease .3s;
+  transition: transform .3s ease, box-shadow .6s ease .3s;
 }
 #console-opening-trigger:not(:checked) + #view-console-wrapper {
   transform: translateX(0);
@@ -13,20 +15,22 @@
   box-shadow: -5px 0 10px #0002;
 }
 #view-console-handle {
+  position: absolute;
   top: calc(100vh - 128px);
-  right: 100%;
-  transform:
-    translate(28px, -50%)
-    rotateZ(-90deg);
-  background-color: #fff;
+  right: calc(100% - 32px);
+  transform: translate(28px, -50%) rotateZ(-90deg);
+  height: 100px;
   padding: 4px 15px;
-  z-index: 100;
   border-top: 1px solid #bbb;
-  -webkit-user-select: none;
+  background-color: #fff;
   user-select: none;
   cursor: pointer;
 }
 #view-console {
+  position: absolute;
+  top: 0;
+  left: 0;
   background-color: #fff;
   height: 100%;
+  width: 100%;
 }

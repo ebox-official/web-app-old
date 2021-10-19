@@ -39413,37 +39413,6 @@ let MAX_VALUE = '115792089237316195423570985008687907853269984665640564039457584
 
 /***/ }),
 
-/***/ 64250:
-/*!***************************************!*\
-  !*** ./src/assets/js/custom-utils.js ***!
-  \***************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "deviceType": () => (/* binding */ deviceType),
-/* harmony export */   "isMetaMaskInstalled": () => (/* binding */ isMetaMaskInstalled)
-/* harmony export */ });
-
-function deviceType() {
-    let ua = navigator.userAgent;
-    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
-        return "tablet";
-    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
-        return "mobile";
-    }
-    return "desktop";
-}
-
-function isMetaMaskInstalled() {
-    return window.ethereum
-        && window.ethereum.isMetaMask;
-}
-
-
-/***/ }),
-
 /***/ 90158:
 /*!***************************************!*\
   !*** ./src/app/app-routing.module.ts ***!
@@ -44179,14 +44148,14 @@ ViewConsoleComponent.ɵcmp = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODUL
     } if (rf & 2) {
         let _t;
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵqueryRefresh"](_t = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵloadQuery"]()) && (ctx.consoleOpeningCheckbox = _t.first);
-    } }, decls: 8, vars: 1, consts: [["hidden", "", "id", "console-opening-trigger", "type", "checkbox", 3, "input"], ["consoleOpeningCheckbox", ""], ["id", "view-console-wrapper", 1, "position-fixed", "top-0", "start-100"], ["for", "console-opening-trigger", "id", "view-console-handle", 1, "position-absolute", "end-100", "rounded-alot-top"], ["id", "view-console", 1, "px-3", "pt-3", "overflow-auto", "font-monospace", "text-break"], [1, "list-unstyled", "d-grid", "gap-2"], [3, "text-warning", "text-danger", 4, "ngFor", "ngForOf"], [1, "text-info"]], template: function ViewConsoleComponent_Template(rf, ctx) { if (rf & 1) {
+    } }, decls: 8, vars: 1, consts: [["hidden", "", "id", "console-opening-trigger", "type", "checkbox", 3, "input"], ["consoleOpeningCheckbox", ""], ["id", "view-console-wrapper"], ["for", "console-opening-trigger", "id", "view-console-handle", 1, "rounded-alot-top"], ["id", "view-console", 1, "px-3", "pt-3", "overflow-auto", "font-monospace", "text-break"], [1, "list-unstyled", "d-grid", "gap-2"], [3, "text-warning", "text-danger", 4, "ngFor", "ngForOf"], [1, "text-info"]], template: function ViewConsoleComponent_Template(rf, ctx) { if (rf & 1) {
         const _r3 = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵgetCurrentView"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](0, "input", 0, 1);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵlistener"]("input", function ViewConsoleComponent_Template_input_input_0_listener() { _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵrestoreView"](_r3); const _r0 = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵreference"](1); return ctx.setConsoleShowState(_r0); });
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](2, "div", 2);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](3, "label", 3);
-        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](4, "Console");
+        _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵtext"](4, " Console ");
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementEnd"]();
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](5, "div", 4);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵelementStart"](6, "ul", 5);
@@ -44197,7 +44166,7 @@ ViewConsoleComponent.ɵcmp = /*@__PURE__*/ _angular_core__WEBPACK_IMPORTED_MODUL
     } if (rf & 2) {
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵadvance"](7);
         _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵproperty"]("ngForOf", ctx.messages);
-    } }, directives: [_angular_common__WEBPACK_IMPORTED_MODULE_2__.NgForOf], pipes: [_angular_common__WEBPACK_IMPORTED_MODULE_2__.DatePipe], styles: ["#view-console-wrapper[_ngcontent-%COMP%] {\r\n  width: 432px;\r\n  max-width: 75vw;\r\n  height: 100%;\r\n  transform: translateX(-100%);\r\n  box-shadow: -10px 0 20px #0004;\r\n  transition: transform .3s ease,\r\n              box-shadow .6s ease .3s;\r\n}\r\n#console-opening-trigger[_ngcontent-%COMP%]:not(:checked)    + #view-console-wrapper[_ngcontent-%COMP%] {\r\n  transform: translateX(0);\r\n  z-index: 10;\r\n  box-shadow: -5px 0 10px #0002;\r\n}\r\n#view-console-handle[_ngcontent-%COMP%] {\r\n  top: calc(100vh - 128px);\r\n  right: 100%;\r\n  transform:\r\n    translate(28px, -50%)\r\n    rotateZ(-90deg);\r\n  background-color: #fff;\r\n  padding: 4px 15px;\r\n  z-index: 100;\r\n  border-top: 1px solid #bbb;\r\n  -webkit-user-select: none;\r\n  user-select: none;\r\n  cursor: pointer;\r\n}\r\n#view-console[_ngcontent-%COMP%] {\r\n  background-color: #fff;\r\n  height: 100%;\r\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInZpZXctY29uc29sZS5jb21wb25lbnQuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0VBQ0UsWUFBWTtFQUNaLGVBQWU7RUFDZixZQUFZO0VBQ1osNEJBQTRCO0VBQzVCLDhCQUE4QjtFQUM5QjtxQ0FDbUM7QUFDckM7QUFDQTtFQUNFLHdCQUF3QjtFQUN4QixXQUFXO0VBQ1gsNkJBQTZCO0FBQy9CO0FBQ0E7RUFDRSx3QkFBd0I7RUFDeEIsV0FBVztFQUNYOzttQkFFaUI7RUFDakIsc0JBQXNCO0VBQ3RCLGlCQUFpQjtFQUNqQixZQUFZO0VBQ1osMEJBQTBCO0VBQzFCLHlCQUF5QjtFQUN6QixpQkFBaUI7RUFDakIsZUFBZTtBQUNqQjtBQUNBO0VBQ0Usc0JBQXNCO0VBQ3RCLFlBQVk7QUFDZCIsImZpbGUiOiJ2aWV3LWNvbnNvbGUuY29tcG9uZW50LmNzcyIsInNvdXJjZXNDb250ZW50IjpbIiN2aWV3LWNvbnNvbGUtd3JhcHBlciB7XHJcbiAgd2lkdGg6IDQzMnB4O1xyXG4gIG1heC13aWR0aDogNzV2dztcclxuICBoZWlnaHQ6IDEwMCU7XHJcbiAgdHJhbnNmb3JtOiB0cmFuc2xhdGVYKC0xMDAlKTtcclxuICBib3gtc2hhZG93OiAtMTBweCAwIDIwcHggIzAwMDQ7XHJcbiAgdHJhbnNpdGlvbjogdHJhbnNmb3JtIC4zcyBlYXNlLFxyXG4gICAgICAgICAgICAgIGJveC1zaGFkb3cgLjZzIGVhc2UgLjNzO1xyXG59XHJcbiNjb25zb2xlLW9wZW5pbmctdHJpZ2dlcjpub3QoOmNoZWNrZWQpICsgI3ZpZXctY29uc29sZS13cmFwcGVyIHtcclxuICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMCk7XHJcbiAgei1pbmRleDogMTA7XHJcbiAgYm94LXNoYWRvdzogLTVweCAwIDEwcHggIzAwMDI7XHJcbn1cclxuI3ZpZXctY29uc29sZS1oYW5kbGUge1xyXG4gIHRvcDogY2FsYygxMDB2aCAtIDEyOHB4KTtcclxuICByaWdodDogMTAwJTtcclxuICB0cmFuc2Zvcm06XHJcbiAgICB0cmFuc2xhdGUoMjhweCwgLTUwJSlcclxuICAgIHJvdGF0ZVooLTkwZGVnKTtcclxuICBiYWNrZ3JvdW5kLWNvbG9yOiAjZmZmO1xyXG4gIHBhZGRpbmc6IDRweCAxNXB4O1xyXG4gIHotaW5kZXg6IDEwMDtcclxuICBib3JkZXItdG9wOiAxcHggc29saWQgI2JiYjtcclxuICAtd2Via2l0LXVzZXItc2VsZWN0OiBub25lO1xyXG4gIHVzZXItc2VsZWN0OiBub25lO1xyXG4gIGN1cnNvcjogcG9pbnRlcjtcclxufVxyXG4jdmlldy1jb25zb2xlIHtcclxuICBiYWNrZ3JvdW5kLWNvbG9yOiAjZmZmO1xyXG4gIGhlaWdodDogMTAwJTtcclxufSJdfQ== */"] });
+    } }, directives: [_angular_common__WEBPACK_IMPORTED_MODULE_2__.NgForOf], pipes: [_angular_common__WEBPACK_IMPORTED_MODULE_2__.DatePipe], styles: ["#view-console-wrapper[_ngcontent-%COMP%] {\r\n  position: fixed;\r\n  top: 0;\r\n  left: 100%;\r\n  width: 432px;\r\n  max-width: 75vw;\r\n  height: 100%;\r\n  transform: translateX(-100%);\r\n  box-shadow: -10px 0 20px #0004;\r\n  transition: transform .3s ease, box-shadow .6s ease .3s;\r\n}\r\n#console-opening-trigger[_ngcontent-%COMP%]:not(:checked)    + #view-console-wrapper[_ngcontent-%COMP%] {\r\n  transform: translateX(0);\r\n  z-index: 10;\r\n  box-shadow: -5px 0 10px #0002;\r\n}\r\n#view-console-handle[_ngcontent-%COMP%] {\r\n  position: absolute;\r\n  top: calc(100vh - 128px);\r\n  right: calc(100% - 32px);\r\n  transform: translate(28px, -50%) rotateZ(-90deg);\r\n  height: 100px;\r\n  padding: 4px 15px;\r\n  border-top: 1px solid #bbb;\r\n  background-color: #fff;\r\n  -webkit-user-select: none;\r\n          user-select: none;\r\n  cursor: pointer;\r\n}\r\n#view-console[_ngcontent-%COMP%] {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  background-color: #fff;\r\n  height: 100%;\r\n  width: 100%;\r\n}\n/*# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbInZpZXctY29uc29sZS5jb21wb25lbnQuY3NzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiJBQUFBO0VBQ0UsZUFBZTtFQUNmLE1BQU07RUFDTixVQUFVO0VBQ1YsWUFBWTtFQUNaLGVBQWU7RUFDZixZQUFZO0VBQ1osNEJBQTRCO0VBQzVCLDhCQUE4QjtFQUM5Qix1REFBdUQ7QUFDekQ7QUFDQTtFQUNFLHdCQUF3QjtFQUN4QixXQUFXO0VBQ1gsNkJBQTZCO0FBQy9CO0FBQ0E7RUFDRSxrQkFBa0I7RUFDbEIsd0JBQXdCO0VBQ3hCLHdCQUF3QjtFQUN4QixnREFBZ0Q7RUFDaEQsYUFBYTtFQUNiLGlCQUFpQjtFQUNqQiwwQkFBMEI7RUFDMUIsc0JBQXNCO0VBQ3RCLHlCQUFpQjtVQUFqQixpQkFBaUI7RUFDakIsZUFBZTtBQUNqQjtBQUNBO0VBQ0Usa0JBQWtCO0VBQ2xCLE1BQU07RUFDTixPQUFPO0VBQ1Asc0JBQXNCO0VBQ3RCLFlBQVk7RUFDWixXQUFXO0FBQ2IiLCJmaWxlIjoidmlldy1jb25zb2xlLmNvbXBvbmVudC5jc3MiLCJzb3VyY2VzQ29udGVudCI6WyIjdmlldy1jb25zb2xlLXdyYXBwZXIge1xyXG4gIHBvc2l0aW9uOiBmaXhlZDtcclxuICB0b3A6IDA7XHJcbiAgbGVmdDogMTAwJTtcclxuICB3aWR0aDogNDMycHg7XHJcbiAgbWF4LXdpZHRoOiA3NXZ3O1xyXG4gIGhlaWdodDogMTAwJTtcclxuICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoLTEwMCUpO1xyXG4gIGJveC1zaGFkb3c6IC0xMHB4IDAgMjBweCAjMDAwNDtcclxuICB0cmFuc2l0aW9uOiB0cmFuc2Zvcm0gLjNzIGVhc2UsIGJveC1zaGFkb3cgLjZzIGVhc2UgLjNzO1xyXG59XHJcbiNjb25zb2xlLW9wZW5pbmctdHJpZ2dlcjpub3QoOmNoZWNrZWQpICsgI3ZpZXctY29uc29sZS13cmFwcGVyIHtcclxuICB0cmFuc2Zvcm06IHRyYW5zbGF0ZVgoMCk7XHJcbiAgei1pbmRleDogMTA7XHJcbiAgYm94LXNoYWRvdzogLTVweCAwIDEwcHggIzAwMDI7XHJcbn1cclxuI3ZpZXctY29uc29sZS1oYW5kbGUge1xyXG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcclxuICB0b3A6IGNhbGMoMTAwdmggLSAxMjhweCk7XHJcbiAgcmlnaHQ6IGNhbGMoMTAwJSAtIDMycHgpO1xyXG4gIHRyYW5zZm9ybTogdHJhbnNsYXRlKDI4cHgsIC01MCUpIHJvdGF0ZVooLTkwZGVnKTtcclxuICBoZWlnaHQ6IDEwMHB4O1xyXG4gIHBhZGRpbmc6IDRweCAxNXB4O1xyXG4gIGJvcmRlci10b3A6IDFweCBzb2xpZCAjYmJiO1xyXG4gIGJhY2tncm91bmQtY29sb3I6ICNmZmY7XHJcbiAgdXNlci1zZWxlY3Q6IG5vbmU7XHJcbiAgY3Vyc29yOiBwb2ludGVyO1xyXG59XHJcbiN2aWV3LWNvbnNvbGUge1xyXG4gIHBvc2l0aW9uOiBhYnNvbHV0ZTtcclxuICB0b3A6IDA7XHJcbiAgbGVmdDogMDtcclxuICBiYWNrZ3JvdW5kLWNvbG9yOiAjZmZmO1xyXG4gIGhlaWdodDogMTAwJTtcclxuICB3aWR0aDogMTAwJTtcclxufSJdfQ== */"] });
 
 
 /***/ }),
@@ -44497,7 +44466,6 @@ __webpack_require__.r(__webpack_exports__);
 
 // Web3Utils is used exclusively for soliditySha3 function
 let Web3Utils = __webpack_require__(/*! web3-utils */ 5447);
-let { deviceType } = __webpack_require__(/*! ../../assets/js/custom-utils */ 64250);
 let { ObsEmitter, ObsCacher } = __webpack_require__(/*! bada55asyncutils */ 42376);
 let SmartInterval = __webpack_require__(/*! smartinterval */ 2270);
 let EthersModal = __webpack_require__(/*! ethersmodal */ 9268);
@@ -44593,7 +44561,7 @@ class ContractService {
         // Instantiate EthersModal and get the connection
         this.em = new EthersModal({
             providerOpts: myWallets,
-            cacheProvider: true // deviceType() !== "mobile"
+            cacheProvider: true
         });
         this.connection = this.em.connection;
         // The following code is to setup relayers for retro-compatibility
@@ -44631,7 +44599,7 @@ class ContractService {
             if (localStorage.getItem("ETHERS_MODAL_CACHED_PROVIDER")) {
                 this.connect();
             }
-        }, 1000);
+        }, 1500);
     }
     // Load supported tokens, instantiate contracts and start boxes fetching
     setVariables() {
@@ -44688,24 +44656,6 @@ class ContractService {
             }
             this.isChainSupported$.next(true);
             this.isAppReady$.next(true);
-            // Force reload of the dapp on network change for mobiles
-            if (deviceType() === "mobile") {
-                let changes = {
-                    "chainId": 0,
-                    "selectedAccount": 0
-                };
-                let reloadOnChangeOf = (what) => {
-                    return () => {
-                        if (changes[what] > 0)
-                            location.replace(document.getElementsByTagName("base")[0].href);
-                        changes[what]++;
-                    };
-                };
-                this.connection.chainId$
-                    .subscribe(reloadOnChangeOf("chainId"));
-                this.connection.selectedAccount$
-                    .subscribe(reloadOnChangeOf("selectedAccount"));
-            }
             this.viewConsoleServ.log(`Ethbox contract: ${this.ethboxAddress}`);
             this.viewConsoleServ.log(`Staking contract: ${this.stakingAddress}`);
             this.loadTokens();

@@ -11,7 +11,7 @@ import BigNumber from 'bignumber.js';
 
 // Web3Utils is used exclusively for soliditySha3 function
 let Web3Utils = require('web3-utils');
-let { deviceType } = require("../../assets/js/custom-utils");
+
 let { ObsEmitter, ObsCacher } = require("bada55asyncutils");
 let SmartInterval = require("smartinterval");
 let EthersModal = require("ethersmodal");
@@ -152,7 +152,7 @@ export class ContractService {
         // Instantiate EthersModal and get the connection
         this.em = new EthersModal({
             providerOpts: myWallets,
-            cacheProvider: true // deviceType() !== "mobile"
+            cacheProvider: true
         });
         this.connection = this.em.connection;
 
@@ -201,7 +201,7 @@ export class ContractService {
             if (localStorage.getItem("ETHERS_MODAL_CACHED_PROVIDER")) {
                 this.connect();
             }
-        }, 1000);
+        }, 1500);
     }
 
     // Load supported tokens, instantiate contracts and start boxes fetching
@@ -276,25 +276,6 @@ export class ContractService {
 
         this.isChainSupported$.next(true);
         this.isAppReady$.next(true);
-
-        // Force reload of the dapp on network change for mobiles
-        if (deviceType() === "mobile") {
-            let changes = {
-                "chainId": 0,
-                "selectedAccount": 0
-            };
-            let reloadOnChangeOf = (what) => {
-                return () => {
-                    if (changes[what] > 0)
-                        location.replace(document.getElementsByTagName("base")[0].href);
-                    changes[what]++;
-                }
-            };
-            this.connection.chainId$
-                .subscribe(reloadOnChangeOf("chainId"));
-            this.connection.selectedAccount$
-                .subscribe(reloadOnChangeOf("selectedAccount"));
-        }
 
         this.viewConsoleServ.log(`Ethbox contract: ${this.ethboxAddress}`);
         this.viewConsoleServ.log(`Staking contract: ${this.stakingAddress}`);
