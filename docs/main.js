@@ -39445,6 +39445,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const routes = [
     { path: '', component: _components_send_send_component__WEBPACK_IMPORTED_MODULE_5__.SendComponent },
+    { path: 'send', component: _components_send_send_component__WEBPACK_IMPORTED_MODULE_5__.SendComponent },
     { path: 'over-the-counter', component: _components_over_the_counter_over_the_counter_component__WEBPACK_IMPORTED_MODULE_3__.OverTheCounterComponent },
     { path: 'boxes/received', component: _components_boxes_received_list_boxes_received_list_component__WEBPACK_IMPORTED_MODULE_0__.BoxesReceivedListComponent },
     { path: 'boxes/sent', component: _components_boxes_sent_list_boxes_sent_list_component__WEBPACK_IMPORTED_MODULE_1__.BoxesSentListComponent },

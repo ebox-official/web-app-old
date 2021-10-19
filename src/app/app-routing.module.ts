@@ -10,6 +10,7 @@ import { StakingComponent } from './components/staking/staking.component';
 
 const routes: Routes = [
   { path: '', component: SendComponent },
+  { path: 'send', component: SendComponent },
   { path: 'over-the-counter', component: OverTheCounterComponent },
   { path: 'boxes/received', component: BoxesReceivedListComponent },
   { path: 'boxes/sent', component: BoxesSentListComponent },
