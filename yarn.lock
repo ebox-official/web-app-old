@@ -7009,10 +7009,10 @@ ethers@^5.4.7:
     "@ethersproject/web" "5.4.0"
     "@ethersproject/wordlists" "5.4.0"
 
-ethersmodal@^1.20.19:
-  version "1.20.19"
-  resolved "https://registry.yarnpkg.com/ethersmodal/-/ethersmodal-1.20.19.tgz#124949a8fc7c07db0950e5c9cc2c8da19d7cbac8"
-  integrity sha512-DYSLViRMb5poGnDc2/A2eH+4B5acPICll+LQxS+9td64soX1Fy7B5p95xrAz1DgCdwBcYkiVrVmQRFHKmu57bg==
+ethersmodal@^1.20.20:
+  version "1.20.20"
+  resolved "https://registry.yarnpkg.com/ethersmodal/-/ethersmodal-1.20.20.tgz#3f897051c9e167a7b1001639bac126bdde8e42d0"
+  integrity sha512-2le/A//aMXxjxxFgm8FSlIopXbleeG+9sXJ2PbW+AdHJcFUsbKV+aNtUQuJ09F3TnCm6HGDJvmJahUYqViPPbQ==
   dependencies:
     "@metamask/detect-provider" "^1.2.0"
     bada55asyncutils "^2.0.3"

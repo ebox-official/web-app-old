@@ -9,13 +9,12 @@ import { SendComponent } from './components/send/send.component';
 import { StakingComponent } from './components/staking/staking.component';
 
 const routes: Routes = [
-  { path: 'send', component: SendComponent },
+  { path: '', component: SendComponent },
   { path: 'over-the-counter', component: OverTheCounterComponent },
   { path: 'boxes/received', component: BoxesReceivedListComponent },
   { path: 'boxes/sent', component: BoxesSentListComponent },
   { path: 'staking', component: StakingComponent },
   { path: 'governance', component: GovernanceComponent },
-  { path: '', redirectTo: '/send', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent }
 ];
 
