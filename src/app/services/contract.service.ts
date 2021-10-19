@@ -285,7 +285,8 @@ export class ContractService {
             };
             let reloadOnChangeOf = (what) => {
                 return () => {
-                    if (changes[what] > 0) location.replace("/");
+                    if (changes[what] > 0)
+                        location.replace(document.getElementsByTagName("base")[0].href);
                     changes[what]++;
                 }
             };
