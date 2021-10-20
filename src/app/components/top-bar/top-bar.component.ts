@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { ContractService } from '../../services/contract.service';
 
 @Component({

@@ -28,6 +28,7 @@
     href="#"
     routerLink="/"
     routerLinkActive="active"
+    [routerLinkActiveOptions]="{ exact: true }"
     (mouseenter)="router.navigate([''])"
     (click)="triggerMenu.checked = false;"
     class="m-3 d-block text-uppercase text-reset text-decoration-none"
