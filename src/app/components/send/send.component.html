@@ -117,6 +117,29 @@
         </div>
         <!-- end of send amount input -->
 
+        <!-- message textarea -->
+        <div *ngIf="contractServ.isTestnet()" class="p-3 bg-eboxdark mb-3 rounded-alot text-white">
+          <label for="message-textarea" class="w-100">
+            Message
+          </label>
+          <div class="d-flex flex-column flex-lg-row my-2 my-lg-0 gap-2">
+            <textarea
+              #messageTextarea
+              (input)="message = messageTextarea.value;"
+              id="message-textarea"
+              class="input-nostyle flex-grow-1"
+              placeholder="An optional message"
+              [disabled]="
+                !isAppReady ||
+                (loadingIndicatorServ.isLoading$ | async)
+                  ? 'disabled'
+                  : null
+              "
+            ></textarea>
+          </div>
+        </div>
+        <!-- end of message textarea -->
+
         <div class="text-end">
           <a class="btn btn-outline-eboxprimary rounded-alot" data-bs-toggle="collapse" href="#advanced-options" (click)="setAdvancedUser()">
             Advanced options

@@ -43,6 +43,7 @@ export interface BoxInputs {
     sendDecimalValue: string;
     requestTokenAddress: string;
     requestDecimalValue: string;
+    message?: string;
 }
 
 export interface ToastData {

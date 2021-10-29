@@ -217,6 +217,26 @@
             </div>
           </div>
           <!-- end of request amount -->
+
+          <!-- message textarea -->
+          <div *ngIf="contractServ.isTestnet()" class="p-3 mb-3 rounded-alot"
+            [class.text-white]="!box.taken"
+            [class.bg-eboxdark]="!box.taken"
+            [class.bg-completed]="box.taken"
+            [class.text-muted]="box.taken"
+          >
+            <label for="message-textarea" class="w-100">
+              Message
+            </label>
+            <div class="d-flex flex-column flex-lg-row my-2 my-lg-0 gap-2">
+              <textarea
+                [value]="message"
+                class="input-nostyle flex-grow-1"
+                disabled
+              ></textarea>
+            </div>
+          </div>
+          <!-- end of message textarea -->
         </div>
 
         <div *ngIf="!box.taken" class="text-end">

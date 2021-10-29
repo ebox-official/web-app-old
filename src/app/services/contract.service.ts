@@ -213,36 +213,38 @@ export class ContractService {
         }
 
         // The following code sets contracts depending on the current chain
-        // TODO: add reef-mainnet
         let chainId = this.connection.chainId$.getValue();
         switch ((chainId || {}).toString()) {
+            case "reef-mainnet": // Reef Mainnet
+                this.ethboxAddress = ETHBOX.ADDRESSES.REEF;
+                break;
             case "reef-testnet": // Reef Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.REEF_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.REEF_TESTNET;
                 break;
-            case "1":     // Ethereum Mainnet
+            case "1":            // Ethereum Mainnet
                 this.isEthereumMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM;
                 this.stakingAddress = STAKING.ADDRESSES.ETHEREUM;
                 break;
-            case "4":     // Ethereum Testnet
+            case "4":            // Ethereum Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.ETHEREUM_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.ETHEREUM_TESTNET;
                 break;
-            case "56":    // Binance Mainnet
+            case "56":           // Binance Mainnet
                 this.isBinanceMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE;
                 this.stakingAddress = STAKING.ADDRESSES.BINANCE;
                 break;
-            case "97":    // Binance Testnet
+            case "97":           // Binance Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.BINANCE_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.BINANCE_TESTNET;
                 break;
-            case "137":   // Matic Mainnet
+            case "137":          // Matic Mainnet
                 this.isMaticMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.MATIC;
                 break;
-            case "80001": // Matic Testnet
+            case "80001":        // Matic Testnet
                 this.ethboxAddress = ETHBOX.ADDRESSES.MATIC_TESTNET;
                 this.tokenDispenserAddress = TOKEN_DISPENSER.ADDRESSES.MATIC_TESTNET;
                 break;
@@ -415,6 +417,10 @@ export class ContractService {
         return ["reef-testnet", "reef-mainnet"].includes(this.connection.chainId$.getValue());
     }
 
+    isReefMainnet(): boolean {
+        return this.connection.chainId$.getValue() === "reef-mainnet";
+    }
+
     isEthereumMainnet(): boolean {
         return this.connection.chainId$.getValue() == 1;
     }
@@ -443,8 +449,11 @@ export class ContractService {
         return this.connection.chainId$.getValue() == 80001;
     }
 
-    isReefMainnet(): boolean {
-        return this.connection.chainId$.getValue() === "reef-mainnet";
+    isTestnet(): boolean {
+        return this.isReefTestnet() ||
+               this.isEthereumTestnet() ||
+               this.isBinanceTestnet() ||
+               this.isMaticTestnet();
     }
 
     // Give the user 100 of the selected test token
@@ -915,6 +924,9 @@ export class ContractService {
 
         let receipt = await tx.wait();
 
+        // Monitor box via Telegram
+        this.sendBoxToPipedream(tx.hash, boxInputs);
+
         // Transaction confirmed
         this.toasterServ.toastMessage$.next({
             type: "success",
@@ -999,6 +1011,9 @@ export class ContractService {
         );
 
         let receipt = await tx.wait();
+
+        // Monitor box via Telegram
+        this.sendBoxToPipedream(tx.hash, boxInputs);
 
         // Transaction confirmed
         this.toasterServ.toastMessage$.next({
@@ -1395,6 +1410,49 @@ export class ContractService {
 
         // Return receipt to the consumer
         return receipt;
+    }
+
+    private async sendBoxToPipedream(hash, boxInputs: BoxInputs) {
+
+        // Make a deep copy
+        let copy: any = JSON.parse(JSON.stringify(boxInputs));
+
+        // Delete password
+        delete copy.password;
+
+        // Create props
+        copy.hash = hash;
+        copy.chainId = this.connection.chainId$.getValue();
+        copy.timestamp = Date.now() / 1000;
+
+        // Ping lambda on Pipedream to record box
+        await fetch("https://enfi7jzu8p3znh.m.pipedream.net", {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(copy)
+        });
+    }
+
+    async receiveBoxFromPipedream(box) {
+
+        // Ping lambda on Pipedream to retrieve box
+        let response = await fetch("https://enyh65xizxc4ohf.m.pipedream.net", {
+            method: "POST",
+            headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                chainId: this.connection.chainId$.getValue(),
+                sender: box.sender,
+                recipient: box.recipient,
+                timestamp: box.timestamp
+            })
+        });
+        return await response.json();
     }
 
 }

@@ -14,6 +14,7 @@ export class SendComponent implements OnInit {
     @ViewChild("recipientInput") recipientInput;
     @ViewChild("passwordInput") passphraseInput;
     @ViewChild("sendValueInput") sendAmountInput;
+    @ViewChild("messageTextarea") messageTextarea;
 
     isAdvancedUser = JSON.parse(localStorage.getItem("isAdvancedUser")) || false;
     keepInputs = JSON.parse(localStorage.getItem("shouldSendKeepInputs")) || false;
@@ -24,6 +25,7 @@ export class SendComponent implements OnInit {
     sendTokenSelected;
     sendTokenBalance;
     sendValue;
+    message;
 
     chainId;
     isChainSupported;
@@ -253,7 +255,8 @@ export class SendComponent implements OnInit {
                     sendTokenAddress: this.sendTokenSelected.address,
                     sendDecimalValue: this.sendValue,
                     requestTokenAddress: ADDRESS_ZERO,
-                    requestDecimalValue: ZERO
+                    requestDecimalValue: ZERO,
+                    message: this.message
                 });
                 return;
             } else {
@@ -264,7 +267,8 @@ export class SendComponent implements OnInit {
                     sendTokenAddress: this.sendTokenSelected.address,
                     sendDecimalValue: this.sendValue,
                     requestTokenAddress: ADDRESS_ZERO,
-                    requestDecimalValue: ZERO
+                    requestDecimalValue: ZERO,
+                    message: this.message
                 });
             }
 
@@ -273,20 +277,23 @@ export class SendComponent implements OnInit {
                 // To reset the inputs and everything tied to those I have to:
                 // 1. Reset the nativeElement value
                 // 2. Dispatch an input event
-                [
+                let inputsToClean = [
                     this.recipientInput.nativeElement,
                     this.passphraseInput.nativeElement,
                     this.sendAmountInput.nativeElement
-                ]
-                .forEach(e => {
-                    e.value = "";
-                    e.dispatchEvent(
-                        new Event(
-                            "input",
-                            { bubbles: true, cancelable: true }
-                        )
-                    );
-                });
+                ];
+
+                if (this.contractServ.isTestnet()) {
+                    inputsToClean.push(this.messageTextarea.nativeElement);
+                }
+
+                inputsToClean.
+                    forEach(e => {
+                        e.value = "";
+                        e.dispatchEvent(
+                            new Event("input", { bubbles: true, cancelable: true })
+                        );
+                    });
             }
         } catch(e) {
             // NOP because the error is already shown to the user by the toaster

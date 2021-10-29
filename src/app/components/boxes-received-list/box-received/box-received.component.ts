@@ -17,6 +17,7 @@ export class BoxReceivedComponent implements OnInit {
     isExpanded = false;
     sendTokenBalance;
     requestTokenBalance;
+    message = "Loading...";
 
     constructor(
         public contractServ: ContractService,
@@ -39,6 +40,10 @@ export class BoxReceivedComponent implements OnInit {
                 this.requestTokenBalance = await this.contractServ
                     .getTokenBalance(this.box.requestTokenInfo.address);
             }
+            
+            // Get the message from Pipedream
+            let { message } = await this.contractServ.receiveBoxFromPipedream(this.box);
+            this.message = message || "-";
             
             console.log("Opened box", this.box);
         }

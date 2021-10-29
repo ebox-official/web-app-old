@@ -14,6 +14,7 @@ export class OverTheCounterComponent implements OnInit {
     @ViewChild("passwordInput") passphraseInput;
     @ViewChild("sendValueInput") sendAmountInput;
     @ViewChild("requestValueInput") receiveAmountInput;
+    @ViewChild("messageTextarea") messageTextarea;
 
     isAdvancedUser = JSON.parse(localStorage.getItem("isAdvancedUser")) || false;
     keepInputs = JSON.parse(localStorage.getItem("shouldSendKeepInputs")) || false;
@@ -25,6 +26,7 @@ export class OverTheCounterComponent implements OnInit {
     sendValue;
     requestTokenSelected;
     requestValue;
+    message;
 
     chainId;
     isChainSupported;
@@ -293,7 +295,8 @@ export class OverTheCounterComponent implements OnInit {
                 sendTokenAddress: this.sendTokenSelected.address,
                 sendDecimalValue: this.sendValue,
                 requestTokenAddress: this.requestTokenSelected.address,
-                requestDecimalValue: this.requestValue
+                requestDecimalValue: this.requestValue,
+                message: this.message
             });
 
             // Clean the inputs if keepInputs is false
@@ -301,21 +304,24 @@ export class OverTheCounterComponent implements OnInit {
                 // To reset the inputs and everything tied to those I have to:
                 // 1. Reset the nativeElement value
                 // 2. Dispatch an input event
-                [
+                let inputsToClean = [
                     this.recipientInput.nativeElement,
                     this.passphraseInput.nativeElement,
                     this.sendAmountInput.nativeElement,
                     this.receiveAmountInput.nativeElement
                 ]
-                .forEach(e => {
-                    e.value = "";
-                    e.dispatchEvent(
-                        new Event(
-                            "input",
-                            { bubbles: true, cancelable: true }
-                        )
-                    );
-                });
+                
+                if (this.contractServ.isTestnet()) {
+                    inputsToClean.push(this.messageTextarea.nativeElement);
+                }
+
+                inputsToClean.
+                    forEach(e => {
+                        e.value = "";
+                        e.dispatchEvent(
+                            new Event("input", { bubbles: true, cancelable: true })
+                        );
+                    });
             }
         } catch (e) {
             // NOP because the error is already shown to the user by the toaster
