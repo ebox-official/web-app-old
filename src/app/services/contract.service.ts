@@ -65,7 +65,7 @@ export class ContractService {
     tokenDispenserInteraction$ = new ObsEmitter();
 
     // These variables are just for the boxes loop, it uses SmartInterval under the hood, to know more see https://github.com/4skinSkywalker/SmartInterval
-    private boxesIntervalCycleDelay = 5e3;
+    private boxesIntervalCycleDelay = 2e3;
     private boxesInterval;
 
     // These fields are variables initialized by setVariables
@@ -189,11 +189,15 @@ export class ContractService {
         );
 
         // Setup automatic fetching of boxes and setting of variables
-        this.connection.networkChangeNotification$
-            .subscribe(() => {
+        [
+            this.connection.isConnected$,
+            this.connection.networkChangeNotification$
+        ].forEach(obs =>
+            obs.subscribe(() => {
                 this.boxesInterval.forceExecution();
                 this.setVariables();
-            });
+            })    
+        );
 
         // Automatically connect if there's a cached provider
         // Must defer this because it could run before the provider is injected into the page

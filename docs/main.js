@@ -44606,7 +44606,7 @@ class ContractService {
         this.stakingInteraction$ = new ObsEmitter();
         this.tokenDispenserInteraction$ = new ObsEmitter();
         // These variables are just for the boxes loop, it uses SmartInterval under the hood, to know more see https://github.com/4skinSkywalker/SmartInterval
-        this.boxesIntervalCycleDelay = 5e3;
+        this.boxesIntervalCycleDelay = 2e3;
         this.init();
     }
     ; // This is a relayer for connection.chainId$
@@ -44698,11 +44698,13 @@ class ContractService {
         // Force boxes to be fetched on boxInteraction$
         this.boxInteraction$.subscribe(() => this.boxesInterval.forceExecution());
         // Setup automatic fetching of boxes and setting of variables
-        this.connection.networkChangeNotification$
-            .subscribe(() => {
+        [
+            this.connection.isConnected$,
+            this.connection.networkChangeNotification$
+        ].forEach(obs => obs.subscribe(() => {
             this.boxesInterval.forceExecution();
             this.setVariables();
-        });
+        }));
         // Automatically connect if there's a cached provider
         // Must defer this because it could run before the provider is injected into the page
         setTimeout(() => {
