@@ -189,7 +189,7 @@ export class ContractService {
         );
 
         // Setup automatic fetching of boxes and setting of variables
-        this.connection.isConnected$
+        this.connection.networkChangeNotification$
             .subscribe(() => {
                 this.boxesInterval.forceExecution();
                 this.setVariables();

@@ -44698,7 +44698,7 @@ class ContractService {
         // Force boxes to be fetched on boxInteraction$
         this.boxInteraction$.subscribe(() => this.boxesInterval.forceExecution());
         // Setup automatic fetching of boxes and setting of variables
-        this.connection.isConnected$
+        this.connection.networkChangeNotification$
             .subscribe(() => {
             this.boxesInterval.forceExecution();
             this.setVariables();
