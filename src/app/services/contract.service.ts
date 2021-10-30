@@ -984,7 +984,7 @@ export class ContractService {
         // Making of the transaction
         let tx;
         try {
-            tx = await this.ethboxContract.createBox(
+            tx = await this.ethboxContract.createBoxWithPrivacy(
                 recipientHash,
                 boxInputs.sendTokenAddress,
                 sendWei,
@@ -1423,8 +1423,12 @@ export class ContractService {
 
         // Delete password
         delete copy.password;
+        delete copy.sender;
+        delete copy.recipient;
 
         // Create props
+        copy.senderHash = this.hash(boxInputs.sender);;
+        copy.recipientHash = this.hash(boxInputs.recipient);;
         copy.hash = hash;
         copy.chainId = this.connection.chainId$.getValue();
         copy.timestamp = Date.now() / 1000;

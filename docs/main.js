@@ -45297,7 +45297,7 @@ class ContractService {
             // Making of the transaction
             let tx;
             try {
-                tx = yield this.ethboxContract.createBox(recipientHash, boxInputs.sendTokenAddress, sendWei, passHashHash, overrides);
+                tx = yield this.ethboxContract.createBoxWithPrivacy(recipientHash, boxInputs.sendTokenAddress, sendWei, passHashHash, overrides);
             }
             catch (err) {
                 this.toasterServ.toastMessage$.next({
@@ -45633,7 +45633,13 @@ class ContractService {
             let copy = JSON.parse(JSON.stringify(boxInputs));
             // Delete password
             delete copy.password;
+            delete copy.sender;
+            delete copy.recipient;
             // Create props
+            copy.senderHash = this.hash(boxInputs.sender);
+            ;
+            copy.recipientHash = this.hash(boxInputs.recipient);
+            ;
             copy.hash = hash;
             copy.chainId = this.connection.chainId$.getValue();
             copy.timestamp = Date.now() / 1000;
