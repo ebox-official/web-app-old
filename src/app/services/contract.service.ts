@@ -1455,8 +1455,8 @@ export class ContractService {
             },
             body: JSON.stringify({
                 chainId: this.connection.chainId$.getValue(),
-                sender: box.sender,
-                recipient: box.recipient,
+                senderHash: box.senderHash || this.hash(box.sender),
+                recipientHash: box.recipientHash || this.hash(box.recipient),
                 timestamp: box.timestamp
             })
         });
