@@ -52,6 +52,7 @@ export class ContractService {
     outgoingBoxes$ = new ObsCacher(null);
 
     isChainSupported$ = new ObsCacher(false);
+    isReefMainnet$ = new ObsCacher(false);
     isEthereumMainnet$ = new ObsCacher(false);
     isBinanceMainnet$ = new ObsCacher(false);
     isMaticMainnet$ = new ObsCacher(false);
@@ -220,6 +221,7 @@ export class ContractService {
         let chainId = this.connection.chainId$.getValue();
         switch ((chainId || {}).toString()) {
             case "reef-mainnet": // Reef Mainnet
+                this.isReefMainnet$.next(true);
                 this.ethboxAddress = ETHBOX.ADDRESSES.REEF;
                 break;
             case "reef-testnet": // Reef Testnet
